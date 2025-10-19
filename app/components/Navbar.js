@@ -23,14 +23,14 @@ export default function Navbar() {
   }, []);
 
   const toggleDarkMode = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+  setTheme(theme === "dark" ? "light" : "dark");
+};
 
   const navLinks = [
-    { name: t('home'), href: '#home' },
-    { name: t('cars'), href: '#cars' },
-    { name: t('about'), href: '#about' },
-    { name: t('contact'), href: '#contact' },
+    { name: t('home'), href: '/' },
+    { name: t('cars'), href: '/cars' },
+    { name: t('about'), href: '/about' },
+    { name: t('contact'), href: '/contact' },
   ];
 
   return (
