@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from './LanguageProvider';
-
+import Link from 'next/link';
 export default function FeaturedCars() {
   const { t } = useLanguage();
   
@@ -171,7 +171,7 @@ export default function FeaturedCars() {
 
         {/* View All Button */}
         <div className="text-center mt-12">
-          <button className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-semibold text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+          <Link href="/cars"><button className="px-8 py-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-full font-semibold text-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
             {t('viewAllCars')}
             <svg
               className="inline-block ml-2 w-5 h-5"
@@ -184,7 +184,7 @@ export default function FeaturedCars() {
             >
               <path d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
-          </button>
+          </button></Link>
         </div>
       </div>
     </section>
