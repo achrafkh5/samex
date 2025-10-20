@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useContext } from 'react';
-import { LanguageContext } from '../components/LanguageProvider';
+import { useState, useContext, use } from 'react';
+import { useLanguage } from '../components/LanguageProvider';
 import { uploadToCloudinary, validateFile, formatFileSize, getFileTypeIcon } from '../utils/cloudinaryHelper';
 
 export default function UploadContent() {
-  const { language, translations } = useContext(LanguageContext);
-  const t = translations[language];
+  const t = useLanguage();
 
   const [activeTab, setActiveTab] = useState('id_card');
   const [uploads, setUploads] = useState({
