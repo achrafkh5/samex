@@ -5,7 +5,8 @@ import { useLanguage } from '../components/LanguageProvider';
 import { uploadToCloudinary, validateFile, formatFileSize, getFileTypeIcon } from '../utils/cloudinaryHelper';
 
 export default function UploadContent() {
-  const t = useLanguage();
+  const { language, t } = useLanguage();
+
 
   const [activeTab, setActiveTab] = useState('id_card');
   const [uploads, setUploads] = useState({
