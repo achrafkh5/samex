@@ -114,10 +114,6 @@ export default function BrandLogos() {
           width: max-content;
         }
 
-        .animate-scroll-infinite:hover {
-          animation-play-state: paused;
-        }
-
         @media (max-width: 768px) {
           .animate-scroll-infinite {
             animation-duration: 20s;
