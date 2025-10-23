@@ -8,7 +8,7 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-0"
     >
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
@@ -23,7 +23,7 @@ export default function Hero() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center py-8 sm:py-0">
         <div className="max-w-4xl mx-auto">
           {/* Badge */}
           <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 animate-fade-in">
@@ -74,7 +74,7 @@ export default function Hero() {
           </div>
 
           {/* Stats */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
+          <div className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
             {[
               { label: t('carsAvailable'), value: '500+' },
               { label: t('happyCustomers'), value: '2,500+' },
@@ -83,12 +83,12 @@ export default function Hero() {
             ].map((stat, index) => (
               <div
                 key={index}
-                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-4 hover:bg-white/20 transition-all duration-300"
+                className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 sm:p-4 hover:bg-white/20 transition-all duration-300"
               >
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-2xl sm:text-3xl font-bold text-white mb-1">
                   {stat.value}
                 </div>
-                <div className="text-sm text-gray-300">{stat.label}</div>
+                <div className="text-xs sm:text-sm text-gray-300 leading-tight">{stat.label}</div>
               </div>
             ))}
           </div>
