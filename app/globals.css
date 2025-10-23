@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Configure dark mode for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Force override system color-scheme preference */
 :root {
   color-scheme: light;
