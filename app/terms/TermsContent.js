@@ -193,7 +193,7 @@ export default function TermsContent() {
                       {t?.terms?.purposeTitle || 'Purpose of Terms'}
                     </h3>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                      {t?.terms?.purposeText1 || 'These Terms and Conditions ("Terms") govern your use of the DreamCars website and services. By accessing or using our platform, you agree to be bound by these Terms.'}
+                      {t?.terms?.purposeText1 || 'These Terms and Conditions ("Terms") govern your use of the ALKO Cars website and services. By accessing or using our platform, you agree to be bound by these Terms.'}
                     </p>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
                       {t?.terms?.purposeText2 || 'If you do not agree with any part of these Terms, you must not use our services.'}
@@ -227,7 +227,7 @@ export default function TermsContent() {
                           {t?.terms?.defAgency || '"Agency"'}
                         </h4>
                         <p className="text-gray-700 dark:text-gray-300">
-                          {t?.terms?.defAgencyText || 'Refers to DreamCars, the car import and delivery agency operating this website and providing the services.'}
+                          {t?.terms?.defAgencyText || 'Refers to ALKO Cars, the Korean car export and delivery agency operating this website and providing the services.'}
                         </p>
                       </div>
 
@@ -821,16 +821,16 @@ export default function TermsContent() {
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                               {t?.terms?.legalTeam || 'Legal Team'}
                             </p>
-                            <a href="mailto:legal@dreamcars.com" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
-                              legal@dreamcars.com
+                            <a href="mailto:legal@alkocars.com" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+                              legal@alkocars.com
                             </a>
                           </div>
                           <div>
                             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                               {t?.terms?.generalInquiries || 'General Inquiries'}
                             </p>
-                            <a href="mailto:support@dreamcars.com" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
-                              support@dreamcars.com
+                            <a href="mailto:support@alkocars.com" className="text-blue-600 dark:text-blue-400 font-medium hover:underline">
+                              support@alkocars.com
                             </a>
                           </div>
                         </div>
@@ -869,7 +869,7 @@ export default function TermsContent() {
                     {t?.terms?.lastReviewed || 'Last Reviewed'}: {t?.terms?.reviewDate || 'January 2024'}
                   </p>
                   <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    © {new Date().getFullYear()} DreamCars Agency. {t?.terms?.allRightsReserved || 'All rights reserved.'}
+                    © {new Date().getFullYear()} ALKO Cars. {t?.terms?.allRightsReserved || 'All rights reserved.'}
                   </p>
                 </div>
               </div>

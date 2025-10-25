@@ -12,7 +12,6 @@ import ClientsModule from './modules/ClientsModule';
 import OrdersModule from './modules/OrdersModule';
 import PaymentsModule from './modules/PaymentsModule';
 import PaymentMethodsModule from './modules/PaymentMethodsModule';
-import TrackingModule from './modules/TrackingModule';
 import DocumentsModule from './modules/DocumentsModule';
 import FilesModule from './modules/FilesModule';
 import PDFGeneratorModule from './modules/PDFGeneratorModule';
@@ -64,8 +63,6 @@ export default function AdminDashboardContent() {
         return <PaymentsModule />;
       case 'payment-methods':
         return <PaymentMethodsModule />;
-      case 'tracking':
-        return <TrackingModule />;
       case 'documents':
         return <DocumentsModule />;
       case 'files':

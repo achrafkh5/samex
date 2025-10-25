@@ -1,6 +1,7 @@
 'use client';
 
 import { useLanguage } from './LanguageProvider';
+import Image from 'next/image';
 
 export default function Mission() {
   const { t } = useLanguage();
@@ -12,26 +13,27 @@ export default function Mission() {
           {/* Left Side - Image */}
           <div className="relative">
             <div className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1562519819-019d3d5d36f6?q=80&w=800"
                 alt="Luxury Car Showroom"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
               
               {/* Stats Overlay */}
               <div className="absolute bottom-6 left-6 right-6 grid grid-cols-3 gap-4">
                 <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">500+</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('carsAvailable')}</div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">2024</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('foundedYear')}</div>
                 </div>
                 <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">2,500+</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('happyCustomers')}</div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">35</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('deliveryTime')}</div>
                 </div>
                 <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">15+</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('yearsExperience')}</div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">Jijel</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('shippingPort')}</div>
                 </div>
               </div>
             </div>

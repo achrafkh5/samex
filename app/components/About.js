@@ -2,6 +2,7 @@
 
 import { useLanguage } from './LanguageProvider';
 import Link from 'next/link';
+import Image from 'next/image';
 export default function About() {
   const { t } = useLanguage();
   const features = [
@@ -142,33 +143,37 @@ export default function About() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-4">
                 <div className="relative h-48 rounded-2xl overflow-hidden">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=600"
                     alt="Showroom"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    fill
+                    className="object-cover hover:scale-110 transition-transform duration-500"
                   />
                 </div>
                 <div className="relative h-64 rounded-2xl overflow-hidden">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?q=80&w=600"
                     alt="Car Interior"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    fill
+                    className="object-cover hover:scale-110 transition-transform duration-500"
                   />
                 </div>
               </div>
               <div className="space-y-4 pt-8">
                 <div className="relative h-64 rounded-2xl overflow-hidden">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=600"
                     alt="Sports Car"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    fill
+                    className="object-cover hover:scale-110 transition-transform duration-500"
                   />
                 </div>
                 <div className="relative h-48 rounded-2xl overflow-hidden">
-                  <img
+                  <Image
                     src="https://images.unsplash.com/photo-1583121274602-3e2820c69888?q=80&w=600"
                     alt="Luxury Car"
-                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                    fill
+                    className="object-cover hover:scale-110 transition-transform duration-500"
                   />
                 </div>
               </div>
@@ -190,10 +195,10 @@ export default function About() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    2,500+
+                    35 {t('days')}
                   </p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Happy Customers
+                    {t('deliveryTime')}
                   </p>
                 </div>
               </div>

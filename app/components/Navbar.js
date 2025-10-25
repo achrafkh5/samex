@@ -45,10 +45,10 @@ export default function Navbar() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="flex items-center justify-center w-20 h-10 relative rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
-                <Image src="/logo.png" alt="Logo" height={100} width={60} className="object-contain" />
+              <div className="flex items-center justify-center w-25 h-15 relative rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
+                <Image src="/logo.png" alt="Logo" height={80} width={80} className="object-contain" />
               </div>
             </Link>
           </div>

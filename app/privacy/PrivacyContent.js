@@ -126,7 +126,7 @@ export default function PrivacyContent() {
                   </div>
                   <div className="prose dark:prose-invert max-w-none">
                     <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4">
-                      {t?.privacy?.introText1 || 'At DreamCars, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, store, and protect your data when you use our services.'}
+                      {t?.privacy?.introText1 || 'At ALKO Cars, we are committed to protecting your privacy and ensuring the security of your personal information. This Privacy Policy explains how we collect, use, store, and protect your data when you use our services.'}
                     </p>
                     <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
                       {t?.privacy?.introText2 || 'By using our website and services, you agree to the collection and use of information in accordance with this policy. We encourage you to read this policy carefully to understand our practices regarding your personal data.'}
@@ -580,8 +580,8 @@ export default function PrivacyContent() {
                         <p className="text-gray-700 dark:text-gray-300 mb-2">
                           {t?.privacy?.privacyEmail || 'Privacy Team'}:
                         </p>
-                        <a href="mailto:privacy@dreamcars.com" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
-                          privacy@dreamcars.com
+                        <a href="mailto:privacy@alkocars.com" className="text-blue-600 dark:text-blue-400 hover:underline font-semibold">
+                          privacy@alkocars.com
                         </a>
                       </div>
 

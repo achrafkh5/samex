@@ -55,8 +55,9 @@ export default function ContactCTA() {
                   <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
-              <h3 className="text-white font-semibold mb-2">{t('callUs')}</h3>
-              <p className="text-white/80 text-sm">+1 (555) 123-4567</p>
+              <h3 className="text-white font-semibold mb-2">{t('algeriaPhones')}</h3>
+              <p className="text-white/80 text-sm">+213 550 399 115</p>
+              <p className="text-white/80 text-sm">+213 549 006 132</p>
             </div>
 
             <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300">
@@ -70,11 +71,12 @@ export default function ContactCTA() {
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
               </div>
-              <h3 className="text-white font-semibold mb-2">{t('emailUs')}</h3>
-              <p className="text-white/80 text-sm">info@dreamcars.com</p>
+              <h3 className="text-white font-semibold mb-2">{t('koreaPhones')}</h3>
+              <p className="text-white/80 text-sm">+82 10-3086-1401</p>
+              <p className="text-white/80 text-sm">+82 10-6890-4366</p>
             </div>
 
             <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 hover:bg-white/20 transition-all duration-300">
@@ -93,7 +95,7 @@ export default function ContactCTA() {
                 </svg>
               </div>
               <h3 className="text-white font-semibold mb-2">{t('visitUs')}</h3>
-              <p className="text-white/80 text-sm">123 Auto Plaza, NY</p>
+              <p className="text-white/80 text-sm">Seoul, South Korea</p>
             </div>
           </div>
 

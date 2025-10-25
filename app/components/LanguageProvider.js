@@ -1,5 +1,6 @@
 'use client';
 
+import { Days_One } from 'next/font/google';
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const LanguageContext = createContext();
@@ -11,7 +12,7 @@ export const translations = {
     cars: 'Cars',
     about: 'About',
     contact: 'Contact',
-    brand: 'ALCO Cars',
+    brand: 'ALKO Cars',
     
     // Hero
     herobadge: 'Over 500+ Premium Cars Available',
@@ -36,7 +37,8 @@ export const translations = {
     power: 'Power',
     topSpeed: 'Top Speed',
     range: 'Range',
-    
+    days: 'Days',
+    jijel:'Jijel',
     // About
     aboutUs: 'About Us',
     aboutTitle1: 'Your Trusted Partner in',
@@ -376,6 +378,19 @@ export const translations = {
     invalidTrackingCode: 'Please enter a valid tracking code',
     enterCodeToTrack: 'Enter your tracking code above to view delivery status',
     trackingHelp: 'Need help? Contact our support team',
+    
+    // SeaRates Tracking Integration
+    addTrackingCode: 'Add Tracking Code',
+    editTrackingCode: 'Edit Tracking Code',
+    save: 'Save',
+    trackingCodeLabel: 'Container Tracking Code',
+    enterContainerNumber: 'Enter container number',
+    trackingSavedSuccessfully: 'Tracking code saved successfully',
+    trackContainer: 'Track Container',
+    trackingNotAvailableYet: 'Tracking not available yet',
+    containerTracking: 'Container Tracking',
+    added: 'Added',
+    missing: 'Missing',
     refreshTracking: 'Refresh Tracking',
     lastUpdated: 'Last Updated',
     liveTracking: 'Live Tracking',
@@ -580,6 +595,36 @@ export const translations = {
     rate_unavailable: 'Rate unavailable',
     from: 'From',
     to: 'To',
+    
+    // Company Information (Updated)
+    companyName: 'ALKO Cars',
+    companyAddress: '7-6, Cheongpa-ro 63ga-gil, Yongsan-gu, Seoul, South Korea (04308)',
+    foundedYear: 'Founded in 2024',
+    companyMission: 'Facilitating vehicle imports from South Korea to Algeria with complete transparency',
+    deliveryTime: '35 days estimated delivery',
+    shippingPort: 'Port de Jijel Djen Djen',
+    algeriaPhones: 'Algeria Phones',
+    koreaPhones: 'Korea Phones',
+    socialMedia: 'Social Media',
+    availabilityText: 'Contact by call or WhatsApp at any time',
+    secondShippingMethod: 'Second shipping method available',
+    
+    // Home Page Updates
+    vehicleTypes: 'Export of all types of Korean vehicles (petrol, hybrid, and other categories)',
+    reservationValidity: '1-week deposit validity',
+    fullPaymentRequired: 'Full payment required before shipment',
+    shippingRoute: 'Shipping by container from Incheon to Jijel',
+    customsProcess: 'Customs and pickup process in Algeria',
+    vehicleSourcing: 'Vehicle Sourcing & Inspection in Korea',
+    vehicleSourcingDesc: 'We source and thoroughly inspect all vehicles in South Korea before shipment',
+    reservationSystem: 'Reservation System',
+    reservationSystemDesc: 'Secure your vehicle with a deposit valid for 1 week',
+    paymentProcess: 'Payment Process',
+    paymentProcessDesc: 'Full payment required before shipment to ensure smooth delivery',
+    shippingProcess: 'Shipping Process',
+    shippingProcessDesc: 'Container shipping from Incheon Port to Port de Jijel Djen Djen',
+    customsPickup: 'Customs & Pickup',
+    customsPickupDesc: 'Complete customs clearance and vehicle pickup in Algeria',
     welcome: 'Welcome',
     vehicle: 'Vehicle',
     availableDocuments: 'Available Documents',
@@ -869,7 +914,7 @@ export const translations = {
     cars: 'Voitures',
     about: 'À Propos',
     contact: 'Contact',
-    brand: 'ALCO Cars',
+    brand: 'ALKO Cars',
     
     // Hero
     heroTitle1: 'Trouvez Votre',
@@ -894,7 +939,7 @@ export const translations = {
     power: 'Puissance',
     topSpeed: 'Vitesse Max',
     range: 'Autonomie',
-    
+    jijel: 'Jijel',
     // About
     aboutUs: 'À Propos',
     aboutTitle1: 'Votre Partenaire de Confiance en',
@@ -910,6 +955,7 @@ export const translations = {
     fastDelivery: 'Livraison Rapide',
     fastDeliveryDesc: 'Traitement et livraison rapides à votre porte',
     learnMore: 'En Savoir Plus',
+    days: 'Jours',
     
     // Contact
     readyToFind: 'Prêt à Trouver Votre Voiture de Rêve?',
@@ -1216,6 +1262,19 @@ export const translations = {
     invalidTrackingCode: 'Veuillez entrer un code de suivi valide',
     enterCodeToTrack: 'Entrez votre code de suivi ci-dessus pour voir l\'état de livraison',
     trackingHelp: 'Besoin d\'aide? Contactez notre équipe',
+    
+    // SeaRates Tracking Integration (FR)
+    addTrackingCode: 'Ajouter Code de Suivi',
+    editTrackingCode: 'Modifier Code de Suivi',
+    save: 'Enregistrer',
+    trackingCodeLabel: 'Code de Suivi du Conteneur',
+    enterContainerNumber: 'Entrer le numéro de conteneur',
+    trackingSavedSuccessfully: 'Code de suivi enregistré avec succès',
+    trackContainer: 'Suivre le Conteneur',
+    trackingNotAvailableYet: 'Suivi pas encore disponible',
+    containerTracking: 'Suivi du Conteneur',
+    added: 'Ajouté',
+    missing: 'Manquant',
     refreshTracking: 'Actualiser le Suivi',
     lastUpdated: 'Dernière Mise à Jour',
     liveTracking: 'Suivi en Direct',
@@ -1357,6 +1416,34 @@ export const translations = {
     rate_unavailable: 'Taux non disponible',
     from: 'De',
     to: 'À',
+    
+    // Company Information (Updated) (FR)
+    companyName: 'ALKO Cars',
+    companyAddress: '7-6, Cheongpa-ro 63ga-gil, Yongsan-gu, Séoul, Corée du Sud (04308)',
+    foundedYear: 'Fondée en 2024',
+    companyMission: 'Faciliter l\'importation de véhicules depuis la Corée du Sud vers l\'Algérie en toute transparence',
+    deliveryTime: 'Livraison estimée à 35 jours',
+    shippingPort: 'Port de Jijel Djen Djen',
+    algeriaPhones: 'Téléphones Algérie',
+    koreaPhones: 'Téléphones Corée',
+    socialMedia: 'Réseaux Sociaux',
+    availabilityText: 'Contactez par appel ou WhatsApp à tout moment',
+    secondShippingMethod: 'Deuxième méthode de shipping disponible',
+    vehicleTypes: 'Export de tous types de véhicules coréens (essence, hybride et autres catégories)',
+    reservationValidity: 'Validité du dépôt de 1 semaine',
+    fullPaymentRequired: 'Paiement complet requis avant l\'expédition',
+    shippingRoute: 'Expédition par conteneur d\'Incheon à Jijel',
+    customsProcess: 'Processus de douane et retrait en Algérie',
+    vehicleSourcing: 'Sourcing et Inspection des Véhicules en Corée',
+    vehicleSourcingDesc: 'Nous recherchons et inspectons minutieusement tous les véhicules en Corée du Sud avant l\'expédition',
+    reservationSystem: 'Système de Réservation',
+    reservationSystemDesc: 'Sécurisez votre véhicule avec un dépôt valable 1 semaine',
+    paymentProcess: 'Processus de Paiement',
+    paymentProcessDesc: 'Paiement complet requis avant l\'expédition pour garantir une livraison fluide',
+    shippingProcess: 'Processus d\'Expédition',
+    shippingProcessDesc: 'Expédition par conteneur du port d\'Incheon au port de Jijel Djen Djen',
+    customsPickup: 'Douane et Retrait',
+    customsPickupDesc: 'Dédouanement complet et retrait du véhicule en Algérie',
     welcome: 'Bienvenue',
     vehicle: 'Véhicule',
     availableDocuments: 'Documents Disponibles',
@@ -1671,7 +1758,8 @@ export const translations = {
     power: 'القوة',
     topSpeed: 'السرعة القصوى',
     range: 'المدى',
-    
+    days: 'يوم',
+    jijel: 'جيجل',
     // About
     aboutUs: 'معلومات عنا',
     aboutTitle1: 'شريكك الموثوق في',
@@ -2011,6 +2099,19 @@ export const translations = {
     invalidTrackingCode: 'الرجاء إدخال رمز تتبع صالح',
     enterCodeToTrack: 'أدخل رمز التتبع أعلاه لعرض حالة التوصيل',
     trackingHelp: 'تحتاج مساعدة؟ اتصل بفريق الدعم',
+    
+    // SeaRates Tracking Integration (AR)
+    addTrackingCode: 'إضافة رمز التتبع',
+    editTrackingCode: 'تعديل رمز التتبع',
+    save: 'حفظ',
+    trackingCodeLabel: 'رمز تتبع الحاوية',
+    enterContainerNumber: 'أدخل رقم الحاوية',
+    trackingSavedSuccessfully: 'تم حفظ رمز التتبع بنجاح',
+    trackContainer: 'تتبع الحاوية',
+    trackingNotAvailableYet: 'التتبع غير متاح بعد',
+    containerTracking: 'تتبع الحاوية',
+    added: 'مضاف',
+    missing: 'مفقود',
     refreshTracking: 'تحديث التتبع',
     lastUpdated: 'آخر تحديث',
     liveTracking: 'التتبع المباشر',
@@ -2180,6 +2281,34 @@ export const translations = {
     rate_unavailable: 'السعر غير متوفر',
     from: 'من',
     to: 'إلى',
+    
+    // Company Information (Updated) (AR)
+    companyName: 'ألكو كارز',
+    companyAddress: '7-6, Cheongpa-ro 63ga-gil, Yongsan-gu, سيول، كوريا الجنوبية (04308)',
+    foundedYear: 'تأسست عام 2024',
+    companyMission: 'تسهيل استيراد المركبات من كوريا الجنوبية إلى الجزائر بكل شفافية',
+    deliveryTime: 'مدة التسليم المقدرة 35 يومًا',
+    shippingPort: 'ميناء جيجل جن جن',
+    algeriaPhones: 'هواتف الجزائر',
+    koreaPhones: 'هواتف كوريا',
+    socialMedia: 'وسائل التواصل الاجتماعي',
+    availabilityText: 'اتصل عبر المكالمة أو واتساب في أي وقت',
+    secondShippingMethod: 'طريقة شحن ثانية متاحة',
+    vehicleTypes: 'تصدير جميع أنواع المركبات الكورية (بنزين، هجين، وفئات أخرى)',
+    reservationValidity: 'صلاحية الإيداع أسبوع واحد',
+    fullPaymentRequired: 'الدفع الكامل مطلوب قبل الشحن',
+    shippingRoute: 'الشحن بالحاوية من إنتشون إلى جيجل',
+    customsProcess: 'عملية الجمارك والاستلام في الجزائر',
+    vehicleSourcing: 'البحث وفحص المركبات في كوريا',
+    vehicleSourcingDesc: 'نبحث ونفحص جميع المركبات بدقة في كوريا الجنوبية قبل الشحن',
+    reservationSystem: 'نظام الحجز',
+    reservationSystemDesc: 'احجز مركبتك بإيداع صالح لمدة أسبوع واحد',
+    paymentProcess: 'عملية الدفع',
+    paymentProcessDesc: 'الدفع الكامل مطلوب قبل الشحن لضمان تسليم سلس',
+    shippingProcess: 'عملية الشحن',
+    shippingProcessDesc: 'شحن بالحاوية من ميناء إنتشون إلى ميناء جيجل جن جن',
+    customsPickup: 'الجمارك والاستلام',
+    customsPickupDesc: 'إنهاء الجمارك الكامل واستلام المركبة في الجزائر',
     welcome: 'مرحباً',
     vehicle: 'المركبة',
     availableDocuments: 'المستندات المتاحة',

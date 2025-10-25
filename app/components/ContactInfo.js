@@ -40,7 +40,7 @@ export default function ContactInfo() {
                       Mon-Sat: 9:00 AM - 6:00 PM
                     </p>
                     <a href="tel:+1234567890" className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
-                      +1 (234) 567-890
+                      
                     </a>
                   </div>
                 </div>

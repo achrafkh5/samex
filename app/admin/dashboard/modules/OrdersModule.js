@@ -22,6 +22,11 @@ export default function OrdersModule() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  
+  // Tracking code modal state
+  const [showTrackingModal, setShowTrackingModal] = useState(false);
+  const [editingTrackingOrder, setEditingTrackingOrder] = useState(null);
+  const [trackingCodeInput, setTrackingCodeInput] = useState('');
 
   // Fetch both orders and clients
   useEffect(() => {
@@ -146,6 +151,60 @@ export default function OrdersModule() {
     setToastMessage(message);
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
+  };
+
+  // Tracking code functions
+  const openTrackingModal = (order) => {
+    setEditingTrackingOrder(order);
+    setTrackingCodeInput(order.trackingCode || '');
+    setShowTrackingModal(true);
+  };
+
+  const closeTrackingModal = () => {
+    setShowTrackingModal(false);
+    setEditingTrackingOrder(null);
+    setTrackingCodeInput('');
+  };
+
+  const saveTrackingCode = async () => {
+    if (!trackingCodeInput.trim()) {
+      showToastMessage('Please enter a tracking code');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/orders/${editingTrackingOrder._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ trackingCode: trackingCodeInput.trim() }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update tracking code');
+      }
+
+      // Update local state
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === editingTrackingOrder._id
+            ? { ...order, trackingCode: trackingCodeInput.trim() }
+            : order
+        )
+      );
+
+      // Update selected order if it's the one being edited
+      if (selectedOrder?._id === editingTrackingOrder._id) {
+        setSelectedOrder({ ...selectedOrder, trackingCode: trackingCodeInput.trim() });
+      }
+
+      showToastMessage(t('trackingSavedSuccessfully') || 'Tracking code saved successfully');
+      closeTrackingModal();
+    } catch (error) {
+      console.error('Error saving tracking code:', error);
+      showToastMessage('Failed to save tracking code');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -299,6 +358,9 @@ if(orders?.length > 0) {
                 <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   {t('status') || 'Status'}
                 </th>
+                <th className="text-center py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {t('containerTracking') || 'Container'}
+                </th>
                 <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   {t('actions') || 'Actions'}
                 </th>
@@ -337,6 +399,35 @@ if(orders?.length > 0) {
                       <option value="delivered" className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)} border-0 cursor-pointer`}>{t('delivered') || 'Delivered'}</option>
                       <option value="canceled" className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(order.status)} border-0 cursor-pointer`}>{t('canceled') || 'Canceled'}</option>
                     </select>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-center">
+                      {order.status === 'paid' && (
+                        order.trackingCode ? (
+                          <div className="group relative">
+                            <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-lg">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                              <span className="text-xs font-semibold">{t('added') || 'Added'}</span>
+                            </div>
+                            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                              {order.trackingCode}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2 px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-lg">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                            <span className="text-xs font-semibold">{t('missing') || 'Missing'}</span>
+                          </div>
+                        )
+                      )}
+                      {order.status !== 'paid' && (
+                        <span className="text-xs text-gray-400 dark:text-gray-500">—</span>
+                      )}
+                    </div>
                   </td>
                   <td className="py-4 px-6">
                     <button
@@ -432,6 +523,53 @@ if(orders?.length > 0) {
                       ${selectedOrder.paymentAmount?.toLocaleString()}
                     </p>
                   </div>
+                  
+                  {/* Container Tracking Section */}
+                  {selectedOrder.status === 'paid' && (
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        {t('containerTracking') || 'Container Tracking'}
+                      </label>
+                      {selectedOrder.trackingCode ? (
+                        <div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                          <div className="flex items-center space-x-3">
+                            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                {selectedOrder.trackingCode}
+                              </p>
+                              <a
+                                href={`https://www.searates.com/container/tracking/?container=${selectedOrder.trackingCode}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                {t('trackContainer') || 'Track on SeaRates'}
+                              </a>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => openTrackingModal(selectedOrder)}
+                            className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-medium transition-colors"
+                          >
+                            {t('editTrackingCode') || 'Edit'}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => openTrackingModal(selectedOrder)}
+                          className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span>{t('addTrackingCode') || 'Add Tracking Code'}</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -613,6 +751,63 @@ if(orders?.length > 0) {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tracking Code Modal */}
+      {showTrackingModal && editingTrackingOrder && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {editingTrackingOrder.trackingCode
+                  ? t('editTrackingCode') || 'Edit Tracking Code'
+                  : t('addTrackingCode') || 'Add Tracking Code'}
+              </h2>
+              <button
+                onClick={closeTrackingModal}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('trackingCodeLabel') || 'Container Tracking Code'}
+                </label>
+                <input
+                  type="text"
+                  value={trackingCodeInput}
+                  onChange={(e) => setTrackingCodeInput(e.target.value)}
+                  placeholder={t('enterContainerNumber') || 'Enter container number (e.g., COSU1234567)'}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  {t('containerTracking') || 'This code will be used to track the container on SeaRates'}
+                </p>
+              </div>
+
+              <div className="flex space-x-3 pt-4">
+                <button
+                  onClick={closeTrackingModal}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 font-medium transition-colors"
+                >
+                  {t('cancel') || 'Cancel'}
+                </button>
+                <button
+                  onClick={saveTrackingCode}
+                  disabled={!trackingCodeInput.trim()}
+                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t('save') || 'Save'}
+                </button>
               </div>
             </div>
           </div>

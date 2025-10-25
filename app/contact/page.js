@@ -3,8 +3,8 @@ import Footer from '../components/Footer';
 import ContactPageContent from '../components/ContactPageContent';
 
 export const metadata = {
-  title: 'Contact Us | DreamCars',
-  description: 'Get in touch with DreamCars. Visit our showroom, schedule a test drive, or send us a message. Our team is ready to help you find your dream car.',
+  title: 'Contact Us | ALKO Cars',
+  description: 'Get in touch with ALKO Cars. Contact us in Algeria or Korea, or send us a message. Our team is ready to help you import your dream Korean vehicle.',
 };
 
 export default function ContactPage() {

@@ -21,7 +21,7 @@ export default function AboutHero() {
           <div className="inline-flex items-center justify-center mb-8">
             <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center shadow-2xl">
               <span className="text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                DC
+                A
               </span>
             </div>
           </div>

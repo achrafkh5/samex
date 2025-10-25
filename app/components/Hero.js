@@ -76,10 +76,10 @@ export default function Hero() {
           {/* Stats */}
           <div className="mt-12 sm:mt-16 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
             {[
-              { label: t('carsAvailable'), value: '500+' },
-              { label: t('happyCustomers'), value: '2,500+' },
-              { label: t('yearsExperience'), value: '15+' },
-              { label: t('expertTeam'), value: '25+' },
+              { label: t('vehicleTypes'), value: t('vehicleTypes').split(' ')[0] || 'Petrol' },
+              { label: t('deliveryTime'), value: '35 ' + t('days') },
+              { label: t('foundedYear'), value: '2024' },
+              { label: t('shippingPort'), value: t('jijel') },
             ].map((stat, index) => (
               <div
                 key={index}

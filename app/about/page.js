@@ -8,8 +8,8 @@ import Team from '../components/Team';
 import ContactInfo from '../components/ContactInfo';
 
 export const metadata = {
-  title: "About Us - DreamCars",
-  description: "Learn about DreamCars, your trusted automotive partner since 2009. Quality vehicles, transparent pricing, and exceptional service.",
+  title: "About Us - ALKO Cars",
+  description: "Learn about ALKO Cars, your trusted Korean vehicle export partner since 2024. Quality vehicles, transparent pricing, and exceptional service from Korea to Algeria.",
 };
 
 export default function AboutPage() {

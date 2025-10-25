@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import ProgressStepper from './ProgressStepper';
 import DocumentCard from './DocumentCard';
+import TrackContainer from './TrackContainer';
 
 export default function DashboardContent() {
   const { t, language } = useLanguage();
@@ -29,6 +30,7 @@ export default function DashboardContent() {
           id: 'ORD-2024-001',
           date: '2024-10-15',
           status: 'inTransit',
+          trackingCode: 'COSU1234567', // Container tracking code for SeaRates
           car: {
             brand: 'Mercedes-Benz',
             model: 'C-Class',
@@ -280,6 +282,23 @@ export default function DashboardContent() {
                     </p>
                   </div>
                 </div>
+
+                {/* Container Tracking Section */}
+                {dashboardData.order.payment.status === 'paid' && (
+                  <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          {t('containerTracking') || 'Container Tracking'}
+                        </p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                          {t('trackYourOrder') || 'Track your shipment in real-time'}
+                        </p>
+                      </div>
+                      <TrackContainer trackingCode={dashboardData.order.trackingCode} />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tracking Progress Card */}
