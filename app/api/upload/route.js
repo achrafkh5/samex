@@ -20,8 +20,27 @@ export async function POST(req) {
     // Get file information
     const fileName = file.name || '';
     const fileType = file.type || '';
+    const fileSize = file.size || 0;
+    
+    console.log("📊 File details:", {
+      name: fileName,
+      type: fileType,
+      size: `${fileSize} bytes`
+    });
+
+    // Convert file to buffer
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    
+    // Verify buffer has content
+    if (buffer.length === 0) {
+      console.error("❌ Buffer is empty!");
+      return NextResponse.json({ 
+        error: "File is empty or corrupted" 
+      }, { status: 400 });
+    }
+    
+    console.log("✅ Buffer created:", `${buffer.length} bytes`);
     
     // Determine resource type based on file type
     let resourceType = 'auto';
@@ -50,22 +69,30 @@ export async function POST(req) {
       console.log("📄 Using upload_stream for binary file (PDF/raw)");
       
       result = await new Promise((resolve, reject) => {
+        const uploadOptions = {
+          folder: folder,
+          resource_type: 'raw',
+          use_filename: true,
+          unique_filename: true,
+          type: 'upload',
+          access_mode: 'public',
+        };
+
+        // For PDFs specifically, add format to ensure proper handling
+        if (isPDF) {
+          uploadOptions.format = 'pdf';
+          console.log("📋 Setting format to PDF for proper handling");
+        }
+
         const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder: folder,
-            resource_type: 'raw',
-            use_filename: true,
-            unique_filename: true,
-            // For PDFs: enable inline viewing in browser instead of download
-            type: 'upload',
-            access_mode: 'public',
-          },
+          uploadOptions,
           (error, result) => {
             if (error) {
               console.error("❌ Upload stream error:", error);
               reject(error);
             } else {
               console.log("✅ Upload stream successful");
+              console.log("📄 PDF URL:", result.secure_url);
               resolve(result);
             }
           }

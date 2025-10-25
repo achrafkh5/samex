@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AdminSidebar from '../../components/AdminSidebar';
 import { useLanguage } from '@/app/components/LanguageProvider';
 // Import all module components (we'll create these next)
@@ -18,6 +18,7 @@ import PDFGeneratorModule from './modules/PDFGeneratorModule';
 
 export default function AdminDashboardContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t } = useLanguage();
   const [currentPage, setCurrentPage] = useState('overview');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +35,26 @@ export default function AdminDashboardContent() {
       setIsLoading(false);
     }
   }, [router]);
+
+  // Handle URL parameter for page navigation
+  useEffect(() => {
+    const page = searchParams.get('page');
+    if (page) {
+      setCurrentPage(page);
+    }
+  }, [searchParams]);
+
+  const handleNavigate = (page) => {
+    // Navigate to separate route for finance/transactions
+    if (page === 'finance' || page === 'transactions') {
+      router.push(`/admin/${page}`);
+    } else {
+      // Navigate within dashboard
+      setCurrentPage(page);
+      // Update URL without reload
+      router.push(`/admin/dashboard?page=${page}`, { scroll: false });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -77,7 +98,7 @@ export default function AdminDashboardContent() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       {/* Sidebar */}
-      <AdminSidebar currentPage={currentPage} onNavigate={setCurrentPage} />
+      <AdminSidebar currentPage={currentPage} onNavigate={handleNavigate} />
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import AdminSidebar from '../../components/AdminSidebar';
 import { useLanguage } from '../../components/LanguageProvider';
 
 // Mock admins list (replace with real data later)
@@ -20,6 +22,7 @@ const getCurrentAdmin = () => {
 const CURRENCIES = ['DZD', 'USDT', 'KRW'];
 
 export default function TransactionsPage() {
+  const router = useRouter();
   const { t } = useLanguage();
   const [formData, setFormData] = useState({
     receiver: '',
@@ -31,11 +34,27 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [currentAdmin] = useState(getCurrentAdmin());
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication
+  useEffect(() => {
+    const auth = localStorage.getItem('adminAuthenticated') === 'true';
+    setIsAuthenticated(auth);
+    
+    if (!auth) {
+      router.push('/admin/login');
+    } else {
+      setIsLoading(false);
+    }
+  }, [router]);
 
   // Fetch transactions on mount
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    if (isAuthenticated) {
+      fetchTransactions();
+    }
+  }, [isAuthenticated]);
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -122,18 +141,45 @@ export default function TransactionsPage() {
     return symbols[currency] || currency;
   };
 
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // If not authenticated, return null (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="p-6 lg:p-8">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            {t('transactions_title') || 'Currency Transactions'}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {t('transactions_description') || 'Send money between admins in different currencies'}
-          </p>
-        </div>
+    <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
+      <AdminSidebar 
+        currentPage="transactions" 
+        onNavigate={(page) => {
+          // Navigate to dashboard for module pages, or separate routes for finance/transactions
+          if (page === 'finance' || page === 'transactions') {
+            router.push(`/admin/${page}`);
+          } else {
+            router.push(`/admin/dashboard?page=${page}`);
+          }
+        }} 
+      />
+      
+      <div className="flex-1 min-h-screen">
+        <div className="p-6 lg:p-8">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              {t('transactions_title') || 'Currency Transactions'}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              {t('transactions_description') || 'Send money between admins in different currencies'}
+            </p>
+          </div>
 
         {/* Transaction Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
@@ -361,6 +407,7 @@ export default function TransactionsPage() {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

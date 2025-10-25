@@ -1,13 +1,4 @@
-/**
- * Cloudinary Configuration
- * Environment variables should be set in .env.local:
- * NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
- * CLOUDINARY_API_KEY=your_api_key
- * CLOUDINARY_API_SECRET=your_api_secret
- */
 
-// For demo purposes, using public configuration
-// In production, use environment variables
 export const cloudinaryConfig = {
   cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'demo',
   uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ml_default',
@@ -18,18 +9,15 @@ export const cloudinaryConfig = {
   allowedFormats: ['jpg', 'jpeg', 'png', 'pdf', 'webp'],
 };
 
-/**
- * Validate file before upload
- */
+
 export function validateFile(file) {
   const errors = [];
   
-  // Check file size
+ 
   if (file.size > cloudinaryConfig.maxFileSize) {
     errors.push(`File size must be less than ${cloudinaryConfig.maxFileSize / (1024 * 1024)}MB`);
   }
   
-  // Check file type
   const fileExtension = file.name.split('.').pop().toLowerCase();
   if (!cloudinaryConfig.allowedFormats.includes(fileExtension)) {
     errors.push(`File type must be one of: ${cloudinaryConfig.allowedFormats.join(', ')}`);
@@ -41,9 +29,7 @@ export function validateFile(file) {
   };
 }
 
-/**
- * Upload file to Cloudinary (client-side)
- */
+
 export async function uploadToCloudinary(file, options = {}) {
   const {
     folder = cloudinaryConfig.folder,
@@ -92,9 +78,7 @@ export async function uploadToCloudinary(file, options = {}) {
   });
 }
 
-/**
- * Format file size for display
- */
+
 export function formatFileSize(bytes) {
   if (bytes === 0) return '0 Bytes';
   
@@ -105,9 +89,7 @@ export function formatFileSize(bytes) {
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
 }
 
-/**
- * Get file type icon
- */
+
 export function getFileTypeIcon(fileType) {
   const type = fileType?.toLowerCase() || '';
   
@@ -122,17 +104,13 @@ export function getFileTypeIcon(fileType) {
   return '📎';
 }
 
-/**
- * Check if file is image
- */
+
 export function isImageFile(filename) {
   const ext = filename?.split('.').pop()?.toLowerCase();
   return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'].includes(ext);
 }
 
-/**
- * Check if file is PDF
- */
+
 export function isPDFFile(filename) {
   const ext = filename?.split('.').pop()?.toLowerCase();
   return ext === 'pdf';
@@ -148,27 +126,25 @@ export function viewCloudinaryPDF(url, filename = 'document.pdf') {
     console.error('No URL provided to viewCloudinaryPDF');
     return;
   }
-
+  
   console.log('🔍 Opening PDF in new tab:', url);
   
   // Open PDF in new tab - browser will display inline viewer
   const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
   
   if (!newWindow) {
-    console.warn('⚠️ Popup blocked. Attempting alternative method...');
-    // Fallback: try to open in same tab
-    window.location.href = url;
+    console.warn('⚠️ Popup blocked. Please allow popups for this site.');
+    // Don't navigate current tab - just show warning
+    alert('Please allow popups to view files in a new tab.');
   } else {
     console.log('✅ PDF opened successfully in new tab');
   }
-}
-
-/**
- * Downloads a Cloudinary file with fl_attachment flag
+}/**
+ * Downloads a Cloudinary file by fetching and creating a blob
  * @param {string} url - The Cloudinary secure_url
  * @param {string} filename - The desired filename for download
  */
-export function downloadCloudinaryFile(url, filename = 'document.pdf') {
+export async function downloadCloudinaryFile(url, filename = 'document') {
   if (!url) {
     console.error('No URL provided to downloadCloudinaryFile');
     return;
@@ -176,22 +152,45 @@ export function downloadCloudinaryFile(url, filename = 'document.pdf') {
 
   console.log('⬇️ Downloading file:', filename);
   
-  // Add fl_attachment flag to force download instead of inline view
-  const downloadUrl = url.includes('/upload/') 
-    ? url.replace('/upload/', `/upload/fl_attachment:${encodeURIComponent(filename)}/`)
-    : url;
-
-  // Create temporary link and trigger download
-  const link = document.createElement('a');
-  link.href = downloadUrl;
-  link.download = filename;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  console.log('✅ Download initiated');
+  try {
+    // Fetch the file
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Failed to fetch file');
+    }
+    
+    // Convert to blob
+    const blob = await response.blob();
+    
+    // Create object URL
+    const blobUrl = URL.createObjectURL(blob);
+    
+    // Create temporary link and trigger download
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Clean up object URL
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+    
+    console.log('✅ Download initiated');
+  } catch (error) {
+    console.error('❌ Download error:', error);
+    
+    // Fallback: try direct link method
+    console.log('⚠️ Trying fallback method...');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }
 
 /**

@@ -81,7 +81,9 @@ export default function OrdersModule() {
   };
 
   // Helper function to view PDF in browser
-  const viewFile = (url, filename) => {
+  const viewFile = (e, url, filename) => {
+    e.preventDefault();
+    e.stopPropagation();
     const fileType = getFileType(url);
     if (fileType === 'pdf') {
       viewCloudinaryPDF(url, filename);
@@ -94,7 +96,9 @@ export default function OrdersModule() {
   };
 
   // Helper function to download file (using cloudinaryHelper)
-  const downloadFile = (url, filename) => {
+  const downloadFile = (e, url, filename) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       downloadCloudinaryFile(url, filename);
       showToastMessage(`${filename} download started`);
@@ -586,9 +590,15 @@ if(orders?.length > 0) {
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          <svg className="w-8 h-8 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
+                          {getFileType(selectedOrder.idCardUrl) === 'image' ? (
+                            <svg className="w-8 h-8 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-8 h-8 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                            </svg>
+                          )}
                           <div>
                             <p className="text-sm font-medium text-gray-900 dark:text-white">ID Card</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -597,27 +607,27 @@ if(orders?.length > 0) {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          {getFileType(selectedOrder.idCardUrl) === 'pdf' && (
-                            <button
-                              onClick={() => viewFile(selectedOrder.idCardUrl, 'id-card.pdf')}
-                              className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              View
-                            </button>
-                          )}
                           <button
-                            onClick={() => downloadFile(selectedOrder.idCardUrl, 'id-card.' + selectedOrder.idCardUrl.split('.').pop().split('?')[0])}
+                            onClick={(e) => viewFile(e, selectedOrder.idCardUrl, 'id-card.pdf')}
                             className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            Download
+                            View
                           </button>
+                          {getFileType(selectedOrder.idCardUrl) === 'image' && (
+                            <button
+                              onClick={(e) => downloadFile(e, selectedOrder.idCardUrl, 'id-card.' + selectedOrder.idCardUrl.split('.').pop().split('?')[0])}
+                              className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              Download
+                            </button>
+                          )}
                         </div>
                       </div>
                       {getFileType(selectedOrder.idCardUrl) === 'image' && (
@@ -635,9 +645,15 @@ if(orders?.length > 0) {
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          <svg className="w-8 h-8 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                          </svg>
+                          {getFileType(selectedOrder.driversLicenseUrl) === 'image' ? (
+                            <svg className="w-8 h-8 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-8 h-8 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                            </svg>
+                          )}
                           <div>
                             <p className="text-sm font-medium text-gray-900 dark:text-white">Driver License</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -646,27 +662,27 @@ if(orders?.length > 0) {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          {getFileType(selectedOrder.driversLicenseUrl) === 'pdf' && (
-                            <button
-                              onClick={() => viewFile(selectedOrder.driversLicenseUrl, 'drivers-license.pdf')}
-                              className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              View
-                            </button>
-                          )}
                           <button
-                            onClick={() => downloadFile(selectedOrder.driversLicenseUrl, 'drivers-license.' + selectedOrder.driversLicenseUrl.split('.').pop().split('?')[0])}
+                            onClick={(e) => viewFile(e, selectedOrder.driversLicenseUrl, 'drivers-license.pdf')}
                             className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            Download
+                            View
                           </button>
+                          {getFileType(selectedOrder.driversLicenseUrl) === 'image' && (
+                            <button
+                              onClick={(e) => downloadFile(e, selectedOrder.driversLicenseUrl, 'drivers-license.' + selectedOrder.driversLicenseUrl.split('.').pop().split('?')[0])}
+                              className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 flex items-center gap-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              Download
+                            </button>
+                          )}
                         </div>
                       </div>
                       {getFileType(selectedOrder.driversLicenseUrl) === 'image' && (
@@ -684,9 +700,15 @@ if(orders?.length > 0) {
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          <svg className="w-8 h-8 text-purple-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                          </svg>
+                          {getFileType(selectedOrder.paymentProofUrl) === 'image' ? (
+                            <svg className="w-8 h-8 text-purple-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-8 h-8 text-purple-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                            </svg>
+                          )}
                           <div>
                             <p className="text-sm font-medium text-gray-900 dark:text-white">Payment Proof</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -695,27 +717,27 @@ if(orders?.length > 0) {
                           </div>
                         </div>
                         <div className="flex gap-2">
-                          {getFileType(selectedOrder.paymentProofUrl) === 'pdf' && (
-                            <button
-                              onClick={() => viewFile(selectedOrder.paymentProofUrl, 'payment-proof.pdf')}
-                              className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                              </svg>
-                              View
-                            </button>
-                          )}
                           <button
-                            onClick={() => downloadFile(selectedOrder.paymentProofUrl, 'payment-proof.' + selectedOrder.paymentProofUrl.split('.').pop().split('?')[0])}
+                            onClick={(e) => viewFile(e, selectedOrder.paymentProofUrl, 'payment-proof.pdf')}
                             className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            Download
+                            View
                           </button>
+                          {getFileType(selectedOrder.paymentProofUrl) === 'image' && (
+                            <button
+                              onClick={(e) => downloadFile(e, selectedOrder.paymentProofUrl, 'payment-proof.' + selectedOrder.paymentProofUrl.split('.').pop().split('?')[0])}
+                              className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded text-xs font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 flex items-center gap-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              Download
+                            </button>
+                          )}
                         </div>
                       </div>
                       {getFileType(selectedOrder.paymentProofUrl) === 'image' && (
@@ -730,24 +752,58 @@ if(orders?.length > 0) {
                     </div>
                   )}
                   {selectedOrder.proofOfResidenceUrl && (
-                    <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="flex items-center">
-                        <svg className="w-8 h-8 text-purple-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
-                        </svg>
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">Payment Proof</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">PDF Document</p>
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' ? (
+                            <svg className="w-8 h-8 text-orange-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-8 h-8 text-orange-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">Proof of Residence</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' ? 'Image' : 'PDF Document'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => viewFile(e, selectedOrder.proofOfResidenceUrl, 'proof-of-residence.pdf')}
+                            className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded text-xs font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 flex items-center gap-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            View
+                          </button>
+                          {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' && (
+                            <button
+                              onClick={(e) => downloadFile(e, selectedOrder.proofOfResidenceUrl, 'proof-of-residence.' + selectedOrder.proofOfResidenceUrl.split('.').pop().split('?')[0])}
+                              className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 flex items-center gap-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              Download
+                            </button>
+                          )}
                         </div>
                       </div>
-                      <a
-                        href={selectedOrder.proofOfResidenceUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50"
-                      >
-                        View
-                      </a>
+                      {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' && (
+                        <div className="mt-2">
+                          <img 
+                            src={selectedOrder.proofOfResidenceUrl} 
+                            alt="Proof of Residence" 
+                            className="w-full h-48 object-contain bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

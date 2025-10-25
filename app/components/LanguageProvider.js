@@ -493,6 +493,10 @@ export const translations = {
     pdfSettings: 'PDF Settings',
     pdfLanguage: 'PDF Language',
     pdfTheme: 'PDF Theme',
+    
+    // Finance & Transactions
+    finance: 'Finance',
+    transactions: 'Transactions',
     certificateOfInscription: 'Certificate of Inscription',
     invoiceGeneration: 'Invoice Generation',
     trackingDocument: 'Tracking Document',
@@ -1309,6 +1313,11 @@ export const translations = {
     invalidPhone: 'Veuillez entrer un numéro de téléphone valide',
     
     // PDF Generator
+    pdfGenerator: 'Générateur PDF',
+    
+    // Finance & Transactions
+    finance: 'Finance',
+    transactions: 'Transactions',
     pdfGenerator: 'Générateur PDF',
     pdfGeneratorDescription: 'Générer des documents PDF professionnels pour certificats, factures et suivi',
     pdfSettings: 'Paramètres PDF',
@@ -2179,6 +2188,10 @@ export const translations = {
     pdfSettings: 'إعدادات PDF',
     pdfLanguage: 'لغة PDF',
     pdfTheme: 'سمة PDF',
+    
+    // Finance & Transactions (AR)
+    finance: 'المالية',
+    transactions: 'المعاملات المالية',
     certificateOfInscription: 'شهادة التسجيل',
     invoiceGeneration: 'إنشاء فاتورة',
     trackingDocument: 'وثيقة التتبع',

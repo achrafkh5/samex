@@ -42,8 +42,8 @@
 
 "use client";
 
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable'; // Extends jsPDF with autoTable method
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import ArabicReshaper from 'arabic-reshaper';
 // @ts-ignore
 import getBidiText from 'bidi-js';
@@ -789,7 +789,7 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
     isRTL ? shapeArabicText(t.total) : t.total
   ]];
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: tableHead,
     body: tableData,
@@ -816,7 +816,7 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
 
   // Totals
   yPos = doc.lastAutoTable.finalY + 15;
-  const subtotal = parseFloat(data.carPrice?.replace(/[^0-9.-]+/g, '') || 0);
+  const subtotal = parseFloat(String(data.carPrice || 0).replace(/[^0-9.-]+/g, '')) || 0;
   const taxRate = 0.20;
   const tax = subtotal * taxRate;
   const discount = parseFloat(data.discount || 0);
@@ -1045,7 +1045,7 @@ export async function generateTrackingDocument(data, language = 'en', theme = 'l
     isRTL ? shapeArabicText(t.timestamp) : t.timestamp
   ]];
 
-  doc.autoTable({
+  autoTable(doc, {
     startY: yPos,
     head: tableHead,
     body: stationsData,
@@ -1212,7 +1212,7 @@ export function getPDFBase64(doc) {
  *    → Verify language parameter is 'ar' (lowercase)
  * 
  * 3. autoTable not working
- *    → Make sure you import 'jspdf-autotable' (with quotes)
- *    → This extends jsPDF prototype with autoTable method
- *    → Use doc.autoTable({...}), not autoTable(doc, {...})
+ *    → Make sure you import autoTable: import autoTable from 'jspdf-autotable'
+ *    → Use autoTable(doc, {...}), not doc.autoTable({...})
+ *    → Access final Y position with doc.lastAutoTable.finalY
  */
