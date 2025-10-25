@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from './LanguageProvider';
 import Link from 'next/link';
-import { carsData } from '../data/carsData';
+//import { carsData } from '../data/carsData';
 import CarCard from './CarCard';
 import FilterBar from './FilterBar';
 
 export default function CarsPageContent() {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
+  const [carsData, setCarsData] = useState([]); 
   const [filters, setFilters] = useState({
     brand: 'all',
     model: 'all',
@@ -24,6 +25,15 @@ export default function CarsPageContent() {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
 
+    // Fetch cars data on mount
+    useEffect(() => {
+        async function fetchCarsData() {
+            const response = await fetch('/api/cars');
+            const data = await response.json();
+            setCarsData(data);
+        }
+        fetchCarsData();
+    }, []);
   // Filter and sort cars
   const filteredCars = useMemo(() => {
     let result = [...carsData];
@@ -85,7 +95,7 @@ export default function CarsPageContent() {
     }
 
     return result;
-  }, [searchTerm, filters, sortBy]);
+  }, [searchTerm, filters, sortBy, carsData]);
 
   // Pagination
   const totalPages = Math.ceil(filteredCars.length / itemsPerPage);
@@ -217,7 +227,7 @@ export default function CarsPageContent() {
                 <>
                   <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
                     {currentCars.map((car) => (
-                      <CarCard key={car.id} car={car} />
+                      <CarCard key={car._id} car={car} />
                     ))}
                   </div>
 

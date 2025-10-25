@@ -12,7 +12,7 @@ export default function FileUploader({ label, name, onChange, error, required = 
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
-      onChange(name, selectedFile);
+      onChange(selectedFile); // Pass only the file
     }
   };
 
@@ -31,13 +31,13 @@ export default function FileUploader({ label, name, onChange, error, required = 
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       setFile(droppedFile);
-      onChange(name, droppedFile);
+      onChange(droppedFile); // Pass only the file
     }
   };
 
   const handleRemove = () => {
     setFile(null);
-    onChange(name, null);
+    onChange(null); // Pass null
   };
 
   return (

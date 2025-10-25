@@ -1,18 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../../../components/LanguageProvider';
 
 export default function PaymentsModule() {
   const { t } = useLanguage();
-  const [payments, setPayments] = useState([
-    { id: 1, clientName: 'John Smith', car: 'Mercedes-Benz S-Class', amount: 115000, method: 'Bank Transfer', date: '2024-10-01', status: 'paid' },
-    { id: 2, clientName: 'Emma Johnson', car: 'BMW M4', amount: 76900, method: 'Credit Card', date: '2024-10-15', status: 'pending' },
-    { id: 3, clientName: 'Michael Brown', car: 'Tesla Model S', amount: 89990, method: 'Cash', date: '2024-10-18', status: 'paid' },
-  ]);
+  const [payments, setPayments] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [clientsMap, setClientsMap] = useState({});
+  const [carsMap, setCarsMap] = useState({});
 
-  const totalRevenue = payments.filter(p => p.status === 'paid').reduce((sum, p) => sum + p.amount, 0);
-  const pendingPayments = payments.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [ordersResponse, clientsResponse, carsResponse] = await Promise.all([
+          fetch('/api/orders'),
+          fetch('/api/clients'),
+          fetch('/api/cars'),
+        ]);
+
+        const ordersData = await ordersResponse.json();
+        const clientsData = await clientsResponse.json();
+        const carsData = await carsResponse.json();
+
+        setPayments(ordersData.orders);
+        setPayments(prevPayments => prevPayments.filter(p => p.status !== 'canceled'));
+        setClients(clientsData);
+        setCars(carsData);
+
+        const map = {};
+        (clientsData || []).forEach(client => {
+          map[client._id] = client;
+        });
+        setClientsMap(map);
+        const carMap = {};
+        (carsData || []).forEach(car => {
+          carMap[car._id] = car;
+        });
+        setCarsMap(carMap);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+
+
+  const totalRevenue = payments
+  ?.filter(p => p.status === 'paid')
+  .reduce((sum, p) => sum + Number(p.paymentAmount), 0);
+
+const pendingPayments = payments
+  ?.filter(p => p.status === 'pending')
+  .reduce((sum, p) => sum + Number(p.paymentAmount), 0);
+
 
   return (
     <div className="p-6 lg:p-8">
@@ -29,15 +73,15 @@ export default function PaymentsModule() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">{t('totalRevenue') || 'Total Revenue'}</h3>
-          <p className="text-3xl font-bold">${totalRevenue.toLocaleString()}</p>
+          <p className="text-3xl font-bold">${totalRevenue?.toLocaleString()}</p>
         </div>
         <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">{t('pendingPayments') || 'Pending'}</h3>
-          <p className="text-3xl font-bold">${pendingPayments.toLocaleString()}</p>
+          <p className="text-3xl font-bold">${pendingPayments?.toLocaleString()}</p>
         </div>
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">{t('totalTransactions') || 'Transactions'}</h3>
-          <p className="text-3xl font-bold">{payments.length}</p>
+          <p className="text-3xl font-bold">{payments?.length}</p>
         </div>
       </div>
 
@@ -58,17 +102,21 @@ export default function PaymentsModule() {
             </thead>
             <tbody>
               {payments.map((payment) => (
-                <tr key={payment.id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
-                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">#{payment.id}</td>
-                  <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{payment.clientName}</td>
-                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{payment.car}</td>
-                  <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">${payment.amount.toLocaleString()}</td>
-                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{payment.method}</td>
-                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{payment.date}</td>
+                <tr key={payment._id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">#{payment._id}</td>
+                  <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{clientsMap[payment.clientId].fullName}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{carsMap[payment.selectedCarId].brand} {carsMap[payment.selectedCarId].model}</td>
+                  <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">${payment.paymentAmount?.toLocaleString()}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{payment.paymentMethod}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{new Date(payment.createdAt).toLocaleDateString()}</td>
                   <td className="py-4 px-6">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       payment.status === 'paid'
                         ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                        : payment.status === 'delivered'
+                        ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                        : payment.status === 'canceled'
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                         : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400'
                     }`}>
                       {payment.status}

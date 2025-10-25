@@ -9,6 +9,7 @@ import OverviewModule from './modules/OverviewModule';
 import CategoriesModule from './modules/CategoriesModule';
 import CarsModule from './modules/CarsModule';
 import ClientsModule from './modules/ClientsModule';
+import OrdersModule from './modules/OrdersModule';
 import PaymentsModule from './modules/PaymentsModule';
 import PaymentMethodsModule from './modules/PaymentMethodsModule';
 import TrackingModule from './modules/TrackingModule';
@@ -57,6 +58,8 @@ export default function AdminDashboardContent() {
         return <CarsModule />;
       case 'clients':
         return <ClientsModule />;
+      case 'orders':
+        return <OrdersModule />;
       case 'payments':
         return <PaymentsModule />;
       case 'payment-methods':

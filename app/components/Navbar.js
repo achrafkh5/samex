@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useLanguage } from './LanguageProvider';
-
+import Image from 'next/image';
+import Link from 'next/link';
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -45,14 +46,11 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="#home" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">DC</span>
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="flex items-center justify-center w-20 h-10 relative rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+                <Image src="/logo.png" alt="Logo" height={100} width={60} className="object-contain" />
               </div>
-              <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                {t('brand')}
-              </span>
-            </a>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}

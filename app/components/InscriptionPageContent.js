@@ -1,18 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState ,useEffect} from 'react';
 import { useLanguage } from './LanguageProvider';
 import Link from 'next/link';
+import Image from 'next/image';
 import FileUploader from './FileUploader';
 import { carsData } from '../data/carsData';
 
-export default function InscriptionPageContent() {
+export default function InscriptionPageContent({ id }) {
   const { t } = useLanguage();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [trackingCode, setTrackingCode] = useState('');
-
+  const [selectedCar, setSelectedCar] = useState(null);
   const [formData, setFormData] = useState({
     // Personal Info
     fullName: '',
@@ -28,7 +29,7 @@ export default function InscriptionPageContent() {
     zipCode: '',
     
     // Car Selection
-    selectedCarId: '',
+    selectedCarId: id || '',
     
     // Payment Info
     paymentMethod: '',
@@ -47,9 +48,18 @@ export default function InscriptionPageContent() {
   });
 
   const [errors, setErrors] = useState({});
-
+  
   const totalSteps = 4;
 
+  useEffect(() => {
+    const fetchCarOptions = async () => {
+      const res = await fetch(`/api/cars/${id}`);
+      const data = await res.json();
+      setSelectedCar(data);
+    };
+
+    fetchCarOptions();
+  }, [id]);
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -94,8 +104,7 @@ export default function InscriptionPageContent() {
     }
 
     if (step === 2) {
-      // Car Selection validation
-      if (!formData.selectedCarId) newErrors.selectedCarId = t('required');
+
     }
 
     if (step === 3) {
@@ -128,6 +137,31 @@ export default function InscriptionPageContent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const uploadFileToCloudinary = async (file, folder = 'documents') => {
+    if (!file) return null;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folder', folder);
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload file');
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -138,28 +172,98 @@ export default function InscriptionPageContent() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Step 1: Upload all documents to Cloudinary
+      console.log('Uploading documents to Cloudinary...');
+      const [idCardUrl, driversLicenseUrl, proofOfResidenceUrl, paymentProofUrl] = await Promise.all([
+        uploadFileToCloudinary(formData.idCard, 'clients/id-cards'),
+        uploadFileToCloudinary(formData.driversLicense, 'clients/licenses'),
+        uploadFileToCloudinary(formData.proofOfResidence, 'clients/residence'),
+        uploadFileToCloudinary(formData.paymentProof, 'clients/payments'),
+      ]);
+
+      console.log('Documents uploaded successfully');
+
+      // Step 2: Create client with personal information only
+      const clientData = {
+        fullName: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        dateOfBirth: formData.dateOfBirth,
+        gender: formData.gender,
+        nationality: formData.nationality,
+        nationalId: formData.nationalId,
+        streetAddress: formData.streetAddress,
+        city: formData.city,
+        country: formData.country,
+        zipCode: formData.zipCode,
+      };
+
+      const clientResponse = await fetch(`/api/clients`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(clientData),
+      });
+
+      if (!clientResponse.ok) {
+        throw new Error('Failed to create client');
+      }
+
+      const clientResult = await clientResponse.json();
+      const clientId = clientResult.id;
+
+      console.log('Client created:', clientResult);
+
       // Generate tracking code
-      const code = `DC${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-      setTrackingCode(code);
+      const trackingCode = `DC${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+      // Step 3: Create order with car, payment, document URLs, and tracking info
+      const orderData = {
+        clientId: clientId,
+        trackingCode: trackingCode,
+        selectedCarId: formData.selectedCarId,
+        paymentMethod: formData.paymentMethod,
+        paymentAmount: formData.paymentAmount,
+        referenceNumber: formData.referenceNumber,
+        idCardUrl: idCardUrl,
+        driversLicenseUrl: driversLicenseUrl,
+        proofOfResidenceUrl: proofOfResidenceUrl,
+        paymentProofUrl: paymentProofUrl,
+        signature: formData.signature,
+        acceptTerms: formData.acceptTerms,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+
+      const orderResponse = await fetch(`/api/orders`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!orderResponse.ok) {
+        throw new Error('Failed to create order');
+      }
+
+      const orderResult = await orderResponse.json();
+
+      setTrackingCode(trackingCode);
       
-      console.log('Registration submitted:', formData);
+      console.log('Order created with tracking code:', trackingCode);
+      console.log('Order details:', orderResult);
       
       setIsSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       console.error('Submit error:', error);
-      setErrors({ submit: t('registrationError') });
+      setErrors({ submit: t('registrationError') || 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const selectedCar = formData.selectedCarId 
-    ? carsData.find(car => car.id === parseInt(formData.selectedCarId))
-    : null;
 
   if (isSuccess) {
     return (
@@ -514,41 +618,36 @@ export default function InscriptionPageContent() {
                 </div>
               )}
 
-              {/* Step 2: Car Selection */}
+              {/* Step 2: Car Confirmation */}
               {currentStep === 2 && (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-800 space-y-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                     {t('carSelection')}
                   </h2>
 
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      {t('selectCar')} <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="selectedCarId"
-                      value={formData.selectedCarId}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border ${
-                        errors.selectedCarId ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
-                      } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    >
-                      <option value="">{t('selectCar')}</option>
-                      {carsData.map(car => (
-                        <option key={car.id} value={car.id}>
-                          {car.brand} {car.model} {car.year} - ${car.price.toLocaleString()}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.selectedCarId && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.selectedCarId}</p>}
-                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {t('confirmYourSelection')}
+                  </p>
 
-                  {selectedCar && (
+                  {selectedCar ? (
                     <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800">
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
-                        {t('selectedCar')}
+                      {/* Car Image */}
+                      {selectedCar.image && (
+                        <div className="mb-6 rounded-lg overflow-hidden relative h-64">
+                          <Image 
+                            src={selectedCar.image} 
+                            alt={`${selectedCar.brand} ${selectedCar.model}`}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+
+                      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                        {selectedCar.brand} {selectedCar.model} {selectedCar.year}
                       </h3>
-                      <div className="grid grid-cols-2 gap-4">
+                      
+                      <div className="grid grid-cols-2 gap-6">
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">{t('brand')}</p>
                           <p className="font-semibold text-gray-900 dark:text-white">{selectedCar.brand}</p>
@@ -562,12 +661,56 @@ export default function InscriptionPageContent() {
                           <p className="font-semibold text-gray-900 dark:text-white">{selectedCar.year}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400">{t('carPrice')}</p>
-                          <p className="text-xl font-bold text-blue-600 dark:text-blue-400">
-                            ${selectedCar.price.toLocaleString()}
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{t('mileage')}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {selectedCar.mileage?.toLocaleString() || 'N/A'} km
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{t('transmission')}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {selectedCar.transmission || 'N/A'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">{t('fuelType')}</p>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {selectedCar.fuelType || 'N/A'}
                           </p>
                         </div>
                       </div>
+
+                      <div className="mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>
+                        <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                          ${selectedCar.price?.toLocaleString()}
+                        </p>
+                      </div>
+
+                      {/* Success indicator */}
+                      <div className="mt-6 flex items-center justify-center space-x-2 text-green-600 dark:text-green-400">
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        <span className="font-semibold">{t('carConfirmed')}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 text-center">
+                      <svg className="w-12 h-12 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <p className="text-red-600 dark:text-red-400 font-semibold">
+                        {t('carNotFound')}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                        {t('pleaseSelectCarFromCatalog')}
+                      </p>
+                      <Link href="/cars" className="mt-4 inline-block">
+                        <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+                          {t('browseCars')}
+                        </button>
+                      </Link>
                     </div>
                   )}
                 </div>

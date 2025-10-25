@@ -94,7 +94,7 @@ export default function PDFGeneratorModule() {
     setToast({ message, type });
   };
 
-  const handleGeneratePDF = (type) => {
+  const handleGeneratePDF = async (type) => {
     try {
       let doc;
       let filename;
@@ -102,17 +102,17 @@ export default function PDFGeneratorModule() {
 
       switch (type) {
         case 'certificate':
-          doc = generateCertificate(certificateData, pdfLanguage, pdfTheme);
+          doc = await generateCertificate(certificateData, pdfLanguage, pdfTheme);
           filename = `Certificate_${certificateData.clientName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
           data = certificateData;
           break;
         case 'invoice':
-          doc = generateInvoice(invoiceData, pdfLanguage, pdfTheme);
+          doc = await generateInvoice(invoiceData, pdfLanguage, pdfTheme);
           filename = `Invoice_${invoiceData.invoiceNumber}_${Date.now()}.pdf`;
           data = invoiceData;
           break;
         case 'tracking':
-          doc = generateTrackingDocument(trackingData, pdfLanguage, pdfTheme);
+          doc = await generateTrackingDocument(trackingData, pdfLanguage, pdfTheme);
           filename = `Tracking_${trackingData.trackingCode}_${Date.now()}.pdf`;
           data = trackingData;
           break;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from './LanguageProvider';
-
+import Link from 'next/link';
 export default function About() {
   const { t } = useLanguage();
   const features = [
@@ -120,6 +120,7 @@ export default function About() {
             </div>
 
             {/* CTA Button */}
+            <Link href="/about">
             <button className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold text-lg hover:shadow-xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all duration-300">
               {t('learnMore')}
               <svg
@@ -133,7 +134,7 @@ export default function About() {
               >
                 <path d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            </button>
+            </button></Link>
           </div>
 
           {/* Right Side - Image Grid */}

@@ -1,4 +1,5 @@
 import PrivacyContent from './PrivacyContent';
+import Navbar from '../components/Navbar';
 
 export const metadata = {
   title: 'Privacy Policy - DreamCars Agency',
@@ -6,5 +7,10 @@ export const metadata = {
 };
 
 export default function PrivacyPage() {
-  return <PrivacyContent />;
+  return (
+  <div className="min-h-screen bg-white dark:bg-gray-900">
+        <Navbar />
+        <PrivacyContent />
+      </div>
+);
 }

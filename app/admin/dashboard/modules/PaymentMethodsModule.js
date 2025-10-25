@@ -1,37 +1,71 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../../../components/LanguageProvider';
 
 export default function PaymentMethodsModule() {
   const { t } = useLanguage();
-  const [methods, setMethods] = useState([
-    { id: 1, name: 'Cash', description: 'Cash payment on delivery', enabled: true, icon: '💵' },
-    { id: 2, name: 'Bank Transfer', description: 'Direct bank wire transfer', enabled: true, icon: '🏦' },
-    { id: 3, name: 'Credit Card', description: 'Visa, Mastercard, Amex', enabled: true, icon: '💳' },
-    { id: 4, name: 'PayPal', description: 'Online payment via PayPal', enabled: false, icon: '💰' },
-  ]);
+  const [methods, setMethods] = useState([]);
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await fetch('/api/payments');
+        const data = await response.json();
+        setMethods(data);
+      } catch (error) {
+        console.error('Error fetching payment methods:', error);
+      }
+    };
+
+    fetchPaymentMethods();
+  }, []);
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', icon: '💳' });
+  const [formData, setFormData] = useState({ name: '', description: '', enabled: true });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
-  const toggleMethod = (id) => {
-    setMethods(methods.map(m => m.id === id ? { ...m, enabled: !m.enabled } : m));
-    showToastMessage(t('methodUpdated') || 'Payment method updated');
+  const toggleMethod = async (id) => {
+    const method = methods.find(m => m._id === id);
+    if (!method) return;
+
+    const response = await fetch(`/api/payments`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id, enabled: !method.enabled }),
+    });
+
+    if (response.ok) {
+      setMethods(methods.map(m => m._id === id ? { ...m, enabled: !m.enabled } : m));
+      showToastMessage(t('methodUpdated') || 'Payment method updated');
+    } else {
+      console.error('Error updating payment method:', response.statusText);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newMethod = {
-      id: Math.max(...methods.map(m => m.id), 0) + 1,
-      ...formData,
-      enabled: true
-    };
-    setMethods([...methods, newMethod]);
-    setIsModalOpen(false);
-    showToastMessage(t('methodAdded') || 'Payment method added');
+
+    const response = await fetch('/api/payments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
+
+    if (response.ok) {
+      const newMethod = await response.json();
+      setMethods([...methods, newMethod]);
+      setIsModalOpen(false);
+      showToastMessage(t('methodAdded') || 'Payment method added');
+    } else {
+      console.error('Error adding payment method:', response.statusText);
+    }
   };
 
   const showToastMessage = (message) => {
@@ -64,14 +98,14 @@ export default function PaymentMethodsModule() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {methods.map((method) => (
-          <div key={method.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <div key={method._id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-4xl">{method.icon}</span>
+              <span className="text-4xl">💳</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   checked={method.enabled}
-                  onChange={() => toggleMethod(method.id)}
+                  onChange={() => toggleMethod(method._id)}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>

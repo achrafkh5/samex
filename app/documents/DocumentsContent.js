@@ -107,7 +107,7 @@ export default function DocumentsContent() {
     }, 800);
   };
 
-  const handleDownload = (type) => {
+  const handleDownload = async (type) => {
     if (!clientData) return;
 
     try {
@@ -116,15 +116,15 @@ export default function DocumentsContent() {
 
       switch (type) {
         case 'certificate':
-          doc = generateCertificate(clientData, language, theme || 'light');
+          doc = await generateCertificate(clientData, language, theme || 'light');
           filename = `Certificate_${clientData.clientName.replace(/\s+/g, '_')}.pdf`;
           break;
         case 'invoice':
-          doc = generateInvoice(clientData, language, theme || 'light');
+          doc = await generateInvoice(clientData, language, theme || 'light');
           filename = `Invoice_${clientData.invoiceNumber}.pdf`;
           break;
         case 'tracking':
-          doc = generateTrackingDocument(clientData, language, theme || 'light');
+          doc = await generateTrackingDocument(clientData, language, theme || 'light');
           filename = `Tracking_${clientData.trackingCode}.pdf`;
           break;
         default:

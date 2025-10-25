@@ -1,31 +1,35 @@
+'use client';
+
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import CarDetailsContent from '../../components/CarDetailsContent';
-import { getCarById } from '../../data/carsData';
+import { useState, useEffect, use } from 'react';
+import React from 'react';
 
 export default function CarDetailsPage({ params }) {
-  const car = getCarById(params.id);
+  const [car, setCar] = useState(null);
+    const unwrappedParams = React.use(params);
+  const id = unwrappedParams.id;
+
+  useEffect(() => {
+    const fetchCar = async () => {
+      const response = await fetch(`/api/cars/${id}`);
+      const carData = await response.json();
+      setCar(carData);
+      };
+
+    fetchCar();
+  }, [id]);
+
+
 
   return (
     <>
       <Navbar />
-      <CarDetailsContent car={car} />
+      <CarDetailsContent cars={car} />
       <Footer />
     </>
   );
 }
 
-export async function generateMetadata({ params }) {
-  const car = getCarById(params.id);
-  
-  if (!car) {
-    return {
-      title: 'Car Not Found | DreamCars',
-    };
-  }
 
-  return {
-    title: `${car.brand} ${car.model} ${car.year} | DreamCars`,
-    description: `View details for ${car.brand} ${car.model} ${car.year}. ${car.condition === 'new' ? 'Brand new' : car.condition === 'certified' ? 'Certified pre-owned' : 'Pre-owned'} ${car.fuelType} vehicle with ${car.specs.power}. Price: $${car.price.toLocaleString()}.`,
-  };
-}

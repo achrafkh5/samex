@@ -56,6 +56,15 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
       ),
     },
     {
+      id: 'orders',
+      name: t('orders') || 'Orders',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h18M3 9h18M3 15h18M3 21h18" />
+        </svg>
+      ),
+    },
+    {
       id: 'payments',
       name: t('payments') || 'Payments',
       icon: (

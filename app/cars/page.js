@@ -9,10 +9,10 @@ export const metadata = {
 
 export default function CarsPage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <Navbar />
-      <CarsPageContent />
-      <Footer />
-    </div>
+      <div className="min-h-screen bg-white dark:bg-gray-900">
+        <Navbar />
+        <CarsPageContent />
+        <Footer />
+      </div>
   );
 }

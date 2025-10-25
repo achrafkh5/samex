@@ -44,7 +44,7 @@ export default function CarCard({ car }) {
     <div className="group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-200 dark:border-gray-800">
       {/* Image Section */}
       <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
-        {!imageError ? (
+        {!imageError && car.image?.length > 0 ? (
           <Image
             src={car.image}
             alt={`${car.brand} ${car.model}`}
@@ -106,7 +106,7 @@ export default function CarCard({ car }) {
           </div>
 
           {/* Power */}
-          {car.specs.power && (
+          {car.specs?.power && (
             <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
               <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -116,12 +116,12 @@ export default function CarCard({ car }) {
           )}
 
           {/* Speed/Range */}
-          {(car.specs.speed || car.specs.range) && (
+          {(car.specs?.speed || car.specs?.range) && (
             <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
               <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
               </svg>
-              <span>{car.specs.speed || car.specs.range}</span>
+              <span>{car.specs?.speed || car.specs?.range}</span>
             </div>
           )}
         </div>
@@ -134,11 +134,11 @@ export default function CarCard({ car }) {
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('startingPrice')}</p>
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              ${car.price.toLocaleString()}
+              ${car.price?.toLocaleString()}
             </p>
           </div>
 
-          <Link href={`/cars/${car.id}`}>
+          <Link href={`/cars/${car._id}`}>
             <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl group/btn flex items-center space-x-2">
               <span>{t('viewDetails')}</span>
               <svg className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,17 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import Image from 'next/image';
 import { useLanguage } from '../../../components/LanguageProvider';
 import { carsData } from '../../../data/carsData';
 
 export default function CarsModule() {
   const { t } = useLanguage();
-  const [cars, setCars] = useState(carsData.map(car => ({
-    ...car,
-    vin: `VIN${car.id}${car.brand.slice(0,3).toUpperCase()}${car.year}`,
-    availability: Math.random() > 0.3 ? 'available' : 'sold'
-  })));
+  const [cars, setCars] = useState([]);
+  const [categories, setCategories] = useState([]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
@@ -33,13 +30,34 @@ export default function CarsModule() {
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredCars = cars.filter(car => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [carsResponse, categoriesResponse] = await Promise.all([
+          fetch('/api/cars'),
+          fetch('/api/brands')
+        ]);
+        const carsData = await carsResponse.json();
+        const categoriesData = await categoriesResponse.json();
+        setCars(carsData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData();
+  }, []);
+  let filteredCars = [
+    ...cars
+  ];
+if(cars?.length>0){
+   filteredCars = cars?.filter(car => {
     const matchesStatus = filterStatus === 'all' || car.availability === filterStatus;
-    const matchesSearch = car.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         car.model.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = car.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         car.model?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
-
+}
   const handleAdd = () => {
     setEditingCar(null);
     setFormData({
@@ -76,28 +94,66 @@ export default function CarsModule() {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (confirm(t('confirmDelete') || 'Are you sure you want to delete this car?')) {
-      setCars(cars.filter(car => car.id !== id));
-      showToastMessage(t('carDeleted') || 'Car deleted successfully');
+      try {
+        await fetch(`/api/cars/${id}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id })
+        });
+        setCars(cars.filter(car => car._id !== id));
+        showToastMessage(t('carDeleted') || 'Car deleted successfully');
+      } catch (error) {
+        console.error('Error deleting car:', error);
+      }
     }
   };
 
-  const toggleAvailability = (id) => {
-    setCars(cars.map(car =>
-      car.id === id
+  const toggleAvailability = async (id) => {
+    try {
+      await fetch(`/api/cars/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          availability: cars.find(car => car._id === id).availability === 'available' ? 'sold' : 'available'
+        })
+      });
+      setCars(cars.map(car =>
+      car._id === id
         ? { ...car, availability: car.availability === 'available' ? 'sold' : 'available' }
         : car
     ));
     showToastMessage(t('statusUpdated') || 'Status updated successfully');
+    }catch (error) {
+      console.error('Error updating car availability:', error);
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (editingCar) {
-      setCars(cars.map(car =>
-        car.id === editingCar.id
+        try{
+          await fetch(`/api/cars/${editingCar._id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              ...formData,
+              specs: {
+                power: formData.power,
+                color: formData.color
+              }
+            })
+          });
+          setCars(cars.map(car =>
+        car._id === editingCar._id
           ? {
               ...car,
               ...formData,
@@ -110,9 +166,11 @@ export default function CarsModule() {
           : car
       ));
       showToastMessage(t('carUpdated') || 'Car updated successfully');
+        }catch (error) {
+          console.error('Error updating car:', error);
+        }
     } else {
       const newCar = {
-        id: Math.max(...cars.map(c => c.id), 0) + 1,
         ...formData,
         specs: {
           power: formData.power,
@@ -121,6 +179,17 @@ export default function CarsModule() {
         },
         availability: 'available'
       };
+      try{
+        await fetch('/api/cars', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(newCar)
+        });
+      }catch (error) {
+        console.error('Error adding car:', error);
+      }
       setCars([...cars, newCar]);
       showToastMessage(t('carAdded') || 'Car added successfully');
     }
@@ -188,7 +257,7 @@ export default function CarsModule() {
       {/* Cars Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCars.map((car) => (
-          <div key={car.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
+          <div key={car._id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative h-48">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -234,7 +303,7 @@ export default function CarsModule() {
 
               <div className="flex space-x-2">
                 <button
-                  onClick={() => toggleAvailability(car.id)}
+                  onClick={() => toggleAvailability(car._id)}
                   className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
                 >
                   {car.availability === 'available' ? (t('markSold') || 'Mark Sold') : (t('markAvailable') || 'Mark Available')}
@@ -248,7 +317,7 @@ export default function CarsModule() {
                   </svg>
                 </button>
                 <button
-                  onClick={() => handleDelete(car.id)}
+                  onClick={() => handleDelete(car._id)}
                   className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,15 +352,21 @@ export default function CarsModule() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('brand') || 'Brand'}
+                    {t('brand') || 'Brand (Category)'}
                   </label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.brand}
                     onChange={(e) => setFormData({ ...formData, brand: e.target.value })}
                     required
                     className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                  />
+                  >
+                    <option value="">{t('selectBrand') || 'Select a brand...'}</option>
+                    {categories.map((category) => (
+                      <option key={category._id} value={category.name}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

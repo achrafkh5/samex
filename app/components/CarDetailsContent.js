@@ -5,11 +5,11 @@ import Link from 'next/link';
 import ImageGallery from './ImageGallery';
 import { useState } from 'react';
 
-export default function CarDetailsContent({ car }) {
+export default function CarDetailsContent({ cars }) {
   const { t, language } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
-  if (!car) {
+  if (!cars || cars.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -27,6 +27,56 @@ export default function CarDetailsContent({ car }) {
       </div>
     );
   }
+
+    const car = {
+    ...cars,
+    images: [
+      cars.image,
+      'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=800',
+      'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=800',
+      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800',
+      'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=800',
+    ],
+    version: cars.model,
+    doors:
+      ['Tesla', 'Ferrari', 'Lamborghini', 'McLaren'].includes(cars.brand)
+        ? '2'
+        : '4',
+    seats:
+      ['Ferrari', 'Lamborghini', 'McLaren'].includes(cars.brand)
+        ? '2'
+        : cars.brand === 'Range Rover'
+        ? '7'
+        : '5',
+    engineCapacity:
+      cars.fuelType === 'electric'
+        ? 'Electric Motor'
+        : ['Ferrari', 'Lamborghini'].includes(cars.brand)
+        ? '6.5L V12'
+        : ['Porsche', 'BMW'].includes(cars.brand)
+        ? '3.0L Turbo'
+        : '4.0L V8',
+    discount: cars.price > 100000 && Math.random() > 0.5 ? 5000 : 0,
+    features: [
+      'Premium Sound System',
+      'Leather Interior',
+      'Navigation System',
+      'Parking Sensors',
+      'Backup Camera',
+      'Bluetooth Connectivity',
+      'Keyless Entry',
+      'Climate Control',
+      'Cruise Control',
+      'Sunroof/Moonroof',
+      'Heated Seats',
+      'LED Headlights',
+      'Apple CarPlay & Android Auto',
+      'Lane Departure Warning',
+      'Blind Spot Monitoring',
+      'Adaptive Cruise Control',
+    ],
+  }; // Display the first car in the array
+
 
   const finalPrice = car.discount > 0 ? car.price - car.discount : car.price;
   const availabilityColors = {
@@ -153,19 +203,19 @@ export default function CarDetailsContent({ car }) {
                         <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                           Experience unparalleled luxury and performance with the {car.brand} {car.model}. 
                           This exceptional vehicle combines cutting-edge technology with timeless design, 
-                          delivering an unforgettable driving experience. Equipped with a powerful {car.specs.power} engine 
+                          delivering an unforgettable driving experience. Equipped with a powerful {car.specs?.power} engine 
                           and advanced safety features, it represents the pinnacle of automotive excellence.
                         </p>
                       </div>
 
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{car.specs.power}</div>
+                          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{car.specs?.power}</div>
                           <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Power</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{car.specs.speed || car.specs.range}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{car.specs.speed ? 'Top Speed' : 'Range'}</div>
+                          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{car.specs?.speed || car.specs?.range}</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{car.specs?.speed ? 'Top Speed' : 'Range'}</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                           <div className="text-3xl font-bold text-green-600 dark:text-green-400">{car.doors}</div>
@@ -216,10 +266,10 @@ export default function CarDetailsContent({ car }) {
                           { label: t('fuelType'), value: t(car.fuelType) },
                           { label: t('transmission'), value: t(car.transmission) },
                           { label: t('engineCapacity'), value: car.engineCapacity },
-                          { label: 'Power', value: car.specs.power },
-                          { label: car.specs.speed ? 'Top Speed' : 'Range', value: car.specs.speed || car.specs.range },
-                          { label: 'Color', value: car.specs.color },
-                          { label: 'Mileage', value: car.specs.mileage },
+                          { label: 'Power', value: car.specs?.power },
+                          { label: car.specs?.speed ? 'Top Speed' : 'Range', value: car.specs?.speed || car.specs?.range },
+                          { label: 'Color', value: car.specs?.color },
+                          { label: 'Mileage', value: car.specs?.mileage },
                           { label: t('doors'), value: car.doors },
                           { label: t('seats'), value: car.seats },
                           { label: t('vinNumber'), value: car.vin },
@@ -276,20 +326,17 @@ export default function CarDetailsContent({ car }) {
                   )}
 
                   <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                    ${finalPrice.toLocaleString()}
+                    ${finalPrice?.toLocaleString()}
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('finalPrice')}</p>
 
                   {car.availability === 'available' ? (
                     <>
-                      <Link href="/inscription">
+                      <Link href={`/inscription/${car._id}`}>
                         <button className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-bold text-lg transition-all shadow-lg hover:shadow-xl mb-3">
                           {t('reserveNow')}
                         </button>
                       </Link>
-                      <button className="w-full px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-semibold transition-all">
-                        {t('scheduleTestDrive')}
-                      </button>
                     </>
                   ) : (
                     <button className="w-full px-6 py-4 bg-gray-300 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-xl font-bold text-lg cursor-not-allowed" disabled>

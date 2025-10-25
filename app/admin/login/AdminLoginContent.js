@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../components/LanguageProvider';
 import { useTheme } from 'next-themes';
-
+import Image from 'next/image';
 export default function AdminLoginContent() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -53,10 +53,8 @@ export default function AdminLoginContent() {
       <div className="max-w-md w-full">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
-            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+          <div className="inline-flex items-center justify-center w-32 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 mb-4">
+            <Image src="/logo.png" alt="Logo" width={100} height={64} />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             {t('adminLogin') || 'Admin Login'}

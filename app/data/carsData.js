@@ -1,8 +1,9 @@
-// Helper function to get car by ID with extended details
-export function getCarById(id) {
+"use client";
+import { useState, useEffect } from "react";
+
+
+export async function getCarById(id) {
   const carId = parseInt(id);
-  const car = carsData.find(c => c.id === carId);
-  
   if (!car) return null;
   
   // Add extended details for the car details page
@@ -21,7 +22,7 @@ export function getCarById(id) {
     engineCapacity: car.fuelType === 'electric' ? 'Electric Motor' : 
                    car.brand === 'Ferrari' || car.brand === 'Lamborghini' ? '6.5L V12' :
                    car.brand === 'Porsche' || car.brand === 'BMW' ? '3.0L Turbo' : '4.0L V8',
-    vin: `VIN${car.id}${car.brand.slice(0,3).toUpperCase()}${car.year}${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
+    vin: `VIN${car._id}${car.brand.slice(0,3).toUpperCase()}${car.year}${Math.random().toString(36).substring(2, 9).toUpperCase()}`,
     availability: car.condition === 'new' ? 'available' : Math.random() > 0.3 ? 'available' : 'reserved',
     discount: car.price > 100000 && Math.random() > 0.5 ? 5000 : 0,
     features: [
