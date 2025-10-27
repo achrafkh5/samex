@@ -1,16 +1,31 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
+import { getAuthUser } from '@/app/lib/auth';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    // Get authenticated user
+    const authUser = await getAuthUser(request);
+    
+    if (!authUser) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
-    const clients = await db.collection("clients").find({}).toArray();
-    return NextResponse.json(clients);
+    const clientInfo = await db.collection("clients").find({ 
+      userId: authUser.userId 
+    }).toArray();
+
+    if (!clientInfo || clientInfo.length === 0) {
+      return NextResponse.json({  message: 'No client info found' }, { status: 404 });
+    }
+    
+    return NextResponse.json(clientInfo);
   } catch (error) {
-    console.error("Error fetching clients:", error);
-    return NextResponse.json({ error: "Failed to fetch clients" }, { status: 500 });
+    console.error("Error fetching client info:", error);
+    return NextResponse.json({ error: "Failed to fetch client info" }, { status: 500 });
   }
 }
 

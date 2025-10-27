@@ -2,18 +2,23 @@
 
 import { useState ,useEffect} from 'react';
 import { useLanguage } from './LanguageProvider';
+import { useAuth } from '@/app/context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import FileUploader from './FileUploader';
-import { carsData } from '../data/carsData';
+import jsPDF from 'jspdf';
 
 export default function InscriptionPageContent({ id }) {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [trackingCode, setTrackingCode] = useState('');
   const [selectedCar, setSelectedCar] = useState(null);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [certificateUrl, setCertificateUrl] = useState(null);
+  const [uploadingCertificate, setUploadingCertificate] = useState(false);
   const [formData, setFormData] = useState({
     // Personal Info
     fullName: '',
@@ -34,7 +39,6 @@ export default function InscriptionPageContent({ id }) {
     // Payment Info
     paymentMethod: '',
     paymentAmount: '',
-    referenceNumber: '',
     
     // Documents
     idCard: null,
@@ -43,13 +47,403 @@ export default function InscriptionPageContent({ id }) {
     paymentProof: null,
     
     // Terms
-    acceptTerms: false,
-    signature: ''
+    acceptTerms: false
   });
 
   const [errors, setErrors] = useState({});
   
   const totalSteps = 4;
+
+  // Function to generate inscription PDF certificate as Blob
+  const generateCertificatePDFBlob = async (certNumber, clientId, orderId) => {
+    const doc = new jsPDF();
+    
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 20;
+    let yPos = 20;
+
+    // Add logo
+    try {
+      const logoImg = new window.Image();
+      logoImg.src = '/logo.png';
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = reject;
+      });
+      doc.addImage(logoImg, 'PNG', margin, yPos, 40, 20);
+    } catch (error) {
+      console.log('Logo not loaded:', error);
+    }
+
+    // Header with gradient background simulation
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, pageWidth, 50, 'F');
+    
+    // Document Title in French
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    yPos = 35;
+    doc.text('CERTIFICAT D\'INSCRIPTION', pageWidth / 2, yPos, { align: 'center' });
+
+    // Subtitle
+    doc.setFontSize(12);
+    yPos += 8;
+    doc.text('Confirmation de réservation de véhicule', pageWidth / 2, yPos, { align: 'center' });
+
+    // Certificate Info
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    yPos = 60;
+    doc.text(`Numéro de certificat: ${certNumber}`, margin, yPos);
+    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - margin, yPos, { align: 'right' });
+
+    // Client Information Section
+    yPos += 15;
+    doc.setFillColor(37, 99, 235);
+    doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INFORMATIONS CLIENT', margin + 5, yPos + 7);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    yPos += 20;
+
+    const clientInfo = [
+      ['Nom complet:', formData.fullName],
+      ['Email:', formData.email],
+      ['Téléphone:', formData.phone],
+      ['Date de naissance:', formData.dateOfBirth],
+      ['Nationalité:', formData.nationality],
+      ['N° ID National:', formData.nationalId],
+      ['Adresse:', formData.streetAddress],
+      ['Ville:', formData.city],
+      ['Pays:', formData.country],
+      ['Code postal:', formData.zipCode || 'N/A'],
+    ];
+
+    clientInfo.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, margin + 5, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(value || 'N/A', margin + 60, yPos);
+      yPos += 8;
+    });
+
+    // Vehicle Details Section
+    if (selectedCar) {
+      yPos += 10;
+      doc.setFillColor(37, 99, 235);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DÉTAILS DU VÉHICULE', margin + 5, yPos + 7);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      yPos += 20;
+
+      const vehicleInfo = [
+        ['Marque:', selectedCar.brand],
+        ['Modèle:', selectedCar.model],
+        ['Année:', selectedCar.year?.toString()],
+        ['Couleur:', selectedCar.specs?.colors?.join(', ') || selectedCar.specs?.color || 'N/A'],
+        ['Type de carburant:', selectedCar.fuelType],
+        ['Transmission:', selectedCar.transmission],
+        ['N° VIN:', selectedCar.vin || 'N/A'],
+        ['Prix:', `${selectedCar.price?.toLocaleString()} DZD`],
+      ];
+
+      vehicleInfo.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, margin + 5, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(value || 'N/A', margin + 60, yPos);
+        yPos += 8;
+      });
+    }
+
+    // Payment Information Section
+    yPos += 10;
+    doc.setFillColor(37, 99, 235);
+    doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INFORMATIONS DE PAIEMENT', margin + 5, yPos + 7);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    yPos += 20;
+
+    const paymentInfo = [
+      ['Méthode de paiement:', formData.paymentMethod],
+      ['Montant:', `$${formData.paymentAmount || selectedCar?.price?.toLocaleString()}`],
+      ['Statut:', 'En attente'],
+    ];
+
+    paymentInfo.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, margin + 5, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(value || 'N/A', margin + 60, yPos);
+      yPos += 8;
+    });
+
+    // Footer
+    yPos = pageHeight - 30;
+    doc.setFillColor(240, 240, 240);
+    doc.rect(0, yPos, pageWidth, 30, 'F');
+    
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    yPos += 10;
+    doc.text('Ce document certifie l\'inscription et la réservation du véhicule mentionné ci-dessus.', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+    doc.text('Pour toute question, veuillez nous contacter à contact@samex.com', pageWidth / 2, yPos, { align: 'center' });
+
+    // Signature placeholder
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text('_____________________', pageWidth - margin - 40, yPos);
+    yPos += 5;
+    doc.text('Signature autorisée', pageWidth - margin - 40, yPos);
+
+    // Return PDF as Blob
+    return doc.output('blob');
+  };
+
+  // Function to upload certificate PDF to Cloudinary
+  const uploadCertificateToCloudinary = async (pdfBlob, certNumber) => {
+    try {
+      const formData = new FormData();
+      const fileName = `Inscription_${certNumber}_${Date.now()}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      
+      formData.append('file', file);
+      formData.append('folder', 'certificates/inscriptions');
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to upload certificate to Cloudinary');
+      }
+
+      const data = await response.json();
+      return data.url;
+    } catch (error) {
+      console.error('Certificate upload error:', error);
+      throw error;
+    }
+  };
+
+  // Function to save document record to database
+  const saveDocumentToDatabase = async (docData) => {
+    try {
+      const response = await fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(docData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save document to database');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Document save error:', error);
+      throw error;
+    }
+  };
+
+  // Function to download certificate from URL
+  const downloadCertificate = () => {
+    if (certificateUrl) {
+      window.open(certificateUrl, '_blank');
+    }
+  };
+
+  // Function to generate inscription PDF in French (for direct download)
+  const generateInscriptionPDF = async () => {
+    const doc = new jsPDF();
+    
+    const pageWidth = doc.internal.pageSize.width;
+    const pageHeight = doc.internal.pageSize.height;
+    const margin = 20;
+    let yPos = 20;
+
+    // Add logo
+    try {
+      const logoImg = new window.Image();
+      logoImg.src = '/logo.png';
+      await new Promise((resolve, reject) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = reject;
+      });
+      // Add logo at top left
+      doc.addImage(logoImg, 'PNG', margin, yPos, 40, 20);
+    } catch (error) {
+      console.log('Logo not loaded:', error);
+    }
+
+    // Header with gradient background simulation
+    doc.setFillColor(37, 99, 235); // Blue
+    doc.rect(0, 0, pageWidth, 50, 'F');
+    
+    // Document Title in French
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    yPos = 35;
+    doc.text('CERTIFICAT D\'INSCRIPTION', pageWidth / 2, yPos, { align: 'center' });
+
+    // Subtitle
+    doc.setFontSize(12);
+    yPos += 8;
+    doc.text('Confirmation de réservation de véhicule', pageWidth / 2, yPos, { align: 'center' });
+
+    // Certificate Info
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    yPos = 60;
+    const certNumber = `CERT-${Date.now().toString().slice(-8)}`;
+    doc.text(`Numéro de certificat: ${certNumber}`, margin, yPos);
+    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, pageWidth - margin, yPos, { align: 'right' });
+
+    // Client Information Section
+    yPos += 15;
+    doc.setFillColor(37, 99, 235);
+    doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INFORMATIONS CLIENT', margin + 5, yPos + 7);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    yPos += 20;
+
+    const clientInfo = [
+      ['Nom complet:', formData.fullName],
+      ['Email:', formData.email],
+      ['Téléphone:', formData.phone],
+      ['Date de naissance:', formData.dateOfBirth],
+      ['Nationalité:', formData.nationality],
+      ['N° ID National:', formData.nationalId],
+      ['Adresse:', formData.streetAddress],
+      ['Ville:', formData.city],
+      ['Pays:', formData.country],
+      ['Code postal:', formData.zipCode || 'N/A'],
+    ];
+
+    clientInfo.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, margin + 5, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(value || 'N/A', margin + 60, yPos);
+      yPos += 8;
+    });
+
+    // Vehicle Details Section
+    if (selectedCar) {
+      yPos += 10;
+      doc.setFillColor(37, 99, 235);
+      doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('DÉTAILS DU VÉHICULE', margin + 5, yPos + 7);
+
+      doc.setTextColor(0, 0, 0);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      yPos += 20;
+
+      const vehicleInfo = [
+        ['Marque:', selectedCar.brand],
+        ['Modèle:', selectedCar.model],
+        ['Année:', selectedCar.year?.toString()],
+        ['Couleur:', selectedCar.specs?.colors?.join(', ') || selectedCar.specs?.color || 'N/A'],
+        ['Type de carburant:', selectedCar.fuelType],
+        ['Transmission:', selectedCar.transmission],
+        ['N° VIN:', selectedCar.vin || 'N/A'],
+        ['Prix:', `$${selectedCar.price?.toLocaleString()}`],
+      ];
+
+      vehicleInfo.forEach(([label, value]) => {
+        doc.setFont('helvetica', 'bold');
+        doc.text(label, margin + 5, yPos);
+        doc.setFont('helvetica', 'normal');
+        doc.text(value || 'N/A', margin + 60, yPos);
+        yPos += 8;
+      });
+    }
+
+    // Payment Information Section
+    yPos += 10;
+    doc.setFillColor(37, 99, 235);
+    doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INFORMATIONS DE PAIEMENT', margin + 5, yPos + 7);
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    yPos += 20;
+
+    const paymentInfo = [
+      ['Méthode de paiement:', formData.paymentMethod],
+      ['Montant:', `$${formData.paymentAmount || selectedCar?.price?.toLocaleString()}`],
+      ['Statut:', 'En attente'],
+    ];
+
+    paymentInfo.forEach(([label, value]) => {
+      doc.setFont('helvetica', 'bold');
+      doc.text(label, margin + 5, yPos);
+      doc.setFont('helvetica', 'normal');
+      doc.text(value || 'N/A', margin + 60, yPos);
+      yPos += 8;
+    });
+
+    // Footer
+    yPos = pageHeight - 30;
+    doc.setFillColor(240, 240, 240);
+    doc.rect(0, yPos, pageWidth, 30, 'F');
+    
+    doc.setTextColor(100, 100, 100);
+    doc.setFontSize(9);
+    yPos += 10;
+    doc.text('Ce document certifie l\'inscription et la réservation du véhicule mentionné ci-dessus.', pageWidth / 2, yPos, { align: 'center' });
+    yPos += 6;
+    doc.text('Pour toute question, veuillez nous contacter à contact@samex.com', pageWidth / 2, yPos, { align: 'center' });
+
+    // Signature placeholder
+    yPos += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'italic');
+    doc.text('_____________________', pageWidth - margin - 40, yPos);
+    yPos += 5;
+    doc.text('Signature autorisée', pageWidth - margin - 40, yPos);
+
+    // Download the PDF
+    doc.save(`Inscription_${certNumber}_${formData.fullName.replace(/\s+/g, '_')}.pdf`);
+  };
 
   useEffect(() => {
     const fetchCarOptions = async () => {
@@ -60,6 +454,22 @@ export default function InscriptionPageContent({ id }) {
 
     fetchCarOptions();
   }, [id]);
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      const res = await fetch('/api/payments');
+      const data = await res.json();
+      const enabledMethods = data.filter(method => method.enabled === true);
+      setPaymentMethods(enabledMethods);
+      setFormData(prev => ({
+        ...prev,
+        paymentMethod: enabledMethods.length > 0 ? enabledMethods[0].name : ''
+      }));
+    };
+    
+    fetchPaymentMethods();
+  }, []);
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -109,6 +519,7 @@ export default function InscriptionPageContent({ id }) {
 
     if (step === 3) {
       // Payment Info validation
+      formData.paymentAmount = selectedCar ? selectedCar.price.toString() : '';
       if (!formData.paymentMethod) newErrors.paymentMethod = t('required');
       if (!formData.paymentAmount.trim()) newErrors.paymentAmount = t('required');
     }
@@ -118,7 +529,6 @@ export default function InscriptionPageContent({ id }) {
       if (!formData.idCard) newErrors.idCard = t('required');
       if (!formData.driversLicense) newErrors.driversLicense = t('required');
       if (!formData.acceptTerms) newErrors.acceptTerms = t('required');
-      if (!formData.signature.trim()) newErrors.signature = t('required');
     }
 
     setErrors(newErrors);
@@ -196,6 +606,7 @@ export default function InscriptionPageContent({ id }) {
         city: formData.city,
         country: formData.country,
         zipCode: formData.zipCode,
+        userId: user?._id || user?.id,
       };
 
       const clientResponse = await fetch(`/api/clients`, {
@@ -215,24 +626,21 @@ export default function InscriptionPageContent({ id }) {
 
       console.log('Client created:', clientResult);
 
-      // Generate tracking code
-      const trackingCode = `DC${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
-
+    
       // Step 3: Create order with car, payment, document URLs, and tracking info
       const orderData = {
         clientId: clientId,
-        trackingCode: trackingCode,
+        trackingCode: "",
         selectedCarId: formData.selectedCarId,
         paymentMethod: formData.paymentMethod,
         paymentAmount: formData.paymentAmount,
-        referenceNumber: formData.referenceNumber,
         idCardUrl: idCardUrl,
         driversLicenseUrl: driversLicenseUrl,
         proofOfResidenceUrl: proofOfResidenceUrl,
         paymentProofUrl: paymentProofUrl,
-        signature: formData.signature,
         acceptTerms: formData.acceptTerms,
         status: 'pending',
+        userId: user?._id || user?.id,
         createdAt: new Date().toISOString(),
       };
 
@@ -249,11 +657,48 @@ export default function InscriptionPageContent({ id }) {
       }
 
       const orderResult = await orderResponse.json();
+      const orderId = orderResult.orderId;
 
-      setTrackingCode(trackingCode);
-      
-      console.log('Order created with tracking code:', trackingCode);
-      console.log('Order details:', orderResult);
+      // Step 4: Generate and upload inscription certificate
+      console.log('Generating inscription certificate...');
+      setUploadingCertificate(true);
+
+      try {
+        const certNumber = `CERT-${Date.now().toString().slice(-8)}`;
+        
+        // Generate PDF as Blob
+        const pdfBlob = await generateCertificatePDFBlob(certNumber, clientId, orderId);
+        
+        // Upload to Cloudinary
+        console.log('Uploading certificate to Cloudinary...');
+        const cloudinaryUrl = await uploadCertificateToCloudinary(pdfBlob, certNumber);
+        setCertificateUrl(cloudinaryUrl);
+        
+        console.log('Certificate uploaded successfully:', cloudinaryUrl);
+
+        // Save document record to database
+        console.log('Saving document record to database...');
+        const documentData = {
+          userId: user?._id || user?.id, // Current authenticated user
+          clientId: clientId,
+          orderId: orderId,
+          url: cloudinaryUrl,
+          type: 'inscription',
+          clientName: formData.fullName,
+        };
+
+        await saveDocumentToDatabase(documentData);
+        console.log('Document record saved successfully');
+
+      } catch (certError) {
+        console.error('Certificate generation/upload error:', certError);
+        // Don't fail the entire process if certificate generation fails
+        setErrors({ 
+          submit: t('certificateGenerationWarning') || 'Registration successful, but certificate generation had an issue. You can download it later from your dashboard.' 
+        });
+      } finally {
+        setUploadingCertificate(false);
+      }
       
       setIsSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -283,18 +728,36 @@ export default function InscriptionPageContent({ id }) {
                 {t('registrationSuccess')}
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-                {t('certificateGenerated')}
+                {certificateUrl ? t('certificateGenerated') : t('registrationComplete')}
               </p>
 
-              {/* Tracking Code */}
-              <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-6 mb-8 border border-blue-200 dark:border-blue-800">
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  {t('trackingCode')}
-                </p>
-                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 font-mono">
-                  {trackingCode}
-                </p>
-              </div>
+              {/* Certificate Status */}
+              {uploadingCertificate && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 mb-6 border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-center justify-center space-x-3">
+                    <svg className="animate-spin h-5 w-5 text-blue-600 dark:text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-blue-600 dark:text-blue-400 font-medium">
+                      {t('generatingCertificate') || 'Generating your certificate...'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {certificateUrl && !uploadingCertificate && (
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 mb-6 border border-green-200 dark:border-green-800">
+                  <div className="flex items-center justify-center space-x-2 text-green-600 dark:text-green-400">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-medium">
+                      {t('certificateReady') || 'Certificate ready for download!'}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Summary */}
               <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 mb-8 text-left">
@@ -335,12 +798,38 @@ export default function InscriptionPageContent({ id }) {
                     <span>{t('myDashboard')}</span>
                   </button>
                 </Link>
-                <button className="flex-1 px-6 py-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-xl font-semibold transition-all flex items-center justify-center space-x-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  <span>{t('downloadCertificate')}</span>
-                </button>
+                
+                {certificateUrl ? (
+                  <button 
+                    onClick={downloadCertificate}
+                    disabled={uploadingCertificate}
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2 ${
+                      uploadingCertificate 
+                        ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 text-white shadow-lg hover:shadow-xl'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>{t('downloadCertificate')}</span>
+                  </button>
+                ) : (
+                  <button 
+                    onClick={generateInscriptionPDF}
+                    disabled={uploadingCertificate}
+                    className={`flex-1 px-6 py-3 rounded-xl font-semibold transition-all flex items-center justify-center space-x-2 ${
+                      uploadingCertificate
+                        ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed'
+                        : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-900 dark:text-white'
+                    }`}
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span>{t('downloadCertificate')}</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -503,7 +992,7 @@ export default function InscriptionPageContent({ id }) {
                         onChange={handleChange}
                         className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">{t('preferNotToSay')}</option>
+                        <option value="">{t('selectGender')}</option>
                         <option value="male">{t('male')}</option>
                         <option value="female">{t('female')}</option>
                       </select>
@@ -723,61 +1212,38 @@ export default function InscriptionPageContent({ id }) {
                     {t('paymentInfo')}
                   </h2>
 
-                  {/* Payment Method */}
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                      {t('paymentMethod')} <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      name="paymentMethod"
-                      value={formData.paymentMethod}
-                      onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border ${
-                        errors.paymentMethod ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
-                      } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    >
-                      <option value="">{t('paymentMethod')}</option>
-                      <option value="cash">{t('cash')}</option>
-                      <option value="bankTransfer">{t('bankTransfer')}</option>
-                      <option value="creditCard">{t('creditCard')}</option>
-                      <option value="financing">{t('financing')}</option>
-                    </select>
-                    {errors.paymentMethod && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.paymentMethod}</p>}
-                  </div>
+  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+    {t('paymentMethod')} <span className="text-red-500">*</span>
+  </label>
 
-                  {/* Payment Amount and Reference */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        {t('paymentAmount')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="paymentAmount"
-                        value={formData.paymentAmount}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border ${
-                          errors.paymentAmount ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
-                        } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                        placeholder="$5,000"
-                      />
-                      {errors.paymentAmount && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.paymentAmount}</p>}
-                    </div>
+  <select
+    name="paymentMethod"
+    value={formData.paymentMethod}
+    onChange={handleChange}
+    className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border ${
+      errors.paymentMethod ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+    } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+  >
+    <option value="">{t('select_payment_method')}</option>
+    {paymentMethods?.length ? (
+      paymentMethods.map((method) => (
+        <option key={method._id} value={method.name}>
+          {t(method.name) || method.name}
+        </option>
+      ))
+    ) : (
+      <option disabled>{t('loading')}</option>
+    )}
+  </select>
 
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        {t('referenceNumber')}
-                      </label>
-                      <input
-                        type="text"
-                        name="referenceNumber"
-                        value={formData.referenceNumber}
-                        onChange={handleChange}
-                        className="w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="REF123456"
-                      />
-                    </div>
-                  </div>
+  {errors.paymentMethod && (
+    <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+      {errors.paymentMethod}
+    </p>
+  )}
+</div>
+
 
                   {selectedCar && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
@@ -858,27 +1324,6 @@ export default function InscriptionPageContent({ id }) {
                     </div>
                     {errors.acceptTerms && <p className="text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}
 
-                    {/* Digital Signature */}
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        {t('signature')} <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="signature"
-                        value={formData.signature}
-                        onChange={handleChange}
-                        className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border ${
-                          errors.signature ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
-                        } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-cursive text-2xl`}
-                        placeholder={t('typeYourName')}
-                        style={{ fontFamily: 'cursive' }}
-                      />
-                      {errors.signature && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.signature}</p>}
-                      <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        {t('typeYourName')}
-                      </p>
-                    </div>
                   </div>
 
                   {errors.submit && (

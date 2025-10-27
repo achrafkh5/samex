@@ -20,13 +20,14 @@ export default function ClientsModule() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-
-
-  const filteredClients = clients.filter(client =>
-    client.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.phone.includes(searchTerm)
-  );
+  let filteredClients = [];
+   if (clients.length > 0) {
+     filteredClients = clients?.filter(client =>
+      client.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      client.phone.includes(searchTerm)
+    );
+  }
 
   return (
     <div className="p-6 lg:p-8">

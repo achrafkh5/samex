@@ -8,16 +8,6 @@ export default function PaymentMethodsModule() {
   const [methods, setMethods] = useState([]);
 
   useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        const response = await fetch('/api/payments');
-        const data = await response.json();
-        setMethods(data);
-      } catch (error) {
-        console.error('Error fetching payment methods:', error);
-      }
-    };
-
     fetchPaymentMethods();
   }, []);
 
@@ -26,6 +16,17 @@ export default function PaymentMethodsModule() {
   const [formData, setFormData] = useState({ name: '', description: '', enabled: true });
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
+
+  const fetchPaymentMethods = async () => {
+    try {
+      const response = await fetch('/api/payments');
+      const data = await response.json();
+      setMethods(data);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+    }
+  };
 
   const toggleMethod = async (id) => {
     const method = methods.find(m => m._id === id);
@@ -59,13 +60,39 @@ export default function PaymentMethodsModule() {
     });
 
     if (response.ok) {
-      const newMethod = await response.json();
-      setMethods([...methods, newMethod]);
+      // Refetch all methods to get the new one with proper _id from database
+      await fetchPaymentMethods();
+      setFormData({ name: '', description: '', enabled: true });
       setIsModalOpen(false);
       showToastMessage(t('methodAdded') || 'Payment method added');
     } else {
       console.error('Error adding payment method:', response.statusText);
     }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm(t('confirmDeleteMethod') || 'Are you sure you want to delete this payment method?')) {
+      return;
+    }
+
+    setDeletingId(id);
+
+    const response = await fetch('/api/payments', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    });
+
+    if (response.ok) {
+      setMethods(methods.filter(m => m._id !== id));
+      showToastMessage(t('methodDeleted') || 'Payment method deleted');
+    } else {
+      console.error('Error deleting payment method:', response.statusText);
+    }
+
+    setDeletingId(null);
   };
 
   const showToastMessage = (message) => {
@@ -98,8 +125,27 @@ export default function PaymentMethodsModule() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {methods.map((method) => (
-          <div key={method._id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-            <div className="flex items-center justify-between mb-4">
+          <div key={method._id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 relative">
+            {/* Delete Button */}
+            <button
+              onClick={() => handleDelete(method._id)}
+              disabled={deletingId === method._id}
+              className="absolute top-4 right-4 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title={t('delete') || 'Delete'}
+            >
+              {deletingId === method._id ? (
+                <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              )}
+            </button>
+
+            <div className="flex items-center justify-between mb-4 pr-8">
               <span className="text-4xl">💳</span>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input

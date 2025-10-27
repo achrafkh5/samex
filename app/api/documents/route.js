@@ -1,26 +1,43 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
+import { getAuthUser } from '@/app/lib/auth';
 
 // GET - Fetch all documents
 export async function GET(request) {
   try {
+    // Get authenticated user
+    const authUser = await getAuthUser(request);
+    
+    if (!authUser) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     
     const { searchParams } = new URL(request.url);
-    const clientId = searchParams.get('clientId');
+    const orderId = searchParams.get('orderId');
     const type = searchParams.get('type');
     
-    let query = {};
-    if (clientId) query.clientId = clientId;
+    // First verify the order belongs to the user
+    if (orderId) {
+      const order = await db.collection("orders").find({ 
+        _id: new ObjectId(orderId),
+        userId: authUser.userId
+      }).toArray();
+
+      if (!order || order.length === 0) {
+        return NextResponse.json({ error: 'Order not found or unauthorized' }, { status: 404 });
+      }
+    }
+
+    let query = { userId: authUser.userId };
+    if (orderId) query.orderId = orderId;
     if (type) query.type = type;
-    
     const documents = await db.collection("documents")
       .find(query)
-      .sort({ createdAt: -1 })
       .toArray();
-    
     return NextResponse.json(documents);
   } catch (error) {
     console.error('❌ Error fetching documents:', error);
@@ -38,7 +55,7 @@ export async function POST(request) {
     const db = client.db("dreamcars");
     
     const body = await request.json();
-    const { type, clientId, carId, orderId, clientName, carModel, url, trackingCode } = body;
+    const { type, clientId, carId, orderId, clientName, url, userId } = body;
     
     // Validate required fields
     if (!type || !url) {
@@ -50,13 +67,12 @@ export async function POST(request) {
     
     const document = {
       type,
+      userId,
       clientId,
       carId,
       orderId,
       clientName,
-      carModel,
       url,
-      trackingCode,
       status: 'active',
       createdAt: new Date()
     };

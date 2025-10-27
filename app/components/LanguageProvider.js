@@ -7,6 +7,108 @@ const LanguageContext = createContext();
 
 export const translations = {
   en: {
+    // Common
+    common: {
+      loading: 'Loading...',
+      error: 'Error',
+      success: 'Success',
+      submit: 'Submit',
+      cancel: 'Cancel',
+      save: 'Save',
+      delete: 'Delete',
+      edit: 'Edit',
+      close: 'Close',
+      back: 'Back',
+      next: 'Next',
+      previous: 'Previous',
+      confirm: 'Confirm',
+      yes: 'Yes',
+      no: 'No'
+    },
+    
+    // Authentication
+    auth: {
+      login: 'Login',
+      signup: 'Sign Up',
+      logout: 'Logout',
+      forgotPassword: 'Forgot Password?',
+      resetPassword: 'Reset Password',
+      email: 'Email Address',
+      password: 'Password',
+      confirmPassword: 'Confirm Password',
+      fullName: 'Full Name',
+      name: 'Name',
+      rememberMe: 'Remember me',
+      dontHaveAccount: "Don't have an account?",
+      alreadyHaveAccount: 'Already have an account?',
+      signInHere: 'Sign in here',
+      signUpHere: 'Sign up here',
+      enterEmail: 'Enter your email',
+      enterPassword: 'Enter your password',
+      enterName: 'Enter your full name',
+      loginTitle: 'Welcome Back',
+      loginSubtitle: 'Sign in to your account to continue',
+      signupTitle: 'Create Account',
+      signupSubtitle: 'Join us today and start your journey',
+      forgotPasswordTitle: 'Reset Password',
+      forgotPasswordSubtitle: 'Enter your email to receive reset instructions',
+      sendResetLink: 'Send Reset Link',
+      backToLogin: 'Back to Login',
+      resetLinkSent: 'Reset link sent to your email',
+      loginSuccess: 'Login successful!',
+      signupSuccess: 'Account created successfully!',
+      logoutSuccess: 'Logged out successfully',
+      invalidCredentials: 'Invalid email or password',
+      emailRequired: 'Email is required',
+      passwordRequired: 'Password is required',
+      nameRequired: 'Name is required',
+      emailInvalid: 'Please enter a valid email',
+      passwordMinLength: 'Password must be at least 8 characters',
+      passwordsMatch: 'Passwords must match',
+      emailExists: 'Email already registered',
+      accountCreated: 'Your account has been created',
+      welcomeBack: 'Welcome back'
+    },
+    
+    // Dashboard
+    dashboard: {
+      title: 'Dashboard',
+      welcome: 'Welcome',
+      welcomeMessage: 'Welcome to your dashboard',
+      profile: 'Profile',
+      settings: 'Settings',
+      stats: 'Statistics',
+      recentActivity: 'Recent Activity',
+      noActivity: 'No recent activity'
+    },
+    
+    // Dashboard Page
+    dashboardWelcome: 'Manage your orders and profile information',
+    myOrders: 'My Orders',
+    clientInfo: 'Client Information',
+    noOrders: 'No orders found',
+    orderNumber: 'Order',
+    date: 'Date',
+    amount: 'Amount',
+    car: 'Car',
+    trackOrder: 'Track Order',
+    noTrackingCode: 'No tracking code yet',
+    viewMore: 'View More',
+    orderCertificate: 'Order Certificate',
+    orderCertificates: 'Order Certificates',
+    loadingCertificate: 'Loading certificate...',
+    noCertificate: 'No certificate available',
+    generatedOn: 'Generated on',
+    registrationDate: 'Registration Date',
+    phone: 'Phone',
+    address: 'Address',
+    lastUpdated: 'Last Updated',
+    noClientInfo: 'No client information available',
+    pending: 'Pending',
+    processing: 'Processing',
+    completed: 'Completed',
+    cancelled: 'Cancelled',
+    
     // Navbar
     home: 'Home',
     cars: 'Cars',
@@ -286,6 +388,10 @@ export const translations = {
     registrationSuccess: 'Registration Successful!',
     registrationError: 'Registration failed. Please try again.',
     certificateGenerated: 'Your Certificate of Inscription has been generated successfully.',
+    certificateGenerationWarning: 'Registration successful, but certificate generation had an issue. You can download it later from your dashboard.',
+    registrationComplete: 'Your registration has been completed successfully.',
+    generatingCertificate: 'Generating your certificate...',
+    certificateReady: 'Certificate ready for download!',
     trackingCode: 'Tracking Code',
     downloadCertificate: 'Download Certificate',
     registrationSummary: 'Registration Summary',
@@ -298,7 +404,7 @@ export const translations = {
     male: 'Male',
     female: 'Female',
     preferNotToSay: 'Prefer not to say',
-    
+    selectGender: 'Select Gender',
     // Dashboard
     myDashboard: 'My Dashboard',
     welcomeBack: 'Welcome back',
@@ -469,6 +575,8 @@ export const translations = {
     addMethod: 'Add Payment Method',
     methodAdded: 'Payment method added successfully',
     methodUpdated: 'Payment method updated successfully',
+    methodDeleted: 'Payment method deleted successfully',
+    confirmDeleteMethod: 'Are you sure you want to delete this payment method?',
     trackingManagement: 'Tracking & Itinerary',
     trackingDescription: 'Manage delivery routes and track shipments',
     createRoute: 'Create Route',
@@ -913,6 +1021,108 @@ export const translations = {
     },
   },
   fr: {
+    // Common
+    common: {
+      loading: 'Chargement...',
+      error: 'Erreur',
+      success: 'Succès',
+      submit: 'Soumettre',
+      cancel: 'Annuler',
+      save: 'Enregistrer',
+      delete: 'Supprimer',
+      edit: 'Modifier',
+      close: 'Fermer',
+      back: 'Retour',
+      next: 'Suivant',
+      previous: 'Précédent',
+      confirm: 'Confirmer',
+      yes: 'Oui',
+      no: 'Non'
+    },
+    
+    // Authentication
+    auth: {
+      login: 'Connexion',
+      signup: 'S\'inscrire',
+      logout: 'Déconnexion',
+      forgotPassword: 'Mot de passe oublié?',
+      resetPassword: 'Réinitialiser le mot de passe',
+      email: 'Adresse email',
+      password: 'Mot de passe',
+      confirmPassword: 'Confirmer le mot de passe',
+      fullName: 'Nom complet',
+      name: 'Nom',
+      rememberMe: 'Se souvenir de moi',
+      dontHaveAccount: "Vous n'avez pas de compte?",
+      alreadyHaveAccount: 'Vous avez déjà un compte?',
+      signInHere: 'Connectez-vous ici',
+      signUpHere: 'Inscrivez-vous ici',
+      enterEmail: 'Entrez votre email',
+      enterPassword: 'Entrez votre mot de passe',
+      enterName: 'Entrez votre nom complet',
+      loginTitle: 'Bienvenue',
+      loginSubtitle: 'Connectez-vous à votre compte pour continuer',
+      signupTitle: 'Créer un compte',
+      signupSubtitle: 'Rejoignez-nous aujourd\'hui et commencez votre voyage',
+      forgotPasswordTitle: 'Réinitialiser le mot de passe',
+      forgotPasswordSubtitle: 'Entrez votre email pour recevoir les instructions',
+      sendResetLink: 'Envoyer le lien de réinitialisation',
+      backToLogin: 'Retour à la connexion',
+      resetLinkSent: 'Lien de réinitialisation envoyé à votre email',
+      loginSuccess: 'Connexion réussie!',
+      signupSuccess: 'Compte créé avec succès!',
+      logoutSuccess: 'Déconnexion réussie',
+      invalidCredentials: 'Email ou mot de passe invalide',
+      emailRequired: 'L\'email est requis',
+      passwordRequired: 'Le mot de passe est requis',
+      nameRequired: 'Le nom est requis',
+      emailInvalid: 'Veuillez entrer un email valide',
+      passwordMinLength: 'Le mot de passe doit contenir au moins 8 caractères',
+      passwordsMatch: 'Les mots de passe doivent correspondre',
+      emailExists: 'Email déjà enregistré',
+      accountCreated: 'Votre compte a été créé',
+      welcomeBack: 'Bienvenue'
+    },
+    
+    // Dashboard
+    dashboard: {
+      title: 'Tableau de bord',
+      welcome: 'Bienvenue',
+      welcomeMessage: 'Bienvenue sur votre tableau de bord',
+      profile: 'Profil',
+      settings: 'Paramètres',
+      stats: 'Statistiques',
+      recentActivity: 'Activité récente',
+      noActivity: 'Aucune activité récente'
+    },
+    
+    // Dashboard Page
+    dashboardWelcome: 'Gérez vos commandes et informations de profil',
+    myOrders: 'Mes Commandes',
+    clientInfo: 'Informations Client',
+    noOrders: 'Aucune commande trouvée',
+    orderNumber: 'Commande',
+    date: 'Date',
+    amount: 'Montant',
+    car: 'Voiture',
+    trackOrder: 'Suivre la Commande',
+    noTrackingCode: 'Pas encore de code de suivi',
+    viewMore: 'Voir Plus',
+    orderCertificate: 'Certificat de Commande',
+    orderCertificates: 'Certificats de Commande',
+    loadingCertificate: 'Chargement du certificat...',
+    noCertificate: 'Aucun certificat disponible',
+    generatedOn: 'Généré le',
+    registrationDate: 'Date d\'Inscription',
+    phone: 'Téléphone',
+    address: 'Adresse',
+    lastUpdated: 'Dernière Mise à Jour',
+    noClientInfo: 'Aucune information client disponible',
+    pending: 'En Attente',
+    processing: 'En Cours',
+    completed: 'Terminé',
+    cancelled: 'Annulé',
+    
     // Navbar
     home: 'Accueil',
     cars: 'Voitures',
@@ -1174,6 +1384,10 @@ export const translations = {
     registrationSuccess: 'Inscription Réussie !',
     registrationError: 'Échec de l\'inscription. Veuillez réessayer.',
     certificateGenerated: 'Votre Certificat d\'Inscription a été généré avec succès.',
+    certificateGenerationWarning: 'Inscription réussie, mais la génération du certificat a rencontré un problème. Vous pourrez le télécharger plus tard depuis votre tableau de bord.',
+    registrationComplete: 'Votre inscription a été complétée avec succès.',
+    generatingCertificate: 'Génération de votre certificat...',
+    certificateReady: 'Certificat prêt à télécharger !',
     trackingCode: 'Code de Suivi',
     downloadCertificate: 'Télécharger le Certificat',
     registrationSummary: 'Résumé de l\'Inscription',
@@ -1186,7 +1400,7 @@ export const translations = {
     male: 'Homme',
     female: 'Femme',
     preferNotToSay: 'Préfère ne pas dire',
-    
+    selectGender: 'Sélectionner le Genre',
     // Dashboard
     myDashboard: 'Mon Tableau de Bord',
     welcomeBack: 'Bienvenue',
@@ -1343,6 +1557,16 @@ export const translations = {
     documentsSubtitle: 'Accédez et téléchargez vos documents de véhicule',
     accessDocuments: 'Accéder à Vos Documents',
     enterTrackingCode: 'Entrez votre code de suivi pour voir et télécharger vos documents',
+    
+    // Payment Methods (FR)
+    method: 'Méthode',
+    paymentMethodsManagement: 'Méthodes de Paiement',
+    paymentMethodsDescription: 'Configurer les méthodes de paiement acceptées',
+    addMethod: 'Ajouter Méthode de Paiement',
+    methodAdded: 'Méthode de paiement ajoutée avec succès',
+    methodUpdated: 'Méthode de paiement mise à jour avec succès',
+    methodDeleted: 'Méthode de paiement supprimée avec succès',
+    confirmDeleteMethod: 'Êtes-vous sûr de vouloir supprimer cette méthode de paiement?',
     
     // Finance Module (FR)
     finance_title: 'Gestion Financière',
@@ -1737,6 +1961,108 @@ export const translations = {
     },
   },
   ar: {
+    // Common
+    common: {
+      loading: 'جاري التحميل...',
+      error: 'خطأ',
+      success: 'نجاح',
+      submit: 'إرسال',
+      cancel: 'إلغاء',
+      save: 'حفظ',
+      delete: 'حذف',
+      edit: 'تعديل',
+      close: 'إغلاق',
+      back: 'رجوع',
+      next: 'التالي',
+      previous: 'السابق',
+      confirm: 'تأكيد',
+      yes: 'نعم',
+      no: 'لا'
+    },
+    
+    // Authentication
+    auth: {
+      login: 'تسجيل الدخول',
+      signup: 'إنشاء حساب',
+      logout: 'تسجيل الخروج',
+      forgotPassword: 'نسيت كلمة المرور؟',
+      resetPassword: 'إعادة تعيين كلمة المرور',
+      email: 'البريد الإلكتروني',
+      password: 'كلمة المرور',
+      confirmPassword: 'تأكيد كلمة المرور',
+      fullName: 'الاسم الكامل',
+      name: 'الاسم',
+      rememberMe: 'تذكرني',
+      dontHaveAccount: 'ليس لديك حساب؟',
+      alreadyHaveAccount: 'هل لديك حساب بالفعل؟',
+      signInHere: 'سجل الدخول هنا',
+      signUpHere: 'سجل هنا',
+      enterEmail: 'أدخل بريدك الإلكتروني',
+      enterPassword: 'أدخل كلمة المرور',
+      enterName: 'أدخل اسمك الكامل',
+      loginTitle: 'مرحباً بعودتك',
+      loginSubtitle: 'سجل الدخول إلى حسابك للمتابعة',
+      signupTitle: 'إنشاء حساب',
+      signupSubtitle: 'انضم إلينا اليوم وابدأ رحلتك',
+      forgotPasswordTitle: 'إعادة تعيين كلمة المرور',
+      forgotPasswordSubtitle: 'أدخل بريدك الإلكتروني لتلقي التعليمات',
+      sendResetLink: 'إرسال رابط إعادة التعيين',
+      backToLogin: 'العودة لتسجيل الدخول',
+      resetLinkSent: 'تم إرسال رابط إعادة التعيين إلى بريدك',
+      loginSuccess: 'تم تسجيل الدخول بنجاح!',
+      signupSuccess: 'تم إنشاء الحساب بنجاح!',
+      logoutSuccess: 'تم تسجيل الخروج بنجاح',
+      invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+      emailRequired: 'البريد الإلكتروني مطلوب',
+      passwordRequired: 'كلمة المرور مطلوبة',
+      nameRequired: 'الاسم مطلوب',
+      emailInvalid: 'يرجى إدخال بريد إلكتروني صحيح',
+      passwordMinLength: 'يجب أن تحتوي كلمة المرور على 8 أحرف على الأقل',
+      passwordsMatch: 'يجب أن تتطابق كلمتا المرور',
+      emailExists: 'البريد الإلكتروني مسجل بالفعل',
+      accountCreated: 'تم إنشاء حسابك',
+      welcomeBack: 'مرحباً بعودتك'
+    },
+    
+    // Dashboard
+    dashboard: {
+      title: 'لوحة التحكم',
+      welcome: 'مرحباً',
+      welcomeMessage: 'مرحباً بك في لوحة التحكم',
+      profile: 'الملف الشخصي',
+      settings: 'الإعدادات',
+      stats: 'الإحصائيات',
+      recentActivity: 'النشاط الأخير',
+      noActivity: 'لا يوجد نشاط حديث'
+    },
+    
+    // Dashboard Page
+    dashboardWelcome: 'إدارة طلباتك ومعلومات ملفك الشخصي',
+    myOrders: 'طلباتي',
+    clientInfo: 'معلومات العميل',
+    noOrders: 'لم يتم العثور على طلبات',
+    orderNumber: 'طلب',
+    date: 'التاريخ',
+    amount: 'المبلغ',
+    car: 'السيارة',
+    trackOrder: 'تتبع الطلب',
+    noTrackingCode: 'لا يوجد رمز تتبع بعد',
+    viewMore: 'عرض المزيد',
+    orderCertificate: 'شهادة الطلب',
+    orderCertificates: 'شهادات الطلب',
+    loadingCertificate: 'جاري تحميل الشهادة...',
+    noCertificate: 'لا توجد شهادة متاحة',
+    generatedOn: 'تم الإنشاء في',
+    registrationDate: 'تاريخ التسجيل',
+    phone: 'الهاتف',
+    address: 'العنوان',
+    lastUpdated: 'آخر تحديث',
+    noClientInfo: 'لا توجد معلومات عميل متاحة',
+    pending: 'قيد الانتظار',
+    processing: 'قيد المعالجة',
+    completed: 'مكتمل',
+    cancelled: 'ملغى',
+    
     // Navbar
     home: 'الرئيسية',
     cars: 'السيارات',
@@ -2016,6 +2342,10 @@ export const translations = {
     registrationSuccess: 'تم التسجيل بنجاح!',
     registrationError: 'فشل التسجيل. يرجى المحاولة مرة أخرى.',
     certificateGenerated: 'تم إنشاء شهادة التسجيل الخاصة بك بنجاح.',
+    certificateGenerationWarning: 'تم التسجيل بنجاح، لكن إنشاء الشهادة واجه مشكلة. يمكنك تنزيلها لاحقًا من لوحة التحكم الخاصة بك.',
+    registrationComplete: 'تم إكمال تسجيلك بنجاح.',
+    generatingCertificate: 'جاري إنشاء شهادتك...',
+    certificateReady: 'الشهادة جاهزة للتنزيل!',
     trackingCode: 'رمز التتبع',
     downloadCertificate: 'تحميل الشهادة',
     registrationSummary: 'ملخص التسجيل',
@@ -2028,7 +2358,7 @@ export const translations = {
     male: 'ذكر',
     female: 'أنثى',
     preferNotToSay: 'أفضل عدم الإفصاح',
-    
+    selectGender: 'اختر الجنس',
     // Dashboard
     myDashboard: 'لوحة التحكم',
     welcomeBack: 'مرحباً بعودتك',
@@ -2168,10 +2498,17 @@ export const translations = {
     clientDetails: 'التفاصيل',
     paymentsManagement: 'المدفوعات',
     totalTransactions: 'المعاملات',
+    
+    // Payment Methods (AR)
+    method: 'طريقة',
     paymentMethodsManagement: 'طرق الدفع',
-    addMethod: 'إضافة',
-    methodAdded: 'إضافة',
-    methodUpdated: 'تحديث',
+    paymentMethodsDescription: 'تكوين طرق الدفع المقبولة',
+    addMethod: 'إضافة طريقة دفع',
+    methodAdded: 'تمت إضافة طريقة الدفع بنجاح',
+    methodUpdated: 'تم تحديث طريقة الدفع بنجاح',
+    methodDeleted: 'تم حذف طريقة الدفع بنجاح',
+    confirmDeleteMethod: 'هل أنت متأكد من حذف طريقة الدفع هذه؟',
+    
     createRoute: 'إنشاء',
     viewRoute: 'التفاصيل',
     documentsManagement: 'المستندات',
@@ -2611,7 +2948,7 @@ export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState('en');
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') || 'en';
+    const savedLanguage = localStorage.getItem('language') || 'ar';
     setLanguage(savedLanguage);
     document.documentElement.lang = savedLanguage;
     document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
@@ -2625,7 +2962,33 @@ export function LanguageProvider({ children }) {
   };
 
   const t = (key) => {
-    return translations[language][key] || translations.en[key] || key;
+    // First check if it's a direct key in the current language
+    if (translations[language][key]) {
+      return translations[language][key];
+    }
+    
+    // Then search in nested objects (auth, common, dashboard, etc.)
+    const langTranslations = translations[language];
+    for (const section in langTranslations) {
+      if (typeof langTranslations[section] === 'object' && langTranslations[section][key]) {
+        return langTranslations[section][key];
+      }
+    }
+    
+    // Fallback to English
+    if (translations.en[key]) {
+      return translations.en[key];
+    }
+    
+    const enTranslations = translations.en;
+    for (const section in enTranslations) {
+      if (typeof enTranslations[section] === 'object' && enTranslations[section][key]) {
+        return enTranslations[section][key];
+      }
+    }
+    
+    // Return the key itself if not found
+    return key;
   };
 
   return (

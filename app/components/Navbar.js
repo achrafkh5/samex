@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useLanguage } from './LanguageProvider';
+import { useAuth } from '../context/AuthContext';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 export default function Navbar() {
@@ -11,6 +13,8 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const { language, changeLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { user, logout } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -22,10 +26,16 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
+  
   const toggleDarkMode = () => {
-  setTheme(theme === "dark" ? "light" : "dark");
-};
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/');
+    setIsMobileMenuOpen(false);
+  };
 
   const navLinks = [
     { name: t('home'), href: '/' },
@@ -66,7 +76,7 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Right Side - Language & Dark Mode */}
+          {/* Right Side - Language, Dark Mode & Auth */}
           <div className="hidden md:flex items-center space-x-4">
             {/* Language Switcher */}
             <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -132,6 +142,42 @@ export default function Navbar() {
                 </svg>
               )}
             </button>
+
+            {/* Auth Buttons */}
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <svg className="w-5 h-5 text-gray-700 dark:text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{user.name}</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-medium transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium transition-colors"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium transition-colors"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -172,7 +218,47 @@ export default function Navbar() {
                 {link.name}
               </a>
             ))}
-            <div className="flex items-center justify-between px-4 py-2">
+            
+            {/* Auth Links - Mobile */}
+            {user ? (
+              <>
+                <Link
+                  href="/profile"
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                  <span>{user.name}</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
+
+            <div className="flex items-center justify-between px-4 py-2 border-t border-gray-200 dark:border-gray-800 mt-2 pt-2">
               <div className="flex items-center space-x-2">
                 <button 
                   onClick={() => changeLanguage('en')}

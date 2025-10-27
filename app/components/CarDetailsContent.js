@@ -28,15 +28,15 @@ export default function CarDetailsContent({ cars }) {
     );
   }
 
-    const car = {
+  // Use the car data with proper fallbacks
+  const car = {
     ...cars,
-    images: [
-      cars.image,
-      'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?q=80&w=800',
-      'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=800',
-      'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=800',
-      'https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=800',
-    ],
+    // Use images array from database, fallback to single image if exists
+    images: cars.images && cars.images.length > 0 
+      ? cars.images 
+      : cars.image 
+        ? [cars.image] 
+        : [],
     version: cars.model,
     doors:
       ['Tesla', 'Ferrari', 'Lamborghini', 'McLaren'].includes(cars.brand)
@@ -57,25 +57,20 @@ export default function CarDetailsContent({ cars }) {
         ? '3.0L Turbo'
         : '4.0L V8',
     discount: cars.price > 100000 && Math.random() > 0.5 ? 5000 : 0,
-    features: [
-      'Premium Sound System',
-      'Leather Interior',
-      'Navigation System',
-      'Parking Sensors',
-      'Backup Camera',
-      'Bluetooth Connectivity',
-      'Keyless Entry',
-      'Climate Control',
-      'Cruise Control',
-      'Sunroof/Moonroof',
-      'Heated Seats',
-      'LED Headlights',
-      'Apple CarPlay & Android Auto',
-      'Lane Departure Warning',
-      'Blind Spot Monitoring',
-      'Adaptive Cruise Control',
-    ],
-  }; // Display the first car in the array
+    // Use features from database if available
+    features: cars.specs?.features && cars.specs.features.length > 0
+      ? cars.specs.features
+      : [
+          'Premium Sound System',
+          'Leather Interior',
+          'Navigation System',
+          'Parking Sensors',
+          'Backup Camera',
+          'Bluetooth Connectivity',
+          'Keyless Entry',
+          'Climate Control',
+        ],
+  };
 
 
   const finalPrice = car.discount > 0 ? car.price - car.discount : car.price;
@@ -200,11 +195,8 @@ export default function CarDetailsContent({ cars }) {
                         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                           {t('luxuryPerformance')}
                         </h3>
-                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                          Experience unparalleled luxury and performance with the {car.brand} {car.model}. 
-                          This exceptional vehicle combines cutting-edge technology with timeless design, 
-                          delivering an unforgettable driving experience. Equipped with a powerful {car.specs?.power} engine 
-                          and advanced safety features, it represents the pinnacle of automotive excellence.
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                           {car.brand} {car.model} {car.year}
                         </p>
                       </div>
 
@@ -268,7 +260,6 @@ export default function CarDetailsContent({ cars }) {
                           { label: t('engineCapacity'), value: car.engineCapacity },
                           { label: 'Power', value: car.specs?.power },
                           { label: car.specs?.speed ? 'Top Speed' : 'Range', value: car.specs?.speed || car.specs?.range },
-                          { label: 'Color', value: car.specs?.color },
                           { label: 'Mileage', value: car.specs?.mileage },
                           { label: t('doors'), value: car.doors },
                           { label: t('seats'), value: car.seats },
@@ -279,6 +270,23 @@ export default function CarDetailsContent({ cars }) {
                             <span className="text-gray-900 dark:text-white">{spec.value}</span>
                           </div>
                         ))}
+                        
+                        {/* Colors - Full width */}
+                        {car.specs?.colors && car.specs.colors.length > 0 && (
+                          <div className="md:col-span-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                            <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-3">Available Colors</span>
+                            <div className="flex flex-wrap gap-2">
+                              {car.specs.colors.map((color, idx) => (
+                                <span 
+                                  key={idx}
+                                  className="px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-600"
+                                >
+                                  {color}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -317,7 +325,7 @@ export default function CarDetailsContent({ cars }) {
                   {car.discount > 0 && (
                     <div className="mb-2">
                       <span className="text-gray-500 dark:text-gray-400 line-through text-lg">
-                        ${car.price.toLocaleString()}
+                        {car.price.toLocaleString()} DA
                       </span>
                       <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-sm font-bold rounded">
                         -{((car.discount / car.price) * 100).toFixed(0)}%
@@ -326,7 +334,7 @@ export default function CarDetailsContent({ cars }) {
                   )}
 
                   <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                    ${finalPrice?.toLocaleString()}
+                    {finalPrice?.toLocaleString()} DA
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('finalPrice')}</p>
 
