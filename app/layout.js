@@ -4,7 +4,7 @@ import { LanguageProvider } from "./components/LanguageProvider";
 import ThemeProvider from "./providers/ThemeProvider";
 import { AuthProvider } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
-
+import { SpeedInsights } from "@vercel/speed-insights/next"
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
@@ -20,6 +20,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} antialiased`}>
+        <SpeedInsights/>
         <ThemeProvider>
           <LanguageProvider>
             <AuthProvider>
