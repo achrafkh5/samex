@@ -523,9 +523,28 @@ export default function InscriptionPageContent({ id }) {
 
     if (step === 3) {
       // Payment Info validation
-      formData.paymentAmount = selectedCar ? selectedCar.price.toString() : '';
       if (!formData.paymentMethod) newErrors.paymentMethod = t('required');
-      if (!formData.paymentAmount.trim()) newErrors.paymentAmount = t('required');
+      
+      // Handle payment amount based on price type
+      if (selectedCar) {
+        if (selectedCar.priceType === 'range') {
+          // User must enter a price within the range
+          if (!formData.paymentAmount.trim()) {
+            newErrors.paymentAmount = t('required') || 'Price is required';
+          } else {
+            const enteredPrice = parseFloat(formData.paymentAmount);
+            if (isNaN(enteredPrice)) {
+              newErrors.paymentAmount = t('invalidPrice') || 'Please enter a valid price';
+            } else if (enteredPrice < selectedCar.priceMin || enteredPrice > selectedCar.priceMax) {
+              newErrors.paymentAmount = `${t('priceMustBeBetween') || 'Price must be between'} ${selectedCar.priceMin?.toLocaleString()} ${t('and')} ${selectedCar.priceMax?.toLocaleString()} DZD`;
+            }
+          }
+        } else {
+          // Fixed price - auto-set
+          formData.paymentAmount = selectedCar.price.toString();
+          if (!formData.paymentAmount.trim()) newErrors.paymentAmount = t('required');
+        }
+      }
     }
 
     if (step === 4) {
@@ -1179,7 +1198,9 @@ export default function InscriptionPageContent({ id }) {
                       <div className="mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>
                         <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                          {selectedCar.price?.toLocaleString()} DZD
+                          {selectedCar.priceType === 'fixed'
+                            ? `${selectedCar.price?.toLocaleString()} DZD`
+                            : `${selectedCar.priceMin?.toLocaleString()} - ${selectedCar.priceMax?.toLocaleString()} DZD`} 
                         </p>
                       </div>
 
@@ -1254,10 +1275,50 @@ export default function InscriptionPageContent({ id }) {
 
                   {selectedCar && (
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>
-                      <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {selectedCar.price.toLocaleString()} DZD
-                      </p>
+                      {selectedCar.priceType === 'range' ? (
+                        <>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                            {t('priceRange') || 'Price Range'}
+                          </p>
+                          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">
+                            {selectedCar.priceMin?.toLocaleString()} - {selectedCar.priceMax?.toLocaleString()} DZD
+                          </p>
+                          
+                          {/* Price input for range */}
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                              {t('enterYourPrice') || 'Enter Your Offer Price'} <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="number"
+                              name="paymentAmount"
+                              value={formData.paymentAmount}
+                              onChange={handleChange}
+                              min={selectedCar.priceMin}
+                              max={selectedCar.priceMax}
+                              placeholder={`${selectedCar.priceMin?.toLocaleString()} - ${selectedCar.priceMax?.toLocaleString()}`}
+                              className={`w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border ${
+                                errors.paymentAmount ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+                              } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                            />
+                            {errors.paymentAmount && (
+                              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                                {errors.paymentAmount}
+                              </p>
+                            )}
+                            <p className="mt-2 text-xs text-gray-600 dark:text-gray-400">
+                              {t('priceRangeHint') || `Please enter a price between ${selectedCar.priceMin?.toLocaleString()} and ${selectedCar.priceMax?.toLocaleString()} DZD`}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>
+                          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                            {selectedCar.price?.toLocaleString()} DZD
+                          </p>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>

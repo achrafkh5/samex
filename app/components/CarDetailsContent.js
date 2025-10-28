@@ -70,7 +70,9 @@ export default function CarDetailsContent({ cars }) {
         ],
   };
 
-  const finalPrice = car.discount > 0 ? car.price - car.discount : car.price;
+  const finalPrice = car.priceType === 'range' 
+    ? null // No discount logic for range prices
+    : (car.discount > 0 ? car.price - car.discount : car.price);
   const availabilityColors = {
     available: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
     reserved: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
@@ -319,21 +321,37 @@ export default function CarDetailsContent({ cars }) {
                     </span>
                   </div>
 
-                  {car.discount > 0 && (
-                    <div className="mb-2">
-                      <span className="text-gray-500 dark:text-gray-400 line-through text-lg">
-                        {car.price.toLocaleString()} DZD
-                      </span>
-                      <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-sm font-bold rounded">
-                        -{((car.discount / car.price) * 100).toFixed(0)}%
-                      </span>
-                    </div>
-                  )}
+                  {car.priceType === 'range' ? (
+                    <>
+                      <div className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">
+                        {t('priceRange') || 'Price Range'}
+                      </div>
+                      <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                        {car.priceMin?.toLocaleString()} - {car.priceMax?.toLocaleString()} DZD
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                        {t('negotiablePrice') || 'Price will be finalized during reservation'}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      {car.discount > 0 && (
+                        <div className="mb-2">
+                          <span className="text-gray-500 dark:text-gray-400 line-through text-lg">
+                            {car.price?.toLocaleString()} DZD
+                          </span>
+                          <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-sm font-bold rounded">
+                            -{((car.discount / car.price) * 100).toFixed(0)}%
+                          </span>
+                        </div>
+                      )}
 
-                  <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                    {finalPrice?.toLocaleString()} DZD
-                  </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('finalPrice')}</p>
+                      <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
+                        {finalPrice?.toLocaleString()} DZD
+                      </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('finalPrice')}</p>
+                    </>
+                  )}
 
                   {car.availability === 'available' ? (
                     <>

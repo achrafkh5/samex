@@ -26,6 +26,9 @@ export default function CarsModule() {
     model: '',
     year: new Date().getFullYear(),
     price: '',
+    priceType: 'fixed', // 'fixed' or 'range'
+    priceMin: '',
+    priceMax: '',
     condition: 'new',
     fuelType: 'gasoline',
     transmission: 'automatic',
@@ -101,6 +104,9 @@ if(cars?.length>0){
       model: '',
       year: new Date().getFullYear(),
       price: '',
+      priceType: 'fixed',
+      priceMin: '',
+      priceMax: '',
       condition: 'new',
       fuelType: 'gasoline',
       transmission: 'automatic',
@@ -209,10 +215,33 @@ if(cars?.length>0){
       setFormData(prev => ({ ...prev, images: carImages }));
       setCurrentStep(2);
     } else if (currentStep === 2) {
-      if (!formData.brand || !formData.model || !formData.price) {
+      // Validate basic fields
+      if (!formData.brand || !formData.model) {
         showToastMessage('Please fill all required fields');
         return;
       }
+      
+      // Validate price based on price type
+      if (formData.priceType === 'fixed') {
+        if (!formData.price || formData.price <= 0) {
+          showToastMessage('Please enter a valid price');
+          return;
+        }
+      } else if (formData.priceType === 'range') {
+        if (!formData.priceMin || !formData.priceMax) {
+          showToastMessage('Please enter both minimum and maximum prices');
+          return;
+        }
+        if (parseInt(formData.priceMin) <= 0 || parseInt(formData.priceMax) <= 0) {
+          showToastMessage('Prices must be greater than 0');
+          return;
+        }
+        if (parseInt(formData.priceMin) >= parseInt(formData.priceMax)) {
+          showToastMessage('Minimum price must be less than maximum price');
+          return;
+        }
+      }
+      
       if (formData.colors.length === 0) {
         showToastMessage('Please select at least one color');
         return;
@@ -240,11 +269,17 @@ if(cars?.length>0){
     // Load existing colors
     const existingColors = car.specs?.colors || (car.specs?.color ? [car.specs.color] : []);
     
+    // Determine price type and values
+    const hasPriceRange = car.priceMin && car.priceMax;
+    
     setFormData({
       brand: car.brand,
       model: car.model,
       year: car.year,
-      price: car.price,
+      price: hasPriceRange ? '' : (car.price || ''),
+      priceType: hasPriceRange ? 'range' : 'fixed',
+      priceMin: car.priceMin || '',
+      priceMax: car.priceMax || '',
       condition: car.condition,
       fuelType: car.fuelType,
       transmission: car.transmission,
@@ -352,31 +387,50 @@ if(cars?.length>0){
             }
           }
           
-          // Update car with new data
-          const updatedCarData = {
-            ...formData,
+          // Prepare car data based on price type
+          const carData = {
+            brand: formData.brand,
+            model: formData.model,
+            year: formData.year,
+            condition: formData.condition,
+            fuelType: formData.fuelType,
+            transmission: formData.transmission,
+            vin: formData.vin,
             images: carImages,
-            image: carImages[0] || '', // Primary image
+            image: carImages[0] || '',
             specs: {
               power: formData.power,
               colors: formData.colors,
               features: features
             }
           };
+
+          // Add price fields based on type
+          if (formData.priceType === 'range') {
+            carData.priceType = 'range';
+            carData.priceMin = parseInt(formData.priceMin);
+            carData.priceMax = parseInt(formData.priceMax);
+            carData.price = null; // Clear fixed price
+          } else {
+            carData.priceType = 'fixed';
+            carData.price = parseInt(formData.price);
+            carData.priceMin = null; // Clear range
+            carData.priceMax = null;
+          }
           
           await fetch(`/api/cars/${editingCar._id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(updatedCarData)
+            body: JSON.stringify(carData)
           });
           
           setCars(cars.map(car =>
             car._id === editingCar._id
               ? {
                   ...car,
-                  ...updatedCarData,
+                  ...carData,
                   specs: {
                     ...car.specs,
                     power: formData.power,
@@ -392,10 +446,17 @@ if(cars?.length>0){
           showToastMessage('Failed to update car');
         }
     } else {
-      const newCar = {
-        ...formData,
+      // Prepare new car data based on price type
+      const newCarData = {
+        brand: formData.brand,
+        model: formData.model,
+        year: formData.year,
+        condition: formData.condition,
+        fuelType: formData.fuelType,
+        transmission: formData.transmission,
+        vin: formData.vin,
         images: carImages,
-        image: carImages[0] || '', // Primary image
+        image: carImages[0] || '',
         specs: {
           power: formData.power,
           colors: formData.colors,
@@ -404,13 +465,27 @@ if(cars?.length>0){
         },
         availability: 'available'
       };
+
+      // Add price fields based on price type
+      if (formData.priceType === 'range') {
+        newCarData.priceType = 'range';
+        newCarData.priceMin = parseInt(formData.priceMin);
+        newCarData.priceMax = parseInt(formData.priceMax);
+        newCarData.price = null;
+      } else {
+        newCarData.priceType = 'fixed';
+        newCarData.price = parseInt(formData.price);
+        newCarData.priceMin = null;
+        newCarData.priceMax = null;
+      }
+
       try{
         const response = await fetch('/api/cars', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify(newCar)
+          body: JSON.stringify(newCarData)
         });
         const addedCar = await response.json();
         setCars([...cars, addedCar]);
@@ -529,7 +604,10 @@ if(cars?.length>0){
               
               <div className="flex items-center justify-between mb-4">
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {car.price.toLocaleString()} DZD
+                  {car.priceType === 'range' 
+                    ? `${car.priceMin?.toLocaleString()} - ${car.priceMax?.toLocaleString()} DZD`
+                    : `${car.price?.toLocaleString()} DZD`
+                  }
                 </span>
               </div>
 
@@ -579,25 +657,26 @@ if(cars?.length>0){
 
       {/* Add/Edit Modal - Multi-Step */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-4xl w-full p-6 my-8">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {editingCar ? (t('editCar') || 'Edit Car') : (t('addCar') || 'Add New Car')}
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Step {currentStep} of 3
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setIsModalOpen(false);
-                  setCurrentStep(1);
-                  setCarImages([]);
-                  setFeatures([]);
-                }}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-4xl w-full p-6 my-8 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                    {editingCar ? (t('editCar') || 'Edit Car') : (t('addCar') || 'Add New Car')}
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    Step {currentStep} of 3
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setIsModalOpen(false);
+                    setCurrentStep(1);
+                    setCarImages([]);
+                    setFeatures([]);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -767,18 +846,84 @@ if(cars?.length>0){
                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('price') || 'Price'} (DZD) *
+                    {/* Price Type Selection */}
+                    <div className="col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        {t('priceType') || 'Price Type'} *
                       </label>
-                      <input
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) => setFormData({ ...formData, price: parseInt(e.target.value) })}
-                        required
-                        min="0"
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                      />
+                      <div className="flex space-x-4 mb-4">
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="priceType"
+                            value="fixed"
+                            checked={formData.priceType === 'fixed'}
+                            onChange={(e) => setFormData({ ...formData, priceType: e.target.value })}
+                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-gray-900 dark:text-white">{t('fixedPrice') || 'Fixed Price'}</span>
+                        </label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="priceType"
+                            value="range"
+                            checked={formData.priceType === 'range'}
+                            onChange={(e) => setFormData({ ...formData, priceType: e.target.value })}
+                            className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-gray-900 dark:text-white">{t('priceRange') || 'Price Range'}</span>
+                        </label>
+                      </div>
+
+                      {/* Conditional Price Inputs */}
+                      {formData.priceType === 'fixed' ? (
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            {t('price') || 'Price'} (DZD) *
+                          </label>
+                          <input
+                            type="number"
+                            value={formData.price}
+                            onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                            required
+                            min="0"
+                            placeholder="e.g., 2000000"
+                            className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              {t('minPrice') || 'Minimum Price'} (DZD) *
+                            </label>
+                            <input
+                              type="number"
+                              value={formData.priceMin}
+                              onChange={(e) => setFormData({ ...formData, priceMin: e.target.value })}
+                              required
+                              min="0"
+                              placeholder="e.g., 2000000"
+                              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              {t('maxPrice') || 'Maximum Price'} (DZD) *
+                            </label>
+                            <input
+                              type="number"
+                              value={formData.priceMax}
+                              onChange={(e) => setFormData({ ...formData, priceMax: e.target.value })}
+                              required
+                              min="0"
+                              placeholder="e.g., 2500000"
+                              className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1005,6 +1150,7 @@ if(cars?.length>0){
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       )}

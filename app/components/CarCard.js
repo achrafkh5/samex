@@ -125,9 +125,14 @@ export default function CarCard({ car }) {
         {/* Price & Button */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('startingPrice')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+              {car.priceType === 'range' ? t('priceRange') || 'Price Range' : t('startingPrice')}
+            </p>
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {car.price?.toLocaleString()} DZD
+              {car.priceType === 'range' 
+                ? `${car.priceMin?.toLocaleString()} - ${car.priceMax?.toLocaleString()} DZD`
+                : `${car.price?.toLocaleString()} DZD`
+              }
             </p>
           </div>
 
