@@ -7,7 +7,6 @@ import Link from 'next/link';
 import {
   generateCertificate,
   generateInvoice,
-  generateTrackingDocument,
   downloadPDF
 } from '../utils/pdfGenerator';
 
@@ -124,9 +123,9 @@ export default function DocumentsContent() {
           filename = `Invoice_${clientData.invoiceNumber}.pdf`;
           break;
         case 'tracking':
-          doc = await generateTrackingDocument(clientData, language, theme || 'light');
-          filename = `Tracking_${clientData.trackingCode}.pdf`;
-          break;
+          // TODO: Implement tracking document generator
+          setError(t('trackingNotImplemented') || 'Tracking document generation is not yet implemented');
+          return;
         default:
           return;
       }
