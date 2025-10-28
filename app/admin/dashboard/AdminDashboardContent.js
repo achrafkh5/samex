@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AdminSidebar from '../../components/AdminSidebar';
 import { useLanguage } from '@/app/components/LanguageProvider';
+import { useAdminAuth } from '@/app/context/AdminAuthContext';
 // Import all module components (we'll create these next)
 import OverviewModule from './modules/OverviewModule';
 import CategoriesModule from './modules/CategoriesModule';
@@ -13,28 +14,22 @@ import OrdersModule from './modules/OrdersModule';
 import PaymentsModule from './modules/PaymentsModule';
 import PaymentMethodsModule from './modules/PaymentMethodsModule';
 import DocumentsModule from './modules/DocumentsModule';
-import FilesModule from './modules/FilesModule';
 import PDFGeneratorModule from './modules/PDFGeneratorModule';
+import ChangePasswordModule from './modules/ChangePasswordModule';
 
 export default function AdminDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { t } = useLanguage();
+  const { admin, loading: authLoading } = useAdminAuth();
   const [currentPage, setCurrentPage] = useState('overview');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    // Check authentication
-    const auth = localStorage.getItem('adminAuthenticated') === 'true';
-    setIsAuthenticated(auth);
-    
-    if (!auth) {
+    if (!authLoading && !admin) {
       router.push('/admin/login');
-    } else {
-      setIsLoading(false);
     }
-  }, [router]);
+  }, [admin, authLoading, router]);
 
   // Handle URL parameter for page navigation
   useEffect(() => {
@@ -56,7 +51,8 @@ export default function AdminDashboardContent() {
     }
   };
 
-  if (isLoading) {
+  // Show loading while checking auth
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
@@ -64,7 +60,8 @@ export default function AdminDashboardContent() {
     );
   }
 
-  if (!isAuthenticated) {
+  // Don't render if not authenticated (will redirect)
+  if (!admin) {
     return null;
   }
 
@@ -86,10 +83,10 @@ export default function AdminDashboardContent() {
         return <PaymentMethodsModule />;
       case 'documents':
         return <DocumentsModule />;
-      case 'files':
-        return <FilesModule />;
       case 'pdf-generator':
         return <PDFGeneratorModule />;
+      case 'change-password':
+        return <ChangePasswordModule />;
       default:
         return <OverviewModule />;
     }

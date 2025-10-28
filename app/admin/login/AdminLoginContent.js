@@ -1,14 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../components/LanguageProvider';
 import { useTheme } from 'next-themes';
+import { useAdminAuth } from '@/app/context/AdminAuthContext';
 import Image from 'next/image';
+import Link from 'next/link';
+
 export default function AdminLoginContent() {
   const router = useRouter();
   const { t } = useLanguage();
   const { theme } = useTheme();
+  const { login, admin, loading: authLoading } = useAdminAuth();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -16,29 +20,31 @@ export default function AdminLoginContent() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && admin) {
+      router.push('/admin/dashboard');
+    }
+  }, [admin, authLoading, router]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simulate authentication (replace with actual API call)
-    setTimeout(() => {
-      // Demo credentials
-      if (formData.email === 'admin@dreamcars.com' && formData.password === 'admin123') {
-        // Set authentication in localStorage
-        localStorage.setItem('adminAuthenticated', 'true');
-        localStorage.setItem('adminUser', JSON.stringify({
-          email: formData.email,
-          name: 'Admin User',
-          role: 'admin'
-        }));
-        
+    try {
+      const result = await login(formData.email, formData.password);
+      
+      if (result.success) {
         router.push('/admin/dashboard');
       } else {
-        setError(t('invalidCredentials') || 'Invalid email or password');
+        setError(result.error || t('invalidCredentials'));
         setIsLoading(false);
       }
-    }, 1000);
+    } catch (err) {
+      setError(err.message || t('invalidCredentials'));
+      setIsLoading(false);
+    }
   };
 
   const handleChange = (e) => {
@@ -153,16 +159,13 @@ export default function AdminLoginContent() {
             </button>
           </form>
 
-          {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-xs text-blue-800 dark:text-blue-300 font-semibold mb-2">
-              {t('demoCredentials') || 'Demo Credentials:'}
-            </p>
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              Email: admin@dreamcars.com
-            </p>
-            <p className="text-xs text-blue-700 dark:text-blue-400">
-              Password: admin123
+          {/* Signup Link */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {t('dontHaveAccount') || 'Don\'t have an account?'}{' '}
+              <Link href="/admin/signup" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
+                {t('signUpHere') || 'Sign up here'}
+              </Link>
             </p>
           </div>
         </div>

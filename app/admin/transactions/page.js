@@ -4,19 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminSidebar from '../../components/AdminSidebar';
 import { useLanguage } from '../../components/LanguageProvider';
-
-// Mock admins list (replace with real data later)
-const MOCK_ADMINS = [
-  { id: 1, fullName: 'Admin User 1' },
-  { id: 2, fullName: 'Admin User 2' },
-  { id: 3, fullName: 'Admin User 3' },
-  { id: 4, fullName: 'Admin User 4' },
-];
-
-// Mock current admin (replace with real auth later)
-const getCurrentAdmin = () => {
-  return { fullName: 'Current Admin' };
-};
+import { useAdminAuth } from '@/app/context/AdminAuthContext';
 
 // Currency options
 const CURRENCIES = ['DZD', 'USDT', 'KRW'];
@@ -24,6 +12,7 @@ const CURRENCIES = ['DZD', 'USDT', 'KRW'];
 export default function TransactionsPage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { admin, loading: authLoading } = useAdminAuth();
   const [formData, setFormData] = useState({
     receiver: '',
     currencyFrom: '',
@@ -31,30 +20,36 @@ export default function TransactionsPage() {
     amount: '',
   });
   const [transactions, setTransactions] = useState([]);
+  const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [currentAdmin] = useState(getCurrentAdmin());
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
-  // Check authentication
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const auth = localStorage.getItem('adminAuthenticated') === 'true';
-    setIsAuthenticated(auth);
-    
-    if (!auth) {
+    if (!authLoading && !admin) {
       router.push('/admin/login');
-    } else {
-      setIsLoading(false);
     }
-  }, [router]);
+  }, [admin, authLoading, router]);
 
-  // Fetch transactions on mount
+  // Fetch admins and transactions on mount
   useEffect(() => {
-    if (isAuthenticated) {
+    if (admin && !authLoading) {
+      fetchAdmins();
       fetchTransactions();
     }
-  }, [isAuthenticated]);
+  }, [admin, authLoading]);
+
+  const fetchAdmins = async () => {
+    try {
+      const response = await fetch('/api/admins');
+      if (response.ok) {
+        const data = await response.json();
+        setAdmins(data);
+      }
+    } catch (error) {
+      console.error('Error fetching admins:', error);
+    }
+  };
 
   const fetchTransactions = async () => {
     setLoading(true);
@@ -91,7 +86,7 @@ export default function TransactionsPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          senderFullName: currentAdmin.fullName,
+          senderFullName: admin.fullName,
           receiverFullName: formData.receiver,
           currencyFrom: formData.currencyFrom,
           currencyTo: formData.currencyTo,
@@ -137,25 +132,23 @@ export default function TransactionsPage() {
       DZD: 'دج',
       USDT: '₮',
       KRW: '₩',
-    };
-    return symbols[currency] || currency;
   };
+  return symbols[currency] || currency;
+};
 
-  // Show loading spinner while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  // If not authenticated, return null (will redirect)
-  if (!isAuthenticated) {
-    return null;
-  }
-
+// Show loading spinner while checking authentication
+if (authLoading) {
   return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
+}
+
+// If not authenticated, return null (will redirect)
+if (!admin) {
+  return null;
+}  return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       <AdminSidebar 
         currentPage="transactions" 
@@ -184,45 +177,43 @@ export default function TransactionsPage() {
         {/* Transaction Form */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            {t('send_transaction_button') || 'Send Transaction'}
-          </h2>
+          {t('send_transaction_button') || 'Send Transaction'}
+        </h2>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Sender (Read-only) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('sender_label') || 'Sender'}
-                </label>
-                <input
-                  type="text"
-                  value={currentAdmin.fullName}
-                  disabled
-                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white cursor-not-allowed"
-                />
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Sender (Read-only) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('sender_label') || 'Sender'}
+              </label>
+              <input
+                type="text"
+                value={admin?.fullName || ''}
+                disabled
+                className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white cursor-not-allowed"
+              />
+            </div>
 
-              {/* Receiver */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t('receiver_label') || 'Receiver'} *
-                </label>
-                <select
-                  value={formData.receiver}
-                  onChange={(e) => setFormData({ ...formData, receiver: e.target.value })}
-                  required
-                  className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">{t('select_receiver') || 'Select Receiver'}</option>
-                  {MOCK_ADMINS.map((admin) => (
-                    <option key={admin.id} value={admin.fullName}>
-                      {admin.fullName}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Currency From */}
+            {/* Receiver */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                {t('receiver_label') || 'Receiver'} *
+              </label>
+              <select
+                value={formData.receiver}
+                onChange={(e) => setFormData({ ...formData, receiver: e.target.value })}
+                required
+                className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">{t('select_receiver') || 'Select Receiver'}</option>
+                {admins.map((adminUser) => (
+                  <option key={adminUser._id} value={adminUser.fullName}>
+                    {adminUser.fullName} {adminUser._id === admin?._id ? '(You)' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>              {/* Currency From */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   {t('currency_from_label') || 'Currency From'} *

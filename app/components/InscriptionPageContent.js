@@ -185,7 +185,7 @@ export default function InscriptionPageContent({ id }) {
 
     const paymentInfo = [
       ['Méthode de paiement:', formData.paymentMethod],
-      ['Montant:', `$${formData.paymentAmount || selectedCar?.price?.toLocaleString()}`],
+      ['Montant:', `${formData.paymentAmount || selectedCar?.price?.toLocaleString()} DZD`],
       ['Statut:', 'En attente'],
     ];
 
@@ -241,7 +241,11 @@ export default function InscriptionPageContent({ id }) {
       }
 
       const data = await response.json();
-      return data.url;
+      return {
+        url: data.url,
+        publicId: data.public_id,
+        resourceType: data.resource_type
+      };
     } catch (error) {
       console.error('Certificate upload error:', error);
       throw error;
@@ -381,7 +385,7 @@ export default function InscriptionPageContent({ id }) {
         ['Type de carburant:', selectedCar.fuelType],
         ['Transmission:', selectedCar.transmission],
         ['N° VIN:', selectedCar.vin || 'N/A'],
-        ['Prix:', `$${selectedCar.price?.toLocaleString()}`],
+        ['Prix:', `${selectedCar.price?.toLocaleString()} DZD`],
       ];
 
       vehicleInfo.forEach(([label, value]) => {
@@ -409,7 +413,7 @@ export default function InscriptionPageContent({ id }) {
 
     const paymentInfo = [
       ['Méthode de paiement:', formData.paymentMethod],
-      ['Montant:', `$${formData.paymentAmount || selectedCar?.price?.toLocaleString()}`],
+      ['Montant:', `${formData.paymentAmount || selectedCar?.price?.toLocaleString()} DZD`],
       ['Statut:', 'En attente'],
     ];
 
@@ -671,20 +675,23 @@ export default function InscriptionPageContent({ id }) {
         
         // Upload to Cloudinary
         console.log('Uploading certificate to Cloudinary...');
-        const cloudinaryUrl = await uploadCertificateToCloudinary(pdfBlob, certNumber);
-        setCertificateUrl(cloudinaryUrl);
+        const cloudinaryData = await uploadCertificateToCloudinary(pdfBlob, certNumber);
+        setCertificateUrl(cloudinaryData.url);
         
-        console.log('Certificate uploaded successfully:', cloudinaryUrl);
+        console.log('Certificate uploaded successfully:', cloudinaryData.url);
 
         // Save document record to database
         console.log('Saving document record to database...');
         const documentData = {
-          userId: user?._id || user?.id, // Current authenticated user
-          clientId: clientId,
-          orderId: orderId,
-          url: cloudinaryUrl,
           type: 'inscription',
+          clientId: clientId,
+          carId: formData.selectedCarId,
+          orderId: orderId,
+          userId: user?._id || user?.id,
           clientName: formData.fullName,
+          url: cloudinaryData.url,
+          cloudinaryPublicId: cloudinaryData.publicId,
+          cloudinaryResourceType: cloudinaryData.resourceType,
         };
 
         await saveDocumentToDatabase(documentData);
@@ -1172,7 +1179,7 @@ export default function InscriptionPageContent({ id }) {
                       <div className="mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>
                         <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                          ${selectedCar.price?.toLocaleString()}
+                          {selectedCar.price?.toLocaleString()} DZD
                         </p>
                       </div>
 
@@ -1249,7 +1256,7 @@ export default function InscriptionPageContent({ id }) {
                     <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>
                       <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        ${selectedCar.price.toLocaleString()}
+                        {selectedCar.price.toLocaleString()} DZD
                       </p>
                     </div>
                   )}

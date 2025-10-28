@@ -104,7 +104,7 @@ export default function CarCard({ car }) {
               <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span>{car.specs.power}</span>
+              <span>{car.specs?.power}</span>
             </div>
           )}
 
@@ -127,7 +127,7 @@ export default function CarCard({ car }) {
           <div>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('startingPrice')}</p>
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              ${car.price?.toLocaleString()}
+              {car.price?.toLocaleString()} DZD
             </p>
           </div>
 

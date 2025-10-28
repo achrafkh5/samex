@@ -36,8 +36,8 @@ export default function OrdersModule() {
         
         // Fetch orders and clients in parallel
         const [ordersResponse, clientsResponse, carsResponse] = await Promise.all([
-          fetch('/api/orders'),
-          fetch('/api/clients'),
+          fetch('/api/admin/orders'),
+          fetch('/api/admin/clients'),
           fetch('/api/cars'),
         ]);
 
@@ -49,17 +49,20 @@ export default function OrdersModule() {
         setClients(clientsData);
         setCars(carsData);
 
-        // Create a map of clientId -> client object for quick lookup
-        const map = {};
-        (clientsData || []).forEach(client => {
-          map[client._id] = client;
-        });
-        setClientsMap(map);
-        const carMap = {};
-        (carsData || []).forEach(car => {
-          carMap[car._id] = car;
-        });
-        setCarsMap(carMap);
+        if (clientsData.length > 0) {
+          const map = {};
+          (clientsData || [])?.forEach(client => {
+            map[client._id] = client;
+          });
+          setClientsMap(map);
+        }
+        if (carsData.length > 0) {
+          const map = {};
+          (carsData || [])?.forEach(car => {
+            map[car._id] = car;
+          });
+          setCarsMap(map);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -329,7 +332,7 @@ if(orders?.length > 0) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-purple-100 text-sm font-medium mb-1">Total Revenue</p>
-              <p className="text-3xl font-bold">${(totalRevenue / 1000).toFixed(0)}K</p>
+              <p className="text-3xl font-bold">{(totalRevenue / 1000).toFixed(0)}K DZD</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -390,7 +393,7 @@ if(orders?.length > 0) {
                     {getCarName(order.selectedCarId)}
                   </td>
                   <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">
-                    ${order?.paymentAmount?.toLocaleString()}
+                    {order?.paymentAmount?.toLocaleString()} DZD
                   </td>
                   <td className="py-4 px-6">
                     <select
@@ -524,7 +527,7 @@ if(orders?.length > 0) {
                       {t('amount') || 'Amount'}
                     </label>
                     <p className="text-gray-900 dark:text-white font-bold text-lg">
-                      ${selectedOrder.paymentAmount?.toLocaleString()}
+                      {selectedOrder.paymentAmount?.toLocaleString()} DZD
                     </p>
                   </div>
                   

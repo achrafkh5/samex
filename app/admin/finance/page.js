@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminSidebar from '../../components/AdminSidebar';
 import { useLanguage } from '../../components/LanguageProvider';
+import { useAdminAuth } from '@/app/context/AdminAuthContext';
 import B2BSection from './components/B2BSection';
 import B2CAlgeriaSection from './components/B2CAlgeriaSection';
 import B2CKoreaSection from './components/B2CKoreaSection';
@@ -13,24 +14,19 @@ import FinanceSummary from './components/FinanceSummary';
 export default function FinancePage() {
   const router = useRouter();
   const { t } = useLanguage();
+  const { admin, loading: authLoading } = useAdminAuth();
   const [activeTab, setActiveTab] = useState('online_sales');
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Redirect to login if not authenticated
   useEffect(() => {
-    // Check authentication
-    const auth = localStorage.getItem('adminAuthenticated') === 'true';
-    setIsAuthenticated(auth);
-    
-    if (!auth) {
+    if (!authLoading && !admin) {
       router.push('/admin/login');
-    } else {
-      setIsLoading(false);
     }
-  }, [router]);
+  }, [admin, authLoading, router]);
 
-  if (isLoading) {
+  // Show loading while checking auth
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
@@ -38,7 +34,8 @@ export default function FinancePage() {
     );
   }
 
-  if (!isAuthenticated) {
+  // Don't render if not authenticated (will redirect)
+  if (!admin) {
     return null;
   }
 

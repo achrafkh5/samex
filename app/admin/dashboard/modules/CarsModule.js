@@ -9,6 +9,8 @@ export default function CarsModule() {
   const { t } = useLanguage();
   const [cars, setCars] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCar, setEditingCar] = useState(null);
@@ -60,6 +62,7 @@ export default function CarsModule() {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [carsResponse, categoriesResponse] = await Promise.all([
           fetch('/api/cars'),
@@ -71,6 +74,8 @@ export default function CarsModule() {
         setCategories(categoriesData);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -253,7 +258,11 @@ if(cars?.length>0){
 
   const handleDelete = async (id) => {
     if (confirm(t('confirmDelete') || 'Are you sure you want to delete this car?')) {
+      setProcessing(true);
       try {
+        const car = cars.find(c => c._id === id);
+        
+        // Delete car from database
         await fetch(`/api/cars/${id}`, {
           method: 'DELETE',
           headers: {
@@ -261,15 +270,39 @@ if(cars?.length>0){
           },
           body: JSON.stringify({ id })
         });
+        
+        // Delete all car images from Cloudinary
+        const imagesToDelete = car?.images || (car?.image ? [car.image] : []);
+        
+        if (imagesToDelete.length > 0) {
+          for (const imageUrl of imagesToDelete) {
+            try {
+              await fetch('/api/upload/delete', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url: imageUrl }),
+              });
+              console.log('✅ Car image deleted from Cloudinary:', imageUrl);
+            } catch (error) {
+              console.error('⚠️ Failed to delete car image from Cloudinary:', error);
+            }
+          }
+        }
+        
         setCars(cars.filter(car => car._id !== id));
         showToastMessage(t('carDeleted') || 'Car deleted successfully');
       } catch (error) {
         console.error('Error deleting car:', error);
+      } finally {
+        setProcessing(false);
       }
     }
   };
 
   const toggleAvailability = async (id) => {
+    setProcessing(true);
     try {
       await fetch(`/api/cars/${id}`, {
         method: 'PUT',
@@ -288,11 +321,14 @@ if(cars?.length>0){
     showToastMessage(t('statusUpdated') || 'Status updated successfully');
     }catch (error) {
       console.error('Error updating car availability:', error);
+    } finally {
+      setProcessing(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setProcessing(true);
     
     if (editingCar) {
         try{
@@ -388,6 +424,7 @@ if(cars?.length>0){
     setCurrentStep(1);
     setCarImages([]);
     setFeatures([]);
+    setProcessing(false);
   };
 
   const showToastMessage = (message) => {
@@ -448,8 +485,21 @@ if(cars?.length>0){
       </div>
 
       {/* Cars Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCars.map((car) => (
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">{t('loading') || 'Loading cars...'}</p>
+        </div>
+      ) : filteredCars.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <svg className="w-20 h-20 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">{t('noCars') || 'No cars found'}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCars.map((car) => (
           <div key={car._id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative h-48">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -479,7 +529,7 @@ if(cars?.length>0){
               
               <div className="flex items-center justify-between mb-4">
                 <span className="text-2xl font-bold text-gray-900 dark:text-white">
-                  ${car.price.toLocaleString()}
+                  {car.price.toLocaleString()} DZD
                 </span>
               </div>
 
@@ -497,13 +547,15 @@ if(cars?.length>0){
               <div className="flex space-x-2">
                 <button
                   onClick={() => toggleAvailability(car._id)}
-                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium transition-colors"
+                  disabled={processing}
+                  className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {car.availability === 'available' ? (t('markSold') || 'Mark Sold') : (t('markAvailable') || 'Mark Available')}
                 </button>
                 <button
                   onClick={() => handleEdit(car)}
-                  className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                  disabled={processing}
+                  className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -511,7 +563,8 @@ if(cars?.length>0){
                 </button>
                 <button
                   onClick={() => handleDelete(car._id)}
-                  className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                  disabled={processing}
+                  className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -521,7 +574,8 @@ if(cars?.length>0){
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {/* Add/Edit Modal - Multi-Step */}
       {isModalOpen && (
@@ -715,7 +769,7 @@ if(cars?.length>0){
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        {t('price') || 'Price'} ($) *
+                        {t('price') || 'Price'} (DZD) *
                       </label>
                       <input
                         type="number"
@@ -962,6 +1016,24 @@ if(cars?.length>0){
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="font-medium">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Processing Spinner Overlay */}
+      {processing && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-xl">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <p className="text-gray-900 dark:text-white font-medium">
+                {t('processing') || 'Processing...'}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

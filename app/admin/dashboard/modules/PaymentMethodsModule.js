@@ -6,6 +6,8 @@ import { useLanguage } from '../../../components/LanguageProvider';
 export default function PaymentMethodsModule() {
   const { t } = useLanguage();
   const [methods, setMethods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     fetchPaymentMethods();
@@ -19,12 +21,15 @@ export default function PaymentMethodsModule() {
   const [deletingId, setDeletingId] = useState(null);
 
   const fetchPaymentMethods = async () => {
+    setLoading(true);
     try {
       const response = await fetch('/api/payments');
       const data = await response.json();
       setMethods(data);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -32,6 +37,7 @@ export default function PaymentMethodsModule() {
     const method = methods.find(m => m._id === id);
     if (!method) return;
 
+    setProcessing(true);
     const response = await fetch(`/api/payments`, {
       method: 'PUT',
       headers: {
@@ -46,11 +52,13 @@ export default function PaymentMethodsModule() {
     } else {
       console.error('Error updating payment method:', response.statusText);
     }
+    setProcessing(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setProcessing(true);
     const response = await fetch('/api/payments', {
       method: 'POST',
       headers: {
@@ -68,6 +76,7 @@ export default function PaymentMethodsModule() {
     } else {
       console.error('Error adding payment method:', response.statusText);
     }
+    setProcessing(false);
   };
 
   const handleDelete = async (id) => {
@@ -123,13 +132,26 @@ export default function PaymentMethodsModule() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {methods.map((method) => (
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">{t('loading') || 'Loading payment methods...'}</p>
+        </div>
+      ) : methods.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20">
+          <svg className="w-20 h-20 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+          <p className="text-gray-500 dark:text-gray-400 text-lg">{t('noPaymentMethods') || 'No payment methods found'}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {methods.map((method) => (
           <div key={method._id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6 relative">
             {/* Delete Button */}
             <button
               onClick={() => handleDelete(method._id)}
-              disabled={deletingId === method._id}
+              disabled={deletingId === method._id || processing}
               className="absolute top-4 right-4 text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               title={t('delete') || 'Delete'}
             >
@@ -152,6 +174,7 @@ export default function PaymentMethodsModule() {
                   type="checkbox"
                   checked={method.enabled}
                   onChange={() => toggleMethod(method._id)}
+                  disabled={processing}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -161,7 +184,8 @@ export default function PaymentMethodsModule() {
             <p className="text-sm text-gray-600 dark:text-gray-400">{method.description}</p>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -198,13 +222,15 @@ export default function PaymentMethodsModule() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium"
+                  disabled={processing}
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold"
+                  disabled={processing}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('add') || 'Add'}
                 </button>
@@ -220,6 +246,24 @@ export default function PaymentMethodsModule() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="font-medium">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Processing Spinner Overlay */}
+      {(processing || deletingId) && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-xl">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <p className="text-gray-900 dark:text-white font-medium">
+                {t('processing') || 'Processing...'}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

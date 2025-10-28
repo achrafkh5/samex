@@ -11,6 +11,7 @@ export default function CarsPageContent() {
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [carsData, setCarsData] = useState([]); 
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     brand: 'all',
     model: 'all',
@@ -28,9 +29,16 @@ export default function CarsPageContent() {
     // Fetch cars data on mount
     useEffect(() => {
         async function fetchCarsData() {
-            const response = await fetch('/api/cars');
-            const data = await response.json();
-            setCarsData(data);
+            setLoading(true);
+            try {
+                const response = await fetch('/api/cars');
+                const data = await response.json();
+                setCarsData(data);
+            } catch (error) {
+                console.error('Error fetching cars:', error);
+            } finally {
+                setLoading(false);
+            }
         }
         fetchCarsData();
     }, []);
@@ -170,6 +178,19 @@ export default function CarsPageContent() {
       {/* Main Content */}
       <section className="py-12 bg-gray-50 dark:bg-gray-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          {loading ? (
+            // Loading Spinner
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="flex space-x-2">
+                <div className="w-4 h-4 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-4 h-4 bg-purple-600 dark:bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-4 h-4 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <p className="mt-6 text-lg font-semibold text-gray-700 dark:text-gray-300">
+                {t('loadingCars') || 'Loading cars...'}
+              </p>
+            </div>
+          ) : (
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Filters Sidebar */}
             <div className="lg:w-80 flex-shrink-0">
@@ -291,6 +312,7 @@ export default function CarsPageContent() {
               )}
             </div>
           </div>
+          )}
         </div>
       </section>
     </>

@@ -31,7 +31,6 @@ export default function CarDetailsContent({ cars }) {
   // Use the car data with proper fallbacks
   const car = {
     ...cars,
-    // Use images array from database, fallback to single image if exists
     images: cars.images && cars.images.length > 0 
       ? cars.images 
       : cars.image 
@@ -56,7 +55,6 @@ export default function CarDetailsContent({ cars }) {
         : ['Porsche', 'BMW'].includes(cars.brand)
         ? '3.0L Turbo'
         : '4.0L V8',
-    discount: cars.price > 100000 && Math.random() > 0.5 ? 5000 : 0,
     // Use features from database if available
     features: cars.specs?.features && cars.specs.features.length > 0
       ? cars.specs.features
@@ -71,7 +69,6 @@ export default function CarDetailsContent({ cars }) {
           'Climate Control',
         ],
   };
-
 
   const finalPrice = car.discount > 0 ? car.price - car.discount : car.price;
   const availabilityColors = {
@@ -325,7 +322,7 @@ export default function CarDetailsContent({ cars }) {
                   {car.discount > 0 && (
                     <div className="mb-2">
                       <span className="text-gray-500 dark:text-gray-400 line-through text-lg">
-                        {car.price.toLocaleString()} DA
+                        {car.price.toLocaleString()} DZD
                       </span>
                       <span className="ml-2 px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400 text-sm font-bold rounded">
                         -{((car.discount / car.price) * 100).toFixed(0)}%
@@ -334,7 +331,7 @@ export default function CarDetailsContent({ cars }) {
                   )}
 
                   <div className="text-4xl font-bold text-gray-900 dark:text-white mb-1">
-                    {finalPrice?.toLocaleString()} DA
+                    {finalPrice?.toLocaleString()} DZD
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">{t('finalPrice')}</p>
 

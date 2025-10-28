@@ -8,12 +8,21 @@ import { useLanguage } from '../../../components/LanguageProvider';
 export default function CategoriesModule() {
   const { t } = useLanguage();
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await fetch('/api/brands');
-      const data = await response.json();
-      setCategories(data);
+      setLoading(true);
+      try {
+        const response = await fetch('/api/brands');
+        const data = await response.json();
+        setCategories(data);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchCategories();
   }, []);
@@ -81,7 +90,11 @@ export default function CategoriesModule() {
 
   const handleDelete = async (id) => {
     if (confirm(t('confirmDelete') || 'Are you sure you want to delete this category?')) {
+      setProcessing(true);
       try {
+        const category = categories.find(cat => cat._id === id);
+        
+        // Delete category from database
         await fetch(`/api/brands`, {
           method: 'DELETE',
           headers: {
@@ -89,10 +102,29 @@ export default function CategoriesModule() {
           },
           body: JSON.stringify({ id })
         });
+        
+        // Delete image from Cloudinary if it exists
+        if (category?.image) {
+          try {
+            await fetch('/api/upload/delete', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: category.image }),
+            });
+            console.log('✅ Category image deleted from Cloudinary');
+          } catch (error) {
+            console.error('⚠️ Failed to delete category image from Cloudinary:', error);
+          }
+        }
+        
         setCategories(categories.filter(cat => cat._id !== id));
         showToastMessage(t('categoryDeleted') || 'Category deleted successfully');
       } catch (error) {
         console.error('Error deleting category:', error);
+      } finally {
+        setProcessing(false);
       }
     }
   };
@@ -101,6 +133,7 @@ export default function CategoriesModule() {
     e.preventDefault();
     
     setUploading(true);
+    setProcessing(true);
     
     try {
       let imageUrl = formData.image;
@@ -108,6 +141,22 @@ export default function CategoriesModule() {
       // Upload new image if selected
       if (imageFile) {
         imageUrl = await uploadImageToCloudinary(imageFile);
+        
+        // Delete old image from Cloudinary if we're editing and had an old image
+        if (editingCategory && editingCategory.image && editingCategory.image !== imageUrl) {
+          try {
+            await fetch('/api/upload/delete', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: editingCategory.image }),
+            });
+            console.log('✅ Old category image deleted from Cloudinary');
+          } catch (error) {
+            console.error('⚠️ Failed to delete old category image from Cloudinary:', error);
+          }
+        }
       }
       
       const categoryData = {
@@ -160,6 +209,7 @@ export default function CategoriesModule() {
       showToastMessage('Error saving category');
     } finally {
       setUploading(false);
+      setProcessing(false);
     }
   };
 
@@ -208,7 +258,23 @@ export default function CategoriesModule() {
               </tr>
             </thead>
             <tbody>
-              {categories.map((category) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="py-12">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                      <p className="text-gray-500 dark:text-gray-400">{t('loading') || 'Loading categories...'}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : categories.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-gray-500 dark:text-gray-400">
+                    {t('noCategories') || 'No categories found'}
+                  </td>
+                </tr>
+              ) : (
+                categories.map((category) => (
                 <tr key={category._id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">#{category._id}</td>
                   <td className="py-4 px-6">
@@ -235,7 +301,8 @@ export default function CategoriesModule() {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => handleEdit(category)}
-                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                        disabled={processing}
+                        className="p-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={t('edit') || 'Edit'}
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +311,8 @@ export default function CategoriesModule() {
                       </button>
                       <button
                         onClick={() => handleDelete(category._id)}
-                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                        disabled={processing}
+                        className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={t('delete') || 'Delete'}
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -254,7 +322,8 @@ export default function CategoriesModule() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>
@@ -318,14 +387,14 @@ export default function CategoriesModule() {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  disabled={uploading}
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50"
+                  disabled={uploading || processing}
+                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t('cancel') || 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  disabled={uploading}
+                  disabled={uploading || processing}
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {uploading ? (t('uploading') || 'Uploading...') : (editingCategory ? (t('update') || 'Update') : (t('add') || 'Add'))}
@@ -343,6 +412,24 @@ export default function CategoriesModule() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="font-medium">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Processing Spinner Overlay */}
+      {processing && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-xl">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <p className="text-gray-900 dark:text-white font-medium">
+                {t('processing') || 'Processing...'}
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

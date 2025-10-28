@@ -1,44 +1,4 @@
-/**
- * ============================================================================
- * PDF Generator Module - Complete Rewrite with Arabic Support
- * ============================================================================
- * 
- * This module generates multilingual PDFs (English, French, Arabic) using:
- * - jsPDF: PDF generation library
- * - jspdf-autotable: Table generation plugin
- * - arabic-reshaper: Properly connects Arabic letters
- * - bidi-js: Handles bidirectional text (RTL + LTR)
- * 
- * ARABIC TEXT HANDLING:
- * ---------------------
- * Arabic text requires special processing because:
- * 1. Letters change shape based on position (initial/medial/final/isolated)
- * 2. Text flows right-to-left (RTL)
- * 3. May contain embedded LTR text (numbers, English words)
- * 
- * We use:
- * - arabic-reshaper: Converts Unicode to presentation forms (connects letters)
- * - bidi-js: Applies Unicode BiDi algorithm for proper text ordering
- * - Amiri font: Professional Arabic typeface with proper glyph support
- * 
- * FONT EMBEDDING:
- * ---------------
- * Arabic fonts are embedded as base64 to avoid:
- * - Network requests (faster, offline-capable)
- * - CORS issues
- * - Loading delays
- * 
- * To add a new font:
- * 1. Get TTF file (e.g., from Google Fonts)
- * 2. Convert to base64:
- *    node -e "console.log(require('fs').readFileSync('font.ttf', 'base64'))" > font.base64.txt
- * 3. Import and register:
- *    import FontBase64 from './font.base64.js';
- *    doc.addFileToVFS('font.ttf', FontBase64);
- *    doc.addFont('font.ttf', 'FontName', 'normal');
- * 
- * ============================================================================
- */
+
 
 "use client";
 
@@ -50,25 +10,6 @@ import getBidiText from 'bidi-js';
 
 import AmiriBase64 from './Amiri-Regular.base64.js';
 
-// ============================================================================
-// ARABIC TEXT PROCESSING
-// ============================================================================
-
-/**
- * Shape and reorder Arabic text for proper display in PDFs
- * 
- * Why this is needed:
- * - Arabic letters connect to each other (cursive script)
- * - Unicode stores letters in logical order, but display needs visual order
- * - Letters have 4 forms: isolated, initial, medial, final
- * 
- * Example:
- *   Input:  "سيارة" (logical order, disconnected Unicode)
- *   Output: "ةرايس" (visual order, connected presentation forms)
- * 
- * @param {string} text - Arabic text in Unicode
- * @returns {string} - Shaped and reordered text ready for display
- */
 function shapeArabicText(text) {
   if (!text || typeof text !== 'string') return text;
   
@@ -170,9 +111,6 @@ function configureArabicDocument(doc) {
   doc.setFont('Amiri', 'normal');
 }
 
-// ============================================================================
-// COMPANY INFORMATION
-// ============================================================================
 
 const COMPANY_INFO = {
   en: {
@@ -248,8 +186,10 @@ const PDF_TRANSLATIONS = {
     total: 'Total',
     vehiclePurchase: 'Vehicle Purchase',
     subtotal: 'Subtotal',
-    tax: 'Tax (20%)',
+    tax: 'Tax (0%)',
     discount: 'Discount',
+    amountPaid: 'Amount Paid',
+    remainingBalance: 'Remaining Balance',
     grandTotal: 'Grand Total',
     paymentStatus: 'Payment Status',
     paid: 'PAID',
@@ -313,8 +253,10 @@ const PDF_TRANSLATIONS = {
     total: 'Total',
     vehiclePurchase: 'Achat de Véhicule',
     subtotal: 'Sous-total',
-    tax: 'TVA (20%)',
+    tax: 'TVA (0%)',
     discount: 'Remise',
+    amountPaid: 'Montant Payé',
+    remainingBalance: 'Solde Restant',
     grandTotal: 'Total Général',
     paymentStatus: 'Statut de Paiement',
     paid: 'PAYÉ',
@@ -534,11 +476,11 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
   yPos += 15;
 
   const clientData = [
-    [t.fullName, data.clientName || 'N/A'],
-    [t.email, data.clientEmail || 'N/A'],
-    [t.phone, data.clientPhone || 'N/A'],
-    [t.idPassport, data.clientId || 'N/A'],
-    [t.address, data.clientAddress || 'N/A'],
+    [t.fullName, String(data.clientName || 'N/A')],
+    [t.email, String(data.clientEmail || 'N/A')],
+    [t.phone, String(data.clientPhone || 'N/A')],
+    [t.idPassport, String(data.clientId || 'N/A')],
+    [t.address, String(data.clientAddress || 'N/A')],
   ];
 
   clientData.forEach(([label, value]) => {
@@ -565,12 +507,12 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
   yPos += 15;
 
   const vehicleData = [
-    [t.brand, data.carBrand || 'N/A'],
-    [t.model, data.carModel || 'N/A'],
-    [t.year, data.carYear || 'N/A'],
-    [t.color, data.carColor || 'N/A'],
-    [t.vin, data.carVin || 'N/A'],
-    [t.price, data.carPrice || 'N/A'],
+    [t.brand, String(data.carBrand || 'N/A')],
+    [t.model, String(data.carModel || 'N/A')],
+    [t.year, String(data.carYear || 'N/A')],
+    [t.color, String(data.carColor || 'N/A')],
+    [t.vin, String(data.carVin || 'N/A')],
+    [t.price, String(data.carPrice || 'N/A')],
   ];
 
   vehicleData.forEach(([label, value]) => {
@@ -597,9 +539,9 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
   yPos += 15;
 
   const paymentData = [
-    [t.paymentMethod, data.paymentMethod || 'N/A'],
-    [t.amount, data.amountPaid || 'N/A'],
-    [t.trackingCode, data.trackingCode || 'N/A'],
+    [t.paymentMethod, String(data.paymentMethod || 'N/A')],
+    [t.amount, String(data.amountPaid || 'N/A')],
+    [t.trackingCode, String(data.trackingCode || 'N/A')],
   ];
 
   paymentData.forEach(([label, value]) => {
@@ -817,26 +759,36 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
   // Totals
   yPos = doc.lastAutoTable.finalY + 15;
   const subtotal = parseFloat(String(data.carPrice || 0).replace(/[^0-9.-]+/g, '')) || 0;
-  const taxRate = 0.20;
-  const tax = subtotal * taxRate;
   const discount = parseFloat(data.discount || 0);
-  const grandTotal = subtotal + tax - discount;
+  const grandTotal = subtotal - discount;
+  const amountReceived = parseFloat(data.amountReceived || 0);
 
   const totalsX = pageWidth - margin - 60;
   doc.setFontSize(10);
   
   doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
   addText(t.subtotal, totalsX, yPos);
-  doc.text(`$${subtotal.toLocaleString()}`, pageWidth - margin, yPos, { align: 'right' });
-  
-  yPos += 7;
-  addText(t.tax, totalsX, yPos);
-  doc.text(`$${tax.toLocaleString()}`, pageWidth - margin, yPos, { align: 'right' });
+  doc.text(`${subtotal.toLocaleString()} DZD`, pageWidth - margin, yPos, { align: 'right' });
   
   if (discount > 0) {
     yPos += 7;
     addText(t.discount, totalsX, yPos);
-    doc.text(`-$${discount.toLocaleString()}`, pageWidth - margin, yPos, { align: 'right' });
+    doc.text(`-$${discount.toLocaleString()} DZD`, pageWidth - margin, yPos, { align: 'right' });
+  }
+
+  // Payment details (if partial payment)
+  if (amountReceived > 0 && amountReceived < grandTotal) {
+    const remaining = grandTotal - amountReceived;
+    
+    yPos += 7;
+    addText(t.amountPaid || 'Amount Paid', totalsX, yPos);
+    doc.text(`${amountReceived.toLocaleString()} DZD`, pageWidth - margin, yPos, { align: 'right' });
+    
+    yPos += 7;
+    doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
+    addText(t.remainingBalance || 'Remaining Balance', totalsX, yPos);
+    doc.text(`${remaining.toLocaleString()} DZD`, pageWidth - margin, yPos, { align: 'right' });
+    doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
   }
   
   yPos += 10;
@@ -846,7 +798,7 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
   doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
   doc.setFontSize(12);
   addText(t.grandTotal, totalsX, yPos);
-  doc.text(`$${grandTotal.toLocaleString()}`, pageWidth - margin, yPos, { align: 'right' });
+  doc.text(`${grandTotal.toLocaleString()} DZD`, pageWidth - margin, yPos, { align: 'right' });
 
   // Payment Status
   yPos += 15;
@@ -893,224 +845,6 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
   return doc;
 }
 
-/**
- * Generate Tracking Document
- * 
- * @param {Object} data - Tracking data
- * @param {string} language - 'en', 'fr', or 'ar'
- * @param {string} theme - 'light' or 'dark'
- * @returns {Promise<jsPDF>} - PDF document instance
- */
-export async function generateTrackingDocument(data, language = 'en', theme = 'light') {
-  const doc = new jsPDF();
-  const t = PDF_TRANSLATIONS[language];
-  const company = COMPANY_INFO[language];
-  const colors = THEMES[theme];
-  const isRTL = language === 'ar';
-  
-  const pageWidth = doc.internal.pageSize.width;
-  const pageHeight = doc.internal.pageSize.height;
-  const margin = 20;
-  let yPos = 20;
-
-  // Set page background for dark mode
-  if (theme === 'dark') {
-    doc.setFillColor(...colors.background);
-    doc.rect(0, 0, pageWidth, pageHeight, 'F');
-  }
-
-  // Configure Arabic if needed
-  if (isRTL) {
-    await embedArabicFont(doc);
-    configureArabicDocument(doc);
-  } else {
-    doc.setFont('helvetica', 'normal');
-  }
-
-  // Helper function to add text
-  const addText = (text, x, y, options = {}) => {
-    const processedText = isRTL ? shapeArabicText(text) : text;
-    doc.text(processedText, x, y, options);
-  };
-
-  // Header
-  doc.setFillColor(...colors.headerBg);
-  doc.rect(0, 0, pageWidth, 50, 'F');
-  
-  doc.setFillColor(...colors.primary);
-  doc.circle(pageWidth / 2, 25, 8, 'F');
-  doc.setTextColor(...colors.background);
-  doc.setFontSize(10);
-  addText('DC', pageWidth / 2, 27, { align: 'center' });
-
-  doc.setTextColor(...colors.text);
-  doc.setFontSize(16);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  yPos = 60;
-  addText(company.name, pageWidth / 2, yPos, { align: 'center' });
-
-  doc.setFontSize(18);
-  doc.setTextColor(...colors.primary);
-  yPos += 12;
-  addText(t.trackingTitle, pageWidth / 2, yPos, { align: 'center' });
-
-  doc.setFontSize(10);
-  doc.setTextColor(...colors.textSecondary);
-  yPos += 7;
-  addText(t.trackingSubtitle, pageWidth / 2, yPos, { align: 'center' });
-
-  // Tracking Code (Highlighted)
-  yPos += 15;
-  doc.setFillColor(...colors.primary);
-  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 15, 3, 3, 'F');
-  doc.setTextColor(...colors.background);
-  doc.setFontSize(14);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  addText(`${t.trackingCode}: ${data.trackingCode || 'N/A'}`, pageWidth / 2, yPos + 10, { align: 'center' });
-
-  // Client and Vehicle Info
-  yPos += 25;
-  doc.setFontSize(10);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
-  doc.setTextColor(...colors.text);
-  
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  addText(`${t.fullName}:`, margin, yPos);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
-  addText(data.clientName || 'N/A', margin + 40, yPos);
-  
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  addText(`${t.model}:`, pageWidth - margin - 80, yPos);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
-  doc.text(`${data.carBrand || ''} ${data.carModel || ''}`, pageWidth - margin, yPos, { align: 'right' });
-
-  // Progress Bar
-  yPos += 15;
-  const progressPercent = data.progressPercent || 0;
-  doc.setDrawColor(...colors.border);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(margin, yPos, pageWidth - 2 * margin, 10, 2, 2, 'S');
-  
-  if (progressPercent > 0) {
-    const progressWidth = ((pageWidth - 2 * margin) * progressPercent) / 100;
-    doc.setFillColor(...colors.success);
-    doc.roundedRect(margin, yPos, progressWidth, 10, 2, 2, 'F');
-  }
-  
-  doc.setFontSize(9);
-  doc.setTextColor(...colors.background);
-  doc.text(`${progressPercent}%`, pageWidth / 2, yPos + 7, { align: 'center' });
-
-  // Current Location & Estimated Delivery
-  yPos += 20;
-  doc.setFontSize(10);
-  doc.setTextColor(...colors.text);
-  
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  addText(`${t.currentLocation}:`, margin, yPos);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
-  doc.setTextColor(...colors.primary);
-  addText(data.currentLocation || 'N/A', margin + 50, yPos);
-  
-  doc.setTextColor(...colors.text);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  addText(`${t.estimatedDelivery}:`, pageWidth - margin - 100, yPos);
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
-  doc.setTextColor(...colors.success);
-  addText(data.estimatedDelivery || 'N/A', pageWidth - margin, yPos, { align: 'right' });
-
-  // Itinerary Table
-  yPos += 15;
-  const stations = data.stations || [
-    { name: 'Origin Station', status: 'completed', timestamp: '2024-10-15 09:00' },
-    { name: 'Transit Hub 1', status: 'completed', timestamp: '2024-10-16 14:30' },
-    { name: 'Regional Center', status: 'inProgress', timestamp: '2024-10-18 10:00' },
-    { name: 'Final Destination', status: 'pending', timestamp: 'Pending' },
-  ];
-
-  const stationsData = stations.map(station => {
-    const statusText = station.status === 'completed' ? t.completed 
-                     : station.status === 'inProgress' ? t.inProgress 
-                     : t.pending;
-    return [
-      isRTL ? shapeArabicText(station.name) : station.name,
-      isRTL ? shapeArabicText(statusText) : statusText,
-      station.timestamp
-    ];
-  });
-
-  const tableHead = [[
-    isRTL ? shapeArabicText(t.station) : t.station,
-    isRTL ? shapeArabicText(t.status) : t.status,
-    isRTL ? shapeArabicText(t.timestamp) : t.timestamp
-  ]];
-
-  autoTable(doc, {
-    startY: yPos,
-    head: tableHead,
-    body: stationsData,
-    theme: theme === 'dark' ? 'grid' : 'striped',
-    styles: {
-      font: isRTL ? 'Amiri' : 'helvetica',
-      halign: isRTL ? 'right' : 'left',
-    },
-    headStyles: {
-      fillColor: colors.primary,
-      textColor: colors.background,
-      fontSize: 10,
-      fontStyle: 'bold',
-    },
-    bodyStyles: {
-      textColor: colors.text,
-      fontSize: 9,
-    },
-    alternateRowStyles: {
-      fillColor: colors.headerBg,
-    },
-    margin: { left: margin, right: margin },
-    didParseCell: function(cellData) {
-      if (cellData.column.index === 1 && cellData.section === 'body') {
-        const status = stations[cellData.row.index].status;
-        if (status === 'completed') {
-          cellData.cell.styles.textColor = colors.success;
-          cellData.cell.styles.fontStyle = 'bold';
-        } else if (status === 'inProgress') {
-          cellData.cell.styles.textColor = colors.primary;
-          cellData.cell.styles.fontStyle = 'bold';
-        }
-      }
-    }
-  });
-
-  // Footer
-  yPos = pageHeight - 30;
-  doc.setFillColor(...colors.headerBg);
-  doc.rect(0, yPos, pageWidth, 30, 'F');
-  
-  doc.setFontSize(8);
-  doc.setTextColor(...colors.textSecondary);
-  addText(t.contactSupport, pageWidth / 2, yPos + 8, { align: 'center' });
-  addText(`${company.phone} | ${company.email}`, pageWidth / 2, yPos + 13, { align: 'center' });
-  addText(company.address, pageWidth / 2, yPos + 18, { align: 'center' });
-  doc.setFontSize(7);
-  addText(t.digitalSignature, pageWidth / 2, yPos + 23, { align: 'center' });
-
-  return doc;
-}
-
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
-/**
- * Download PDF to user's device
- * 
- * Validates that doc is a proper jsPDF instance before calling save.
- * This prevents "doc.save is not a function" errors.
- * 
- * @param {jsPDF} doc - PDF document instance
- * @param {string} filename - Name for downloaded file
- */
 export function downloadPDF(doc, filename) {
   if (!doc || typeof doc.save !== 'function') {
     console.error('Invalid jsPDF instance passed to downloadPDF');

@@ -3,6 +3,7 @@ import "./globals.css";
 import { LanguageProvider } from "./components/LanguageProvider";
 import ThemeProvider from "./providers/ThemeProvider";
 import { AuthProvider } from "./context/AuthContext";
+import { AdminAuthProvider } from "./context/AdminAuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -22,7 +23,9 @@ export default function RootLayout({ children }) {
         <ThemeProvider>
           <LanguageProvider>
             <AuthProvider>
-              {children}
+              <AdminAuthProvider>
+                {children}
+              </AdminAuthProvider>
             </AuthProvider>
           </LanguageProvider>
         </ThemeProvider>

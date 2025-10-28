@@ -9,7 +9,7 @@ export default function OverviewModule() {
     totalCars: 16,
     availableCars: 12,
     soldCars: 4,
-    totalClients: 28,
+    totalUsers: 28,
     pendingOrders: 5,
     completedOrders: 23,
     totalRevenue: 2450000,
@@ -38,10 +38,10 @@ export default function OverviewModule() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          {t('dashboard') || 'Dashboard Overview'}
+          {t('dashboard')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          {t('dashboardDescription') || 'Welcome to your admin dashboard. Here\'s what\'s happening today.'}
+          {t('dashboardDescription')}
         </p>
       </div>
 
@@ -60,7 +60,7 @@ export default function OverviewModule() {
             </span>
           </div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stats.totalCars}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalCars') || 'Total Cars'}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalCars')}</p>
         </div>
 
         {/* Total Clients */}
@@ -75,8 +75,8 @@ export default function OverviewModule() {
               +12%
             </span>
           </div>
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stats.totalClients}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalClients') || 'Total Clients'}</p>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stats.totalUsers}</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalUsers')}</p>
         </div>
 
         {/* Total Revenue */}
@@ -94,7 +94,7 @@ export default function OverviewModule() {
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
             ${stats.totalRevenue.toLocaleString()}
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalRevenue') || 'Total Revenue'}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('totalRevenue')}</p>
         </div>
 
         {/* Pending Orders */}
@@ -110,7 +110,7 @@ export default function OverviewModule() {
             </span>
           </div>
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stats.pendingOrders}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{t('pendingOrders') || 'Pending Orders'}</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t('pendingOrders')}</p>
         </div>
       </div>
 
@@ -119,14 +119,14 @@ export default function OverviewModule() {
         {/* Revenue Chart Placeholder */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            {t('revenueOverview') || 'Revenue Overview'}
+            {t('revenueOverview')}
           </h2>
           <div className="h-64 flex items-center justify-center bg-gray-50 dark:bg-gray-900 rounded-lg">
             <div className="text-center">
               <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <p className="text-gray-500 dark:text-gray-400">{t('chartPlaceholder') || 'Revenue chart visualization'}</p>
+              <p className="text-gray-500 dark:text-gray-400">{t('chartPlaceholder')}</p>
             </div>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function OverviewModule() {
         {/* Recent Activity */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-            {t('recentActivity') || 'Recent Activity'}
+            {t('recentActivity')}
           </h2>
           <div className="space-y-4">
             {recentActivities.map((activity) => (
@@ -155,23 +155,23 @@ export default function OverviewModule() {
       {/* Top Selling Cars */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
         <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
-          {t('topSellingCars') || 'Top Selling Cars'}
+          {t('topSellingCars')}
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200 dark:border-gray-700">
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('carName') || 'Car Name'}
+                  {t('carName')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('sales') || 'Sales'}
+                  {t('sales')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('revenue') || 'Revenue'}
+                  {t('revenue')}
                 </th>
                 <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('trend') || 'Trend'}
+                  {t('trend')}
                 </th>
               </tr>
             </thead>
@@ -182,7 +182,7 @@ export default function OverviewModule() {
                     {car.name}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-600 dark:text-gray-400">
-                    {car.sales} {t('units') || 'units'}
+                    {car.sales} {t('units')}
                   </td>
                   <td className="py-4 px-4 text-sm text-gray-900 dark:text-white font-semibold">
                     ${car.revenue.toLocaleString()}

@@ -6,12 +6,20 @@ import { useLanguage } from '../../../components/LanguageProvider';
 export default function ClientsModule() {
   const { t } = useLanguage();
   const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchClients = async () => {
-      const response = await fetch('/api/clients');
-      const data = await response.json();
-      setClients(data);
+      setLoading(true);
+      try {
+        const response = await fetch('/api/admin/clients');
+        const data = await response.json();
+        setClients(data);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchClients();
@@ -72,7 +80,23 @@ export default function ClientsModule() {
               </tr>
             </thead>
             <tbody>
-              {filteredClients.map((client) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="4" className="py-12">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                      <p className="text-gray-500 dark:text-gray-400">{t('loading') || 'Loading clients...'}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredClients.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-12 text-center text-gray-500 dark:text-gray-400">
+                    {t('noClients') || 'No clients found'}
+                  </td>
+                </tr>
+              ) : (
+                filteredClients.map((client) => (
                 <tr key={client._id} className="border-t border-gray-200 dark:border-gray-700">
                   <td className="py-4 px-6">
                     <div className="font-semibold text-gray-900 dark:text-white">{client.fullName}</div>
@@ -92,7 +116,8 @@ export default function ClientsModule() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>

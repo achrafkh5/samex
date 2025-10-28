@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../../../components/LanguageProvider';
 import { useTheme } from 'next-themes';
 import {
   generateCertificate,
   generateInvoice,
-  generateTrackingDocument,
   downloadPDF,
   getPDFBlob
 } from '../../../utils/pdfGenerator';
@@ -17,71 +16,57 @@ export default function PDFGeneratorModule() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('certificate');
   const [pdfTheme, setPdfTheme] = useState('light');
-  const [pdfLanguage, setPdfLanguage] = useState('en');
+  const [pdfLanguage, setPdfLanguage] = useState('en'); // EN/FR only
   const [showPreview, setShowPreview] = useState(false);
   const [generatedDocs, setGeneratedDocs] = useState([]);
   const [toast, setToast] = useState(null);
   
-  // Form Data States
-  const [certificateData, setCertificateData] = useState({
-    clientName: 'Ahmed Al-Rashid',
-    clientEmail: 'ahmed.rashid@example.com',
-    clientPhone: '+212 6 XX XX XX XX',
-    clientId: 'MA123456789',
-    clientAddress: '456 Palm Street, Rabat, Morocco',
-    carBrand: 'Mercedes-Benz',
-    carModel: 'S-Class',
-    carYear: '2024',
-    carColor: 'Black',
-    carVin: 'WDDUG8CB7KA123456',
-    carPrice: '$125,000',
-    paymentMethod: 'Bank Transfer',
-    amountPaid: '$125,000',
-    trackingCode: 'TRK-20241019-ABC123',
-    registrationDate: new Date().toLocaleDateString(),
-  });
+  // Data Loading States
+  const [orders, setOrders] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  
+  // Selected Order State
+  const [selectedOrderId, setSelectedOrderId] = useState('');
+  const [amountReceived, setAmountReceived] = useState('');
 
-  const [invoiceData, setInvoiceData] = useState({
-    clientName: 'Sarah Johnson',
-    clientEmail: 'sarah.j@example.com',
-    clientPhone: '+1 555 123 4567',
-    clientAddress: '789 Luxury Ave, New York, USA',
-    carBrand: 'BMW',
-    carModel: 'M4 Competition',
-    carYear: '2024',
-    carPrice: '$95,000',
-    paymentStatus: 'paid',
-    discount: '5000',
-    invoiceNumber: `INV-${Date.now().toString().slice(-8)}`,
-    invoiceDate: new Date().toLocaleDateString(),
-    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-  });
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+  };
 
-  const [trackingData, setTrackingData] = useState({
-    trackingCode: 'TRK-20241019-XYZ789',
-    clientName: 'Mohamed Benchrif',
-    carBrand: 'Tesla',
-    carModel: 'Model S',
-    currentLocation: 'Regional Distribution Center - Casablanca',
-    estimatedDelivery: '2024-10-22',
-    progressPercent: 65,
-    stations: [
-      { name: 'Origin - Factory Stuttgart', status: 'completed', timestamp: '2024-10-15 09:00' },
-      { name: 'Port of Tangier', status: 'completed', timestamp: '2024-10-16 14:30' },
-      { name: 'Regional Center Casablanca', status: 'inProgress', timestamp: '2024-10-18 10:00' },
-      { name: 'Final Delivery - Rabat', status: 'pending', timestamp: 'Pending' },
-    ],
-  });
+  // Fetch Orders, Clients, and Cars
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [ordersResponse, clientsResponse, carsResponse] = await Promise.all([
+        fetch('/api/admin/orders'),
+        fetch('/api/admin/clients'),
+        fetch('/api/cars'),
+      ]);
+
+      const ordersData = await ordersResponse.json();
+      const clientsData = await clientsResponse.json();
+      const carsData = await carsResponse.json();
+
+      setOrders(ordersData.orders || []);
+      setClients(clientsData || []);
+      setCars(carsData || []);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      showToast(t('errorLoadingData') || 'Failed to load data', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
     setMounted(true);
-    setPdfLanguage(language);
-    // Load saved documents from localStorage
-    const saved = localStorage.getItem('generatedPDFs');
-    if (saved) {
-      setGeneratedDocs(JSON.parse(saved));
-    }
-  }, [language]);
+    // Set language to EN only (no AR support)
+    setPdfLanguage(language === 'ar' ? 'en' : language);
+    fetchData();
+  }, [language, fetchData]);
 
   useEffect(() => {
     if (toast) {
@@ -90,32 +75,192 @@ export default function PDFGeneratorModule() {
     }
   }, [toast]);
 
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
+  // Get selected order with client and car details
+  const getSelectedOrder = () => {
+    const order = orders.find(o => o._id === selectedOrderId);
+    if (!order) return null;
+
+    const client = clients.find(c => c._id === order.clientId);
+    const car = cars.find(c => c._id === order.selectedCarId);
+
+    return { order, client, car };
+  };
+
+  // Upload PDF to Cloudinary
+  const uploadToCloudinary = async (pdfBlob, filename) => {
+    const formData = new FormData();
+    formData.append('file', pdfBlob, filename);
+    formData.append('folder', 'certificates');
+
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to upload to Cloudinary');
+    }
+
+    const data = await response.json();
+    return {
+      url: data.url,
+      publicId: data.public_id,
+      resourceType: data.resource_type
+    };
+  };
+
+  // Save document metadata to database
+  const saveDocumentMetadata = async (documentData) => {
+    const response = await fetch('/api/admin/documents', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(documentData),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to save document metadata');
+    }
+
+    return await response.json();
   };
 
   const handleGeneratePDF = async (type) => {
+    // Validation
+    if (!selectedOrderId) {
+      showToast(t('pleaseSelectOrder') || 'Please select an order', 'error');
+      return;
+    }
+
+    if (type === 'invoice' && (!amountReceived || parseFloat(amountReceived) <= 0)) {
+      showToast(t('pleaseEnterAmount') || 'Please enter a valid amount received', 'error');
+      return;
+    }
+
+    setGenerating(true);
+
     try {
       let doc;
       let filename;
-      let data;
+      let documentType;
+
+      const orderData = getSelectedOrder();
+      if (!orderData || !orderData.order || !orderData.client || !orderData.car) {
+        throw new Error('Missing order, client, or car data');
+      }
 
       switch (type) {
-        case 'certificate':
-          doc = await generateCertificate(certificateData, pdfLanguage, pdfTheme);
-          filename = `Certificate_${certificateData.clientName.replace(/\s+/g, '_')}_${Date.now()}.pdf`;
-          data = certificateData;
+        case 'certificate': {
+          const { order, client, car } = orderData;
+          
+          // Prepare certificate data
+          const pdfData = {
+            clientName: client.fullName,
+            clientEmail: client.email,
+            clientPhone: client.phone,
+            clientId: client.nationalId || 'N/A',
+            clientAddress: `${client.streetAddress || ''}, ${client.city || ''}, ${client.country || ''}`.trim(),
+            carBrand: car.brand,
+            carModel: car.model,
+            carYear: car.year,
+            carColor: car.specs?.colors?.[0] || 'N/A',
+            carVin: car.vin || 'N/A',
+            carPrice: `$${car.price?.toLocaleString('en-US')}`,
+            paymentMethod: order.paymentMethod || 'N/A',
+            amountPaid: `$${order.finalPrice?.toLocaleString('en-US')}`,
+            trackingCode: order.trackingCode || 'N/A',
+            registrationDate: new Date(order.createdAt).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+          };
+
+          doc = await generateCertificate(pdfData, pdfLanguage, pdfTheme);
+          filename = `inscription_certificate_${order._id}.pdf`;
+          documentType = 'inscription';
+
+          // Upload to Cloudinary
+          const pdfBlob = getPDFBlob(doc);
+          const cloudinaryData = await uploadToCloudinary(pdfBlob, filename);
+
+          // Save metadata to database
+          await saveDocumentMetadata({
+            type: documentType,
+            clientId: order.clientId,
+            carId: order.selectedCarId,
+            orderId: order._id,
+            userId: order.userId,
+            clientName: client.fullName,
+            url: cloudinaryData.url,
+            cloudinaryPublicId: cloudinaryData.publicId,
+            cloudinaryResourceType: cloudinaryData.resourceType,
+          });
+
+          showToast(t('certificateGeneratedUploaded') || 'Inscription certificate generated and uploaded successfully!', 'success');
           break;
-        case 'invoice':
-          doc = await generateInvoice(invoiceData, pdfLanguage, pdfTheme);
-          filename = `Invoice_${invoiceData.invoiceNumber}_${Date.now()}.pdf`;
-          data = invoiceData;
+        }
+
+        case 'invoice': {
+          const { order, client, car } = orderData;
+          const finalPrice = car.price || 0;
+          const received = parseFloat(amountReceived);
+
+          // Prepare invoice data
+          const pdfData = {
+            clientName: client.fullName,
+            clientEmail: client.email,
+            clientPhone: client.phone,
+            clientAddress: `${client.streetAddress || ''}, ${client.city || ''}, ${client.country || ''}`.trim(),
+            carBrand: car.brand,
+            carModel: car.model,
+            carYear: car.year,
+            carPrice: finalPrice,
+            amountReceived: received,
+            invoiceNumber: `INV-${order._id.slice(-8).toUpperCase()}`,
+            invoiceDate: new Date().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            paymentStatus: received >= finalPrice ? 'paid' : 'pending',
+            discount: 0,
+          };
+
+          doc = await generateInvoice(pdfData, pdfLanguage, pdfTheme);
+          filename = `invoice_certificate_${order._id}.pdf`;
+          documentType = 'invoice';
+
+          // Upload to Cloudinary
+          const pdfBlob = getPDFBlob(doc);
+          const cloudinaryData = await uploadToCloudinary(pdfBlob, filename);
+
+          // Save metadata to database
+          await saveDocumentMetadata({
+            type: documentType,
+            clientId: order.clientId,
+            carId: order.selectedCarId,
+            orderId: order._id,
+            userId: order.userId,
+            clientName: client.fullName,
+            url: cloudinaryData.url,
+            cloudinaryPublicId: cloudinaryData.publicId,
+            cloudinaryResourceType: cloudinaryData.resourceType,
+          });
+
+          showToast(t('invoiceGeneratedUploaded') || 'Invoice certificate generated and uploaded successfully!', 'success');
+          
+          // Reset amount field
+          setAmountReceived('');
           break;
-        case 'tracking':
-          doc = await generateTrackingDocument(trackingData, pdfLanguage, pdfTheme);
-          filename = `Tracking_${trackingData.trackingCode}_${Date.now()}.pdf`;
-          data = trackingData;
-          break;
+        }
+
         default:
           return;
       }
@@ -126,22 +271,22 @@ export default function PDFGeneratorModule() {
       // Save to generated docs list
       const newDoc = {
         id: Date.now(),
-        type: type.charAt(0).toUpperCase() + type.slice(1),
+        type: documentType.charAt(0).toUpperCase() + documentType.slice(1),
         filename,
-        clientName: data.clientName,
+        clientName: orderData.client.fullName,
         generatedDate: new Date().toLocaleString(),
         language: pdfLanguage,
         theme: pdfTheme,
       };
 
-      const updated = [newDoc, ...generatedDocs].slice(0, 20); // Keep last 20
+      const updated = [newDoc, ...generatedDocs].slice(0, 20);
       setGeneratedDocs(updated);
-      localStorage.setItem('generatedPDFs', JSON.stringify(updated));
 
-      showToast(`${type.charAt(0).toUpperCase() + type.slice(1)} PDF ${t('generated') || 'generated'} successfully!`, 'success');
     } catch (error) {
       console.error('PDF Generation Error:', error);
-      showToast(t('error') || 'Error generating PDF', 'error');
+      showToast(`${t('error') || 'Error'}: ${error.message}`, 'error');
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -183,7 +328,7 @@ export default function PDFGeneratorModule() {
               {t('pdfLanguage') || 'PDF Language'}
             </label>
             <div className="flex gap-2">
-              {['en', 'fr', 'ar'].map((lang) => (
+              {['en', 'fr'].map((lang) => (
                 <button
                   key={lang}
                   onClick={() => setPdfLanguage(lang)}
@@ -226,7 +371,7 @@ export default function PDFGeneratorModule() {
       {/* Document Type Tabs */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden mb-6">
         <div className="flex border-b border-gray-200 dark:border-gray-700">
-          {['certificate', 'invoice', 'tracking'].map((tab) => (
+          {['certificate', 'invoice'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -238,7 +383,6 @@ export default function PDFGeneratorModule() {
             >
               {tab === 'certificate' && '📜 '}
               {tab === 'invoice' && '🧾 '}
-              {tab === 'tracking' && '📦 '}
               {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
@@ -251,150 +395,92 @@ export default function PDFGeneratorModule() {
               {t('certificateOfInscription') || 'Certificate of Inscription'}
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('clientName') || 'Client Name'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.clientName}
-                  onChange={(e) => setCertificateData({...certificateData, clientName: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('selectOrder') || 'Select Order'}
+                  </label>
+                  <select
+                    value={selectedOrderId}
+                    onChange={(e) => setSelectedOrderId(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">{t('selectAnOrder') || 'Select an order...'}</option>
+                    {orders.map((order) => {
+                      const client = clients.find(c => c._id === order.clientId);
+                      const car = cars.find(c => c._id === order.carId);
+                      return (
+                        <option key={order._id} value={order._id}>
+                          {order.trackingCode} - {client?.fullName || 'Unknown'} - {car?.brand} {car?.model}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('email') || 'Email'}
-                </label>
-                <input
-                  type="email"
-                  value={certificateData.clientEmail}
-                  onChange={(e) => setCertificateData({...certificateData, clientEmail: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
+                {selectedOrderId && (() => {
+                  const orderData = getSelectedOrder();
+                  if (!orderData) return null;
+                  const { order, client, car } = orderData;
+                  
+                  return (
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6">
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                        {t('orderDetails') || 'Order Details'}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">{t('client') || 'Client'}:</span>{' '}
+                          <span className="text-gray-900 dark:text-white font-medium">{client.fullName}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">{t('email') || 'Email'}:</span>{' '}
+                          <span className="text-gray-900 dark:text-white font-medium">{client.email}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">{t('car') || 'Car'}:</span>{' '}
+                          <span className="text-gray-900 dark:text-white font-medium">{car.brand} {car.model} ({car.year})</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">{t('price') || 'Price'}:</span>{' '}
+                          <span className="text-gray-900 dark:text-white font-medium">{car.price?.toLocaleString('en-US')} DZD</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">{t('trackingCode') || 'Tracking'}:</span>{' '}
+                          <span className="text-gray-900 dark:text-white font-medium">{order.trackingCode}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">{t('date') || 'Date'}:</span>{' '}
+                          <span className="text-gray-900 dark:text-white font-medium">
+                            {new Date(order.createdAt).toLocaleDateString('en-US')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('phone') || 'Phone'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.clientPhone}
-                  onChange={(e) => setCertificateData({...certificateData, clientPhone: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('idPassport') || 'ID/Passport'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.clientId}
-                  onChange={(e) => setCertificateData({...certificateData, clientId: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('address') || 'Address'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.clientAddress}
-                  onChange={(e) => setCertificateData({...certificateData, clientAddress: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('carBrand') || 'Car Brand'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.carBrand}
-                  onChange={(e) => setCertificateData({...certificateData, carBrand: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('carModel') || 'Car Model'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.carModel}
-                  onChange={(e) => setCertificateData({...certificateData, carModel: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('year') || 'Year'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.carYear}
-                  onChange={(e) => setCertificateData({...certificateData, carYear: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('price') || 'Price'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.carPrice}
-                  onChange={(e) => setCertificateData({...certificateData, carPrice: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('trackingCode') || 'Tracking Code'}
-                </label>
-                <input
-                  type="text"
-                  value={certificateData.trackingCode}
-                  onChange={(e) => setCertificateData({...certificateData, trackingCode: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('paymentMethod') || 'Payment Method'}
-                </label>
-                <select
-                  value={certificateData.paymentMethod}
-                  onChange={(e) => setCertificateData({...certificateData, paymentMethod: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                <button
+                  onClick={() => handleGeneratePDF('certificate')}
+                  disabled={!selectedOrderId || generating}
+                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option>Cash</option>
-                  <option>Bank Transfer</option>
-                  <option>Credit Card</option>
-                  <option>PayPal</option>
-                </select>
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleGeneratePDF('certificate')}
-              className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all"
-            >
-              📜 {t('generateCertificate') || 'Generate Certificate'}
-            </button>
+                  {generating ? (
+                    <span className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      {t('generating') || 'Generating...'}
+                    </span>
+                  ) : (
+                    <>📄 {t('generateCertificate') || 'Generate Certificate'}</>
+                  )}
+                </button>
+              </>
+            )}
           </div>
         )}
 
@@ -405,216 +491,108 @@ export default function PDFGeneratorModule() {
               {t('invoiceGeneration') || 'Invoice Generation'}
             </h3>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('invoiceNumber') || 'Invoice Number'}
-                </label>
-                <input
-                  type="text"
-                  value={invoiceData.invoiceNumber}
-                  onChange={(e) => setInvoiceData({...invoiceData, invoiceNumber: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
               </div>
+            ) : (
+              <>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('selectOrder') || 'Select Order'}
+                  </label>
+                  <select
+                    value={selectedOrderId}
+                    onChange={(e) => setSelectedOrderId(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  >
+                    <option value="">{t('selectAnOrder') || 'Select an order...'}</option>
+                    {orders.map((order) => {
+                      const client = clients.find(c => c._id === order.clientId);
+                      const car = cars.find(c => c._id === order.carId);
+                      return (
+                        <option key={order._id} value={order._id}>
+                          {order.trackingCode} - {client?.fullName || 'Unknown'} - {car?.brand} {car?.model}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('paymentStatus') || 'Payment Status'}
-                </label>
-                <select
-                  value={invoiceData.paymentStatus}
-                  onChange={(e) => setInvoiceData({...invoiceData, paymentStatus: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                {selectedOrderId && (() => {
+                  const orderData = getSelectedOrder();
+                  if (!orderData) return null;
+                  const { order, client, car } = orderData;
+                  const finalPrice = car.price || 0;
+                  const received = parseFloat(amountReceived) || 0;
+                  
+                  return (
+                    <>
+                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6">
+                        <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
+                          {t('orderDetails') || 'Order Details'}
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">{t('client') || 'Client'}:</span>{' '}
+                            <span className="text-gray-900 dark:text-white font-medium">{client.fullName}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">{t('email') || 'Email'}:</span>{' '}
+                            <span className="text-gray-900 dark:text-white font-medium">{client.email}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">{t('car') || 'Car'}:</span>{' '}
+                            <span className="text-gray-900 dark:text-white font-medium">{car.brand} {car.model} ({car.year})</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-600 dark:text-gray-400">{t('finalPrice') || 'Final Price'}:</span>{' '}
+                            <span className="text-gray-900 dark:text-white font-medium">{finalPrice.toLocaleString('en-US')} DZD</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mb-6">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          {t('amountReceived') || 'Amount Received (DZD)'}
+                        </label>
+                        <input
+                          type="number"
+                          value={amountReceived}
+                          onChange={(e) => setAmountReceived(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        />
+                        {received > 0 && (
+                          <p className="mt-2 text-sm">
+                            <span className="text-gray-600 dark:text-gray-400">{t('paymentStatus') || 'Status'}:</span>{' '}
+                            <span className={`font-medium ${received >= finalPrice ? 'text-green-600' : 'text-yellow-600'}`}>
+                              {received.toLocaleString('en-US')} DZD / {finalPrice.toLocaleString('en-US')} DZD
+                              {received >= finalPrice ? ' ✓ ' + (t('paid') || 'Paid') : ' ⏳ ' + (t('pending') || 'Pending')}
+                            </span>
+                          </p>
+                        )}
+                      </div>
+                    </>
+                  );
+                })()}
+
+                <button
+                  onClick={() => handleGeneratePDF('invoice')}
+                  disabled={!selectedOrderId || !amountReceived || generating}
+                  className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="paid">Paid</option>
-                  <option value="pending">Pending</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('clientName') || 'Client Name'}
-                </label>
-                <input
-                  type="text"
-                  value={invoiceData.clientName}
-                  onChange={(e) => setInvoiceData({...invoiceData, clientName: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('email') || 'Email'}
-                </label>
-                <input
-                  type="email"
-                  value={invoiceData.clientEmail}
-                  onChange={(e) => setInvoiceData({...invoiceData, clientEmail: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('carBrand') || 'Car Brand'}
-                </label>
-                <input
-                  type="text"
-                  value={invoiceData.carBrand}
-                  onChange={(e) => setInvoiceData({...invoiceData, carBrand: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('carModel') || 'Car Model'}
-                </label>
-                <input
-                  type="text"
-                  value={invoiceData.carModel}
-                  onChange={(e) => setInvoiceData({...invoiceData, carModel: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('price') || 'Price'}
-                </label>
-                <input
-                  type="text"
-                  value={invoiceData.carPrice}
-                  onChange={(e) => setInvoiceData({...invoiceData, carPrice: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('discount') || 'Discount'}
-                </label>
-                <input
-                  type="text"
-                  value={invoiceData.discount}
-                  onChange={(e) => setInvoiceData({...invoiceData, discount: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleGeneratePDF('invoice')}
-              className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all"
-            >
-              🧾 {t('generateInvoice') || 'Generate Invoice'}
-            </button>
-          </div>
-        )}
-
-        {/* Tracking Form */}
-        {activeTab === 'tracking' && (
-          <div className="p-6">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              {t('trackingDocument') || 'Tracking Document'}
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('trackingCode') || 'Tracking Code'}
-                </label>
-                <input
-                  type="text"
-                  value={trackingData.trackingCode}
-                  onChange={(e) => setTrackingData({...trackingData, trackingCode: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('clientName') || 'Client Name'}
-                </label>
-                <input
-                  type="text"
-                  value={trackingData.clientName}
-                  onChange={(e) => setTrackingData({...trackingData, clientName: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('carBrand') || 'Car Brand'}
-                </label>
-                <input
-                  type="text"
-                  value={trackingData.carBrand}
-                  onChange={(e) => setTrackingData({...trackingData, carBrand: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('carModel') || 'Car Model'}
-                </label>
-                <input
-                  type="text"
-                  value={trackingData.carModel}
-                  onChange={(e) => setTrackingData({...trackingData, carModel: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('currentLocation') || 'Current Location'}
-                </label>
-                <input
-                  type="text"
-                  value={trackingData.currentLocation}
-                  onChange={(e) => setTrackingData({...trackingData, currentLocation: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('estimatedDelivery') || 'Estimated Delivery'}
-                </label>
-                <input
-                  type="date"
-                  value={trackingData.estimatedDelivery}
-                  onChange={(e) => setTrackingData({...trackingData, estimatedDelivery: e.target.value})}
-                  className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('progress') || 'Progress'} ({trackingData.progressPercent}%)
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={trackingData.progressPercent}
-                  onChange={(e) => setTrackingData({...trackingData, progressPercent: parseInt(e.target.value)})}
-                  className="w-full"
-                />
-              </div>
-            </div>
-
-            <button
-              onClick={() => handleGeneratePDF('tracking')}
-              className="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:from-blue-700 hover:to-purple-700 transition-all"
-            >
-              📦 {t('generateTracking') || 'Generate Tracking Document'}
-            </button>
+                  {generating ? (
+                    <span className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                      {t('generating') || 'Generating...'}
+                    </span>
+                  ) : (
+                    <>🧾 {t('generateInvoice') || 'Generate Invoice'}</>
+                  )}
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -659,6 +637,24 @@ export default function PDFGeneratorModule() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Generating Spinner Overlay */}
+      {generating && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-xl">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+              <p className="text-gray-900 dark:text-white font-medium">
+                {t('generatingDocument') || 'Generating document...'}
+              </p>
+            </div>
           </div>
         </div>
       )}

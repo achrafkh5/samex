@@ -10,13 +10,15 @@ export default function PaymentsModule() {
   const [cars, setCars] = useState([]);
   const [clientsMap, setClientsMap] = useState({});
   const [carsMap, setCarsMap] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [ordersResponse, clientsResponse, carsResponse] = await Promise.all([
-          fetch('/api/orders'),
-          fetch('/api/clients'),
+          fetch('/api/admin/orders'),
+          fetch('/api/admin/clients'),
           fetch('/api/cars'),
         ]);
 
@@ -25,22 +27,27 @@ export default function PaymentsModule() {
         const carsData = await carsResponse.json();
 
         setPayments(ordersData.orders);
-        setPayments(prevPayments => prevPayments.filter(p => p.status !== 'canceled'));
+        setPayments(prevPayments => prevPayments?.filter(p => p.status !== 'canceled'));
         setClients(clientsData);
         setCars(carsData);
-
-        const map = {};
-        (clientsData || []).forEach(client => {
-          map[client._id] = client;
-        });
-        setClientsMap(map);
-        const carMap = {};
-        (carsData || []).forEach(car => {
-          carMap[car._id] = car;
-        });
-        setCarsMap(carMap);
+        if (clientsData.length > 0) {
+          const map = {};
+          (clientsData || [])?.forEach(client => {
+            map[client._id] = client;
+          });
+          setClientsMap(map);
+        }
+        if (carsData.length > 0) {
+          const map = {};
+          (carsData || [])?.forEach(car => {
+            map[car._id] = car;
+          });
+          setCarsMap(map);
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -73,11 +80,11 @@ const pendingPayments = payments
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">{t('totalRevenue') || 'Total Revenue'}</h3>
-          <p className="text-3xl font-bold">${totalRevenue?.toLocaleString()}</p>
+          <p className="text-3xl font-bold">{totalRevenue?.toLocaleString()} DZD</p>
         </div>
         <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">{t('pendingPayments') || 'Pending'}</h3>
-          <p className="text-3xl font-bold">${pendingPayments?.toLocaleString()}</p>
+          <p className="text-3xl font-bold">{pendingPayments?.toLocaleString()} DZD</p>
         </div>
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <h3 className="text-sm font-medium opacity-90 mb-2">{t('totalTransactions') || 'Transactions'}</h3>
@@ -101,12 +108,28 @@ const pendingPayments = payments
               </tr>
             </thead>
             <tbody>
-              {payments.map((payment) => (
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="py-12">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                      <p className="text-gray-500 dark:text-gray-400">{t('loading') || 'Loading payments...'}</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : payments?.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="py-12 text-center text-gray-500 dark:text-gray-400">
+                    {t('noPayments') || 'No payments found'}
+                  </td>
+                </tr>
+              ) : (
+                payments?.map((payment) => (
                 <tr key={payment._id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">#{payment._id}</td>
                   <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{clientsMap[payment.clientId].fullName}</td>
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{carsMap[payment.selectedCarId].brand} {carsMap[payment.selectedCarId].model}</td>
-                  <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">${payment.paymentAmount?.toLocaleString()}</td>
+                  <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">{payment.paymentAmount?.toLocaleString()} DZD</td>
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{payment.paymentMethod}</td>
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{new Date(payment.createdAt).toLocaleDateString()}</td>
                   <td className="py-4 px-6">
@@ -123,7 +146,8 @@ const pendingPayments = payments
                     </span>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>

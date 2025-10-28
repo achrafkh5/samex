@@ -5,12 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage } from './LanguageProvider';
 import { useTheme } from 'next-themes';
+import { useAdminAuth } from '@/app/context/AdminAuthContext';
 
 export default function AdminSidebar({ currentPage, onNavigate }) {
   const router = useRouter();
   const pathname = usePathname();
   const {  language, changeLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
+  const { logout } = useAdminAuth();
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -92,20 +94,20 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
       ),
     },
     {
-      id: 'files',
-      name: t('uploadedFiles') || 'Uploaded Files',
-      icon: (
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-      ),
-    },
-    {
       id: 'pdf-generator',
       name: t('pdfGenerator') || 'PDF Generator',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'change-password',
+      name: t('changePassword') || 'Change Password',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
         </svg>
       ),
     },
@@ -129,10 +131,9 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
     },
   ];
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminAuthenticated');
-    localStorage.removeItem('adminUser');
-    router.push('/admin/login');
+  const handleLogout = async () => {
+    await logout();
+    // logout() already handles router.push('/admin/login')
   };
 
   return (

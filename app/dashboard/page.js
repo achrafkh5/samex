@@ -126,7 +126,7 @@ export default function DashboardPage() {
 
   const formatDate = (date) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
@@ -135,7 +135,7 @@ export default function DashboardPage() {
 
   const formatAmount = (amount) => {
     if (!amount) return 'N/A';
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('fr', {
       style: 'currency',
       currency: 'DZD'
     }).format(amount);
