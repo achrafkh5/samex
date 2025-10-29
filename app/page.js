@@ -6,12 +6,14 @@ import RecentCars from './components/RecentCars';
 import About from './components/About';
 import ContactCTA from './components/ContactCTA';
 import Footer from './components/Footer';
+import BrandLogos from './components/BrandLogos';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900">
       <Navbar />
       <Hero />
+      <BrandLogos />
       <BrandsShowcase />
       <PopularCars />
       <RecentCars />
