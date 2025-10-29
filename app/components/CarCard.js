@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 export default function CarCard({ car }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [imageError, setImageError] = useState(false);
 
   // Condition badge colors
@@ -16,136 +16,115 @@ export default function CarCard({ car }) {
     certified: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   };
 
-  // Fuel type icons
-  const fuelIcons = {
-    electric: (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-        <path d="M11 3a1 1 0 10-2 0v1a1 1 0 102 0V3zM15.657 5.757a1 1 0 00-1.414-1.414l-.707.707a1 1 0 001.414 1.414l.707-.707zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zM5.05 6.464A1 1 0 106.464 5.05l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM5 10a1 1 0 01-1 1H3a1 1 0 110-2h1a1 1 0 011 1zM8 16v-1h4v1a2 2 0 11-4 0zM12 14c.015-.34.208-.646.477-.859a4 4 0 10-4.954 0c.27.213.462.519.476.859h4.002z" />
-      </svg>
-    ),
-    hybrid: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-    gasoline: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
-      </svg>
-    ),
-    diesel: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
-      </svg>
-    ),
+  // Get the first image from images array or fallback to image field
+  const carImage = car.images?.[0] || car.image || null;
+
+  // Format price
+  const formatPrice = (price) => {
+    if (!price) return 'N/A';
+    return new Intl.NumberFormat(language === 'ar' ? 'ar-DZ' : 'en-US', {
+      minimumFractionDigits: 0,
+    }).format(price) + ' DZD';
   };
 
   return (
-    <div className="group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-200 dark:border-gray-800">
-      {/* Image Section */}
-      <div className="relative h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
-        {!imageError && car.image?.length > 0 ? (
-          <Image
-            src={car.image}
-            alt={`${car.brand} ${car.model}`}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover group-hover:scale-110 transition-transform duration-500"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <svg className="w-20 h-20 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-          </div>
-        )}
-        
-        {/* Condition Badge */}
-        <div className="absolute top-4 left-4">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${conditionColors[car.condition]}`}>
-            {t(car.condition)}
-          </span>
-        </div>
-      </div>
-
-      {/* Content Section */}
-      <div className="p-6">
-        {/* Brand & Model */}
-        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-          {car.brand} {car.model}
-        </h3>
-        
-        {/* Year */}
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{car.year}</p>
-
-        {/* Specs Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-4">
-          {/* Fuel Type */}
-          <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-            <span className="text-blue-600 dark:text-blue-400">
-              {fuelIcons[car.fuelType]}
-            </span>
-            <span>{t(car.fuelType)}</span>
-          </div>
-
-          {/* Transmission */}
-          <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-            <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span>{t(car.transmission)}</span>
-          </div>
-
-          {/* Power */}
-          {car.specs?.power && (
-            <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+    <Link href={`/cars/${car._id}`}>
+      <div className="group bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-gray-200 dark:border-gray-800 cursor-pointer h-full flex flex-col">
+        {/* Image Section */}
+        <div className="relative h-48 sm:h-56 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+          {!imageError && carImage ? (
+            <Image
+              src={carImage}
+              alt={`${car.brand} ${car.model}`}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover group-hover:scale-110 transition-transform duration-500"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <svg className="w-16 h-16 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
               </svg>
-              <span>{car.specs?.power}</span>
             </div>
           )}
-
-          {/* Speed/Range */}
-          {(car.specs?.speed || car.specs?.range) && (
-            <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-              <span>{car.specs?.speed || car.specs?.range}</span>
-            </div>
-          )}
+          
+          {/* Badges */}
+          <div className="absolute top-3 left-3 flex flex-col gap-2">
+            {car.condition && (
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase ${conditionColors[car.condition]}`}>
+                {t(car.condition)}
+              </span>
+            )}
+            {car.isPinned && (
+              <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white flex items-center gap-1">
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-200 dark:border-gray-800 my-4"></div>
+        {/* Content Section */}
+        <div className="p-4 sm:p-5 flex-1 flex flex-col">
+          {/* Brand & Model */}
+          <div className="mb-4 flex-1">
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
+              {car.brand} {car.model}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400">{car.year}</p>
+          </div>
 
-        {/* Price & Button */}
-        <div className="flex items-center justify-between">
-          <div>
+          {/* Specs Grid */}
+          <div className="grid grid-cols-3 gap-2 mb-4 py-3 border-t border-b border-gray-200 dark:border-gray-800">
+            {/* Fuel Type */}
+            {car.fuelType && (
+              <div className="text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('fuelType') || 'Fuel'}</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-white capitalize">{t(car.fuelType)}</p>
+              </div>
+            )}
+
+            {/* Transmission */}
+            {car.transmission && (
+              <div className="text-center border-x border-gray-200 dark:border-gray-800">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('transmission') || 'Trans'}</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-white capitalize">{t(car.transmission)}</p>
+              </div>
+            )}
+
+            {/* Power */}
+            {car.power && (
+              <div className="text-center">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('power') || 'Power'}</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-white">{car.power}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Price */}
+          <div className="mb-4">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
-              {car.priceType === 'range' ? t('priceRange') || 'Price Range' : t('startingPrice')}
+              {car.priceType === 'range' ? t('priceRange') || 'Price Range' : t('startingPrice') || 'Price'}
             </p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+            <p className="text-xl sm:text-2xl font-bold text-blue-600 dark:text-blue-400">
               {car.priceType === 'range' 
-                ? `${car.priceMin?.toLocaleString()} - ${car.priceMax?.toLocaleString()} DZD`
-                : `${car.price?.toLocaleString()} DZD`
+                ? `${formatPrice(car.priceMin)} - ${formatPrice(car.priceMax)}`
+                : formatPrice(car.price)
               }
             </p>
           </div>
 
-          <Link href={`/cars/${car._id}`}>
-            <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl group/btn flex items-center space-x-2">
-              <span>{t('viewDetails')}</span>
-              <svg className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          </Link>
+          {/* View Details Button */}
+          <button className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold text-sm sm:text-base transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <span>{t('viewDetails')}</span>
+            <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

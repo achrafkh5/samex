@@ -218,8 +218,7 @@ export default function CategoriesModule() {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
   };
-
-  console.log("Rendering CategoriesModule with categories:", categories);
+  
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}

@@ -41,10 +41,10 @@ export default function InscriptionPageContent({ id }) {
     paymentAmount: '',
     
     // Documents
-    idCard: null,
-    driversLicense: null,
+    passport: null,
+    nationalIdFile: null,
+    birthCertificate: null,
     proofOfResidence: null,
-    paymentProof: null,
     
     // Terms
     acceptTerms: false
@@ -549,8 +549,10 @@ export default function InscriptionPageContent({ id }) {
 
     if (step === 4) {
       // Documents and Terms validation
-      if (!formData.idCard) newErrors.idCard = t('required');
-      if (!formData.driversLicense) newErrors.driversLicense = t('required');
+      if (!formData.passport) newErrors.passport = t('required');
+      if (!formData.nationalIdFile) newErrors.nationalIdFile = t('required');
+      if (!formData.birthCertificate) newErrors.birthCertificate = t('required');
+      if (!formData.proofOfResidence) newErrors.proofOfResidence = t('required');
       if (!formData.acceptTerms) newErrors.acceptTerms = t('required');
     }
 
@@ -607,11 +609,11 @@ export default function InscriptionPageContent({ id }) {
     try {
       // Step 1: Upload all documents to Cloudinary
       console.log('Uploading documents to Cloudinary...');
-      const [idCardUrl, driversLicenseUrl, proofOfResidenceUrl, paymentProofUrl] = await Promise.all([
-        uploadFileToCloudinary(formData.idCard, 'clients/id-cards'),
-        uploadFileToCloudinary(formData.driversLicense, 'clients/licenses'),
+      const [passportUrl, nationalIdUrl, birthCertificateUrl, proofOfResidenceUrl] = await Promise.all([
+        uploadFileToCloudinary(formData.passport, 'clients/passports'),
+        uploadFileToCloudinary(formData.nationalIdFile, 'clients/national-ids'),
+        uploadFileToCloudinary(formData.birthCertificate, 'clients/birth-certificates'),
         uploadFileToCloudinary(formData.proofOfResidence, 'clients/residence'),
-        uploadFileToCloudinary(formData.paymentProof, 'clients/payments'),
       ]);
 
       console.log('Documents uploaded successfully');
@@ -657,8 +659,9 @@ export default function InscriptionPageContent({ id }) {
         selectedCarId: formData.selectedCarId,
         paymentMethod: formData.paymentMethod,
         paymentAmount: formData.paymentAmount,
-        idCardUrl: idCardUrl,
-        driversLicenseUrl: driversLicenseUrl,
+        passportUrl: passportUrl,
+        nationalIdUrl: nationalIdUrl,
+        birthCertificateUrl: birthCertificateUrl,
         proofOfResidenceUrl: proofOfResidenceUrl,
         paymentProofUrl: paymentProofUrl,
         acceptTerms: formData.acceptTerms,
@@ -1332,21 +1335,30 @@ export default function InscriptionPageContent({ id }) {
                   </h2>
 
                   <div className="space-y-6">
-                    {/* ID Card */}
+                    {/* Passport */}
                     <FileUploader
-                      label={t('idCard')}
-                      name="idCard"
-                      onChange={(file) => handleFileChange('idCard', file)}
-                      error={errors.idCard}
+                      label={t('passport')}
+                      name="passport"
+                      onChange={(file) => handleFileChange('passport', file)}
+                      error={errors.passport}
                       required={true}
                     />
 
-                    {/* Driver's License */}
+                    {/* National ID (Front & Back) */}
                     <FileUploader
-                      label={t('driversLicense')}
-                      name="driversLicense"
-                      onChange={(file) => handleFileChange('driversLicense', file)}
-                      error={errors.driversLicense}
+                      label={t('nationalId')}
+                      name="nationalIdFile"
+                      onChange={(file) => handleFileChange('nationalIdFile', file)}
+                      error={errors.nationalIdFile}
+                      required={true}
+                    />
+
+                    {/* Birth Certificate */}
+                    <FileUploader
+                      label={t('birthCertificate')}
+                      name="birthCertificate"
+                      onChange={(file) => handleFileChange('birthCertificate', file)}
+                      error={errors.birthCertificate}
                       required={true}
                     />
 
@@ -1356,16 +1368,7 @@ export default function InscriptionPageContent({ id }) {
                       name="proofOfResidence"
                       onChange={(file) => handleFileChange('proofOfResidence', file)}
                       error={errors.proofOfResidence}
-                      required={false}
-                    />
-
-                    {/* Payment Proof */}
-                    <FileUploader
-                      label={t('paymentProof')}
-                      name="paymentProof"
-                      onChange={(file) => handleFileChange('paymentProof', file)}
-                      error={errors.paymentProof}
-                      required={false}
+                      required={true}
                     />
                   </div>
 
@@ -1387,7 +1390,15 @@ export default function InscriptionPageContent({ id }) {
                         className="mt-1 w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                       />
                       <label className="text-sm text-gray-700 dark:text-gray-300">
-                        {t('acceptTerms')} <span className="text-red-500">*</span>
+                        {t('iAccept')}{' '}
+                        <Link href="/terms" target="_blank" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                          {t('termsAndConditions')}
+                        </Link>
+                        {' '}{t('and')}{' '}
+                        <Link href="/privacy" target="_blank" className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">
+                          {t('privacyPolicy')}
+                        </Link>
+                        {' '}<span className="text-red-500">*</span>
                       </label>
                     </div>
                     {errors.acceptTerms && <p className="text-sm text-red-600 dark:text-red-400">{errors.acceptTerms}</p>}

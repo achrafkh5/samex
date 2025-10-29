@@ -251,8 +251,15 @@ export async function GET(request) {
 
 // Helper function to calculate time ago
 function getTimeAgo(date) {
+  if (!date) return 'Unknown';
+  
   const now = new Date();
-  const diffMs = now - new Date(date);
+  const dateObj = new Date(date);
+  
+  // Check if date is valid
+  if (isNaN(dateObj.getTime())) return 'Unknown';
+  
+  const diffMs = now - dateObj;
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
@@ -261,5 +268,5 @@ function getTimeAgo(date) {
   if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
   if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
   if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-  return date.toLocaleDateString();
+  return dateObj.toLocaleDateString();
 }

@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from './LanguageProvider';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 //import { carsData } from '../data/carsData';
 import CarCard from './CarCard';
@@ -9,6 +10,7 @@ import FilterBar from './FilterBar';
 
 export default function CarsPageContent() {
   const { t } = useLanguage();
+  const searchParams = useSearchParams();
   const [searchTerm, setSearchTerm] = useState('');
   const [carsData, setCarsData] = useState([]); 
   const [loading, setLoading] = useState(true);
@@ -25,6 +27,14 @@ export default function CarsPageContent() {
   const [sortBy, setSortBy] = useState('default');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Set brand filter from URL on mount
+  useEffect(() => {
+    const brandFromUrl = searchParams.get('brand');
+    if (brandFromUrl) {
+      setFilters(prev => ({ ...prev, brand: brandFromUrl }));
+    }
+  }, [searchParams]);
 
     // Fetch cars data on mount
     useEffect(() => {
@@ -246,7 +256,7 @@ export default function CarsPageContent() {
               {/* Cars Grid */}
               {currentCars.length > 0 ? (
                 <>
-                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                  <div className="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
                     {currentCars.map((car) => (
                       <CarCard key={car._id} car={car} />
                     ))}

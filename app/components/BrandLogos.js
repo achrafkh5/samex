@@ -4,7 +4,8 @@ import { useLanguage } from './LanguageProvider';
 import Image from 'next/image';
 
 export default function BrandLogos() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const isRTL = language === 'ar';
 
   const brands = [
     { 
@@ -70,7 +71,7 @@ export default function BrandLogos() {
         <div className="absolute right-0 top-0 bottom-0 w-32 md:w-40 bg-gradient-to-l from-slate-900 via-slate-900/70 via-slate-900/30 to-transparent dark:from-black dark:via-black/70 dark:via-black/30 z-10 pointer-events-none"></div>
 
         {/* Animated track - Two identical sets for seamless loop */}
-        <div className="flex animate-scroll-infinite items-center">
+        <div className={`flex items-center ${isRTL ? 'animate-scroll-infinite-rtl' : 'animate-scroll-infinite'}`}>
           {/* First set */}
           <div className="flex gap-16 items-center">
             {duplicatedBrands.map((brand, index) => (
@@ -140,13 +141,28 @@ export default function BrandLogos() {
           }
         }
 
+        @keyframes scroll-infinite-rtl {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(calc(100% / 3));
+          }
+        }
+
         .animate-scroll-infinite {
           animation: scroll-infinite 35s linear infinite;
           width: max-content;
         }
 
+        .animate-scroll-infinite-rtl {
+          animation: scroll-infinite-rtl 35s linear infinite;
+          width: max-content;
+        }
+
         @media (max-width: 768px) {
-          .animate-scroll-infinite {
+          .animate-scroll-infinite,
+          .animate-scroll-infinite-rtl {
             animation-duration: 20s;
           }
         }
