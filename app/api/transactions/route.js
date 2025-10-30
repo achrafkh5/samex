@@ -170,6 +170,66 @@ export async function POST(request) {
   }
 }
 
+// PUT - Update transaction conversion rate
+export async function PUT(request) {
+  try {
+    const client = await clientPromise;
+    const db = client.db('dreamcars');
+    const body = await request.json();
+
+    const { id, conversionRate } = body;
+
+    if (!id || !conversionRate) {
+      return NextResponse.json({ error: 'ID and conversion rate are required' }, { status: 400 });
+    }
+
+    if (conversionRate <= 0) {
+      return NextResponse.json({ error: 'Conversion rate must be greater than 0' }, { status: 400 });
+    }
+
+    // Find the transaction first
+    const transaction = await db.collection('transactions').findOne({ _id: new ObjectId(id) });
+
+    if (!transaction) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    }
+
+    // Recalculate amountReceived based on new rate
+    const newAmountReceived = transaction.amountSent * parseFloat(conversionRate);
+
+    // Update the transaction
+    const result = await db.collection('transactions').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          conversionRate: parseFloat(conversionRate),
+          amountReceived: Math.round(newAmountReceived * 100) / 100,
+          isEdited: true,
+          editedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      message: 'Transaction updated successfully',
+      transaction: {
+        ...transaction,
+        conversionRate: parseFloat(conversionRate),
+        amountReceived: Math.round(newAmountReceived * 100) / 100,
+        isEdited: true,
+        editedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('Error updating transaction:', error);
+    return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
+  }
+}
+
 // DELETE - Delete a transaction (optional, for admin cleanup)
 export async function DELETE(request) {
   try {

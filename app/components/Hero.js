@@ -1,14 +1,29 @@
 'use client';
 
 import { useLanguage } from './LanguageProvider';
+import { useState, useEffect } from 'react';
 
 export default function Hero() {
   const { t } = useLanguage();
+  const [carsCount, setCarsCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCarsCount = async () => {
+      try {
+        const response = await fetch('/api/cars');
+        const data = await response.json();
+        setCarsCount(data.length);
+      } catch (error) {
+        console.error('Error fetching cars count:', error);
+      }
+    };
+    fetchCarsCount();
+  }, []);
 
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-0"
+      className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0">
@@ -26,10 +41,10 @@ export default function Hero() {
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center py-8 sm:py-0">
         <div className="max-w-4xl mx-auto">
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 animate-fade-in">
+          <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 mb-6 animate-fade-in mt-16">
             <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
             <span className="text-white text-sm font-medium">
-              {t('herobadge')}
+              +{carsCount} {t('carsAvailable')}
             </span>
           </div>
 

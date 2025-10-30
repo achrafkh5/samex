@@ -26,8 +26,8 @@ export default function OnlineSalesSection({ onDataChange }) {
     try {
       // Fetch orders
       const [ordersResponse, clientsResponse, carsResponse] = await Promise.all([
-          fetch('/api/orders'),
-          fetch('/api/clients'),
+          fetch('/api/admin/orders'),
+          fetch('/api/admin/clients'),
           fetch('/api/cars'),
         ]);
 
@@ -35,18 +35,23 @@ export default function OnlineSalesSection({ onDataChange }) {
         const clientsData = await clientsResponse.json();
         const carsData = await carsResponse.json();
 
-        setOrders(ordersData.orders);
-        setClients(clientsData);
-        setCars(carsData);
+        // Handle different response formats
+        const ordersArray = Array.isArray(ordersData) ? ordersData : (ordersData.orders || []);
+        const clientsArray = Array.isArray(clientsData) ? clientsData : [];
+        const carsArray = Array.isArray(carsData) ? carsData : [];
+
+        setOrders(ordersArray);
+        setClients(clientsArray);
+        setCars(carsArray);
 
         // Create a map of clientId -> client object for quick lookup
         const map = {};
-        (clientsData || []).forEach(client => {
+        clientsArray.forEach(client => {
           map[client._id] = client;
         });
         setClientsMap(map);
         const carMap = {};
-        (carsData || []).forEach(car => {
+        carsArray.forEach(car => {
           carMap[car._id] = car;
         });
         setCarsMap(carMap);

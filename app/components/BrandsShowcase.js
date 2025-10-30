@@ -95,6 +95,19 @@ export default function BrandsShowcase() {
                 <p className="mt-4 text-center text-sm font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {brand.name}
                 </p>
+                {brand.minPrice > 0 && brand.maxPrice > 0 && (
+                  <p className="mt-2 text-center text-xs text-gray-600 dark:text-gray-400">
+                    {new Intl.NumberFormat('fr-DZ', { 
+                      style: 'decimal',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    }).format(brand.minPrice)} - {new Intl.NumberFormat('fr-DZ', { 
+                      style: 'decimal',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0
+                    }).format(brand.maxPrice)} DA
+                  </p>
+                )}
               </div>
             </Link>
           ))}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useLanguage } from './LanguageProvider';
-
+import Image from 'next/image';
 export default function AboutHero() {
   const { t } = useLanguage();
 
@@ -19,10 +19,8 @@ export default function AboutHero() {
         <div className="max-w-4xl mx-auto text-center">
           {/* Logo */}
           <div className="inline-flex items-center justify-center mb-8">
-            <div className="w-20 h-20 bg-white dark:bg-gray-800 rounded-2xl flex items-center justify-center shadow-2xl">
-              <span className="text-4xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                A
-              </span>
+            <div className="w-32 h-32 bg-white rounded-2xl flex items-center justify-center shadow-2xl p-4">
+              <Image src="/logo.png" alt="Logo" width={120} height={120} className="object-contain" />
             </div>
           </div>
 

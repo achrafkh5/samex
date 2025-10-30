@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useLanguage } from './LanguageProvider';
 import { useTheme } from 'next-themes';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
@@ -153,13 +154,11 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
         {/* Logo */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <Link href="/admin" className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
+            <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center p-1">
+              <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">DreamCars</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white">{t('companyName') || 'ALKO Cars'}</h1>
               <p className="text-xs text-gray-500 dark:text-gray-400">{t('adminPanel') || 'Admin Panel'}</p>
             </div>
           </Link>

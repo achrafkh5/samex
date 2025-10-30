@@ -289,7 +289,7 @@ if(orders?.length > 0) {
         <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-blue-100 text-sm font-medium mb-1">Total Orders</p>
+              <p className="text-blue-100 text-sm font-medium mb-1">{t('totalOrders') || 'Total Orders'}</p>
               <p className="text-3xl font-bold">{orders?.length}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -303,7 +303,7 @@ if(orders?.length > 0) {
         <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-yellow-100 text-sm font-medium mb-1">Pending</p>
+              <p className="text-yellow-100 text-sm font-medium mb-1">{t('pendingOrders') || 'Pending Orders'}</p>
               <p className="text-3xl font-bold">{pendingOrders}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -317,7 +317,7 @@ if(orders?.length > 0) {
         <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-green-100 text-sm font-medium mb-1">Delivered</p>
+              <p className="text-green-100 text-sm font-medium mb-1">{t('deliveredOrders') || 'Delivered Orders'}</p>
               <p className="text-3xl font-bold">{deliveredOrders}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -331,7 +331,7 @@ if(orders?.length > 0) {
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium mb-1">Total Revenue</p>
+              <p className="text-purple-100 text-sm font-medium mb-1">{t('totalRevenue') || 'Total Revenue'}</p>
               <p className="text-3xl font-bold">{(totalRevenue / 1000).toFixed(0)}K DZD</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
@@ -603,9 +603,9 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">ID Card</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('idCard') || 'ID Card'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.idCardUrl) === 'image' ? 'Image' : 'PDF Document'}
+                              {getFileType(selectedOrder.idCardUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
@@ -618,7 +618,7 @@ if(orders?.length > 0) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            View
+                            {t('view') || 'View'}
                           </button>
                           {getFileType(selectedOrder.idCardUrl) === 'image' && (
                             <button
@@ -628,7 +628,7 @@ if(orders?.length > 0) {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
-                              Download
+                              {t('download') || 'Download'}
                             </button>
                           )}
                         </div>
@@ -658,9 +658,9 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">Driver License</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('driversLicense') || 'Driver License'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.driversLicenseUrl) === 'image' ? 'Image' : 'PDF Document'}
+                              {getFileType(selectedOrder.driversLicenseUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
@@ -673,7 +673,7 @@ if(orders?.length > 0) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            View
+                            {t('view') || 'View'}
                           </button>
                           {getFileType(selectedOrder.driversLicenseUrl) === 'image' && (
                             <button
@@ -683,7 +683,7 @@ if(orders?.length > 0) {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
-                              Download
+                              {t('download') || 'Download'}
                             </button>
                           )}
                         </div>
@@ -713,9 +713,9 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">Payment Proof</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('paymentProof') || 'Payment Proof'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.paymentProofUrl) === 'image' ? 'Image' : 'PDF Document'}
+                              {getFileType(selectedOrder.paymentProofUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
@@ -728,7 +728,7 @@ if(orders?.length > 0) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            View
+                            {t('view') || 'View'}
                           </button>
                           {getFileType(selectedOrder.paymentProofUrl) === 'image' && (
                             <button
@@ -738,7 +738,7 @@ if(orders?.length > 0) {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
-                              Download
+                              {t('download') || 'Download'}
                             </button>
                           )}
                         </div>
@@ -768,9 +768,9 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">Proof of Residence</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('proofOfResidence') || 'Proof of Residence'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' ? 'Image' : 'PDF Document'}
+                              {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
@@ -783,7 +783,7 @@ if(orders?.length > 0) {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                            View
+                            {t('view') || 'View'}
                           </button>
                           {getFileType(selectedOrder.proofOfResidenceUrl) === 'image' && (
                             <button
@@ -793,7 +793,7 @@ if(orders?.length > 0) {
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                               </svg>
-                              Download
+                              {t('download') || 'Download'}
                             </button>
                           )}
                         </div>

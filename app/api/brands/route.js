@@ -7,7 +7,32 @@ export async function GET() {
     const client = await clientPromise;
     const db = client.db("dreamcars");
     const brands = await db.collection("brands").find({}).toArray();
-    return NextResponse.json(brands);
+    
+    // Get price range for each brand from cars collection
+    const brandsWithPrices = await Promise.all(
+      brands.map(async (brand) => {
+        const carsPriceData = await db.collection("cars")
+          .aggregate([
+            { $match: { brand: brand.name } },
+            {
+              $group: {
+                _id: null,
+                minPrice: { $min: "$price" },
+                maxPrice: { $max: "$price" }
+              }
+            }
+          ])
+          .toArray();
+        
+        return {
+          ...brand,
+          minPrice: carsPriceData[0]?.minPrice || 0,
+          maxPrice: carsPriceData[0]?.maxPrice || 0
+        };
+      })
+    );
+    
+    return NextResponse.json(brandsWithPrices);
   } catch (error) {
     console.error("Error fetching brands:", error);
     return NextResponse.json({ error: "Failed to fetch brands" }, { status: 500 });

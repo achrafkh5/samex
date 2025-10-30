@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/context/AuthContext';
 import { useLanguage } from '@/app/components/LanguageProvider';
@@ -9,6 +9,8 @@ import { useTheme } from 'next-themes';
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const { signup, user, loading } = useAuth();
   const { t, language, changeLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
@@ -31,9 +33,9 @@ export default function SignupPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.push(redirectTo || '/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectTo]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,7 +84,7 @@ export default function SignupPage() {
     const result = await signup(formData.name, formData.email, formData.password);
 
     if (result.success) {
-      router.push('/dashboard');
+      router.push(redirectTo || '/dashboard');
     } else {
       setErrors({ submit: result.error });
     }
@@ -264,7 +266,10 @@ export default function SignupPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('alreadyHaveAccount')}{' '}
-                <Link href="/login" className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                <Link 
+                  href={redirectTo ? `/login?redirect=${encodeURIComponent(redirectTo)}` : '/login'} 
+                  className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
                   {t('signInHere')}
                 </Link>
               </p>

@@ -2,10 +2,16 @@
 
 import Link from 'next/link';
 import { useLanguage } from './LanguageProvider';
+import Image from 'next/image';
+import { useState, useEffect } from 'react';
 
 export default function Footer() {
   const { t } = useLanguage();
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState(2025);
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const footerLinks = {
     company: [
@@ -46,13 +52,15 @@ export default function Footer() {
         {/* Top Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           {/* Company Info */}
-          <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">A</span>
+          <div className="lg:col-span-2 space-y-4">
+            <div className="flex-shrink-0 flex items-center">
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="flex items-center justify-center w-25 h-15 relative rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
+                <Image src="/logo.png" alt="Logo" height={80} width={80} className="object-contain" />
               </div>
               <span className="text-2xl font-bold text-white">{t('companyName') || 'ALKO Cars'}</span>
             </Link>
+          </div>
             <p className="text-gray-400 mb-4">
               {t('companyMission')}
             </p>

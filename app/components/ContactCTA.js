@@ -98,27 +98,6 @@ export default function ContactCTA() {
               <p className="text-white/80 text-sm">Seoul, South Korea</p>
             </div>
           </div>
-
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="px-8 py-4 bg-white text-blue-600 rounded-full font-semibold text-lg hover:shadow-2xl hover:shadow-white/50 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto">
-              {t('scheduleVisit')}
-              <svg
-                className="inline-block ml-2 w-5 h-5"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </button>
-            <button className="px-8 py-4 bg-white/10 backdrop-blur-lg border-2 border-white/30 text-white rounded-full font-semibold text-lg hover:bg-white/20 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto">
-              {t('getQuote')}
-            </button>
-          </div>
         </div>
       </div>
     </section>

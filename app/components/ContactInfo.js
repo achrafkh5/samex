@@ -86,10 +86,9 @@ export default function ContactInfo() {
                       {t('visitUs')}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-3">
-                      123 Auto Boulevard<br />
-                      Los Angeles, CA 90001
+                      {t('companyAddress')}
                     </p>
-                    <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-green-600 dark:text-green-400 font-semibold hover:text-green-700 dark:hover:text-green-300 transition-colors">
+                    <a href="https://www.google.com/maps/place/ALKO+Cars/@36.7589376,2.9685207,17z/data=!3m1!4b1!4m6!3m5!1s0x128fb10072ed2c31:0x10c7e10a36cbac9b!8m2!3d36.7589333!4d2.9710956!16s%2Fg%2F11ykn8xg1t?entry=ttu&g_ep=EgoyMDI1MTAyMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-green-600 dark:text-green-400 font-semibold hover:text-green-700 dark:hover:text-green-300 transition-colors">
                       {t('viewOnMap')}
                       <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -125,36 +124,19 @@ export default function ContactInfo() {
             </div>
 
             {/* Right Side - Map */}
-            <div className="relative h-[600px] lg:h-full min-h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+            <div className="relative h-[600px] lg:h-full min-h-[500px] rounded-2xl overflow-hidden shadow-2xl border border-gray-200 dark:border-gray-800">
               <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d423286.27405770525!2d-118.69192993092695!3d34.02016130653294!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80c2c75ddc27da13%3A0xe22fdf6f254608f4!2sLos%20Angeles%2C%20CA%2C%20USA!5e0!3m2!1sen!2s!4v1645564756123!5m2!1sen!2s"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3236.008105152316!2d2.9685207!3d36.7589376!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x128fb10072ed2c31%3A0x10c7e10a36cbac9b!2sALKO%20Cars!5e0!3m2!1sen!2sdz!4v1730092200000!5m2!1sen!2sdz"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
                 allowFullScreen=""
                 loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="ALKO Cars Location - Algiers, Algeria"
                 className="w-full h-full"
               ></iframe>
             </div>
-          </div>
-
-          {/* CTA Buttons */}
-          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a
-              href="#contact"
-              className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
-            >
-              {t('scheduleVisit')}
-              <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </a>
-            <a
-              href="#quote"
-              className="inline-flex items-center px-8 py-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-white font-semibold rounded-xl border-2 border-gray-300 dark:border-gray-600 hover:border-blue-600 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-300"
-            >
-              {t('getQuote')}
-            </a>
           </div>
         </div>
       </div>

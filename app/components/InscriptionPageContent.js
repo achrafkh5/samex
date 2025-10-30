@@ -1,6 +1,7 @@
 'use client';
 
 import { useState ,useEffect} from 'react';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from './LanguageProvider';
 import { useAuth } from '@/app/context/AuthContext';
 import Link from 'next/link';
@@ -10,7 +11,8 @@ import jsPDF from 'jspdf';
 
 export default function InscriptionPageContent({ id }) {
   const { t } = useLanguage();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -49,6 +51,13 @@ export default function InscriptionPageContent({ id }) {
     // Terms
     acceptTerms: false
   });
+
+  // Check authentication - redirect to login if not authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push(`/login?redirect=/inscription/${id}`);
+    }
+  }, [user, loading, router, id]);
 
   const [errors, setErrors] = useState({});
   
@@ -865,6 +874,23 @@ export default function InscriptionPageContent({ id }) {
         </div>
       </div>
     );
+  }
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not authenticated, return null (will redirect to login)
+  if (!user) {
+    return null;
   }
 
   return (

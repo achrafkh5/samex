@@ -1,14 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/app/context/AuthContext';
 import { useLanguage } from '../components/LanguageProvider';
 import { useTheme } from 'next-themes';
-
+import Image from 'next/image';
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
   const { login, user, loading } = useAuth();
   const { t, language, changeLanguage } = useLanguage();
   const { theme, setTheme } = useTheme();
@@ -30,9 +32,9 @@ export default function LoginPage() {
   // Redirect if already authenticated
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      router.push(redirectTo || '/dashboard');
     }
-  }, [user, loading, router]);
+  }, [user, loading, router, redirectTo]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -74,7 +76,7 @@ export default function LoginPage() {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
-      router.push('/dashboard');
+      router.push(redirectTo || '/dashboard');
     } else {
       setErrors({ submit: result.error || t('invalidCredentials') });
     }
@@ -100,12 +102,13 @@ export default function LoginPage() {
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
+            <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">DC</span>
+              <div className="flex items-center justify-center w-25 h-15 relative rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
+                <Image src="/logo.png" alt="Logo" height={80} width={80} className="object-contain" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">DreamCars</span>
             </Link>
+          </div>
 
             <div className="flex items-center space-x-4">
               {/* Language Switcher */}
@@ -240,7 +243,10 @@ export default function LoginPage() {
             <div className="text-center">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('dontHaveAccount')}{' '}
-                <Link href="/signup" className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+                <Link 
+                  href={redirectTo ? `/signup?redirect=${encodeURIComponent(redirectTo)}` : '/signup'} 
+                  className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300"
+                >
                   {t('signUpHere')}
                 </Link>
               </p>
