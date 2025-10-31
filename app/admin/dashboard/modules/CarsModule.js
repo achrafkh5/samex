@@ -46,6 +46,7 @@ export default function CarsModule() {
   const [toastMessage, setToastMessage] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState('newestFirst');
   
   // Available colors
   const availableColors = [
@@ -93,6 +94,38 @@ if(cars?.length>0){
                          car.model?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
+
+  // Sort cars
+  switch (sortBy) {
+    case 'newestFirst':
+      filteredCars.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateB - dateA;
+      });
+      break;
+    case 'oldestFirst':
+      filteredCars.sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+        return dateA - dateB;
+      });
+      break;
+    case 'priceLowToHigh':
+      filteredCars.sort((a, b) => a.price - b.price);
+      break;
+    case 'priceHighToLow':
+      filteredCars.sort((a, b) => b.price - a.price);
+      break;
+    case 'brandAZ':
+      filteredCars.sort((a, b) => a.brand.localeCompare(b.brand));
+      break;
+    case 'brandZA':
+      filteredCars.sort((a, b) => b.brand.localeCompare(a.brand));
+      break;
+    default:
+      break;
+  }
 }
   const handleAdd = () => {
     setEditingCar(null);
@@ -579,6 +612,18 @@ if(cars?.length>0){
             className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
           />
         </div>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="newestFirst">{t('newestFirst') || 'Newest First'}</option>
+          <option value="oldestFirst">{t('oldestFirst') || 'Oldest First'}</option>
+          <option value="priceLowToHigh">{t('priceLowToHigh') || 'Price: Low to High'}</option>
+          <option value="priceHighToLow">{t('priceHighToLow') || 'Price: High to Low'}</option>
+          <option value="brandAZ">{t('brandAZ') || 'Brand: A-Z'}</option>
+          <option value="brandZA">{t('brandZA') || 'Brand: Z-A'}</option>
+        </select>
         <div className="flex space-x-2">
           {['all', 'available', 'sold'].map((status) => (
             <button
@@ -717,7 +762,7 @@ if(cars?.length>0){
                     {editingCar ? (t('editCar') || 'Edit Car') : (t('addCar') || 'Add New Car')}
                   </h2>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Step {currentStep} of 3
+                    {t('step')} {currentStep} {t('of')} 3
                   </p>
                 </div>
                 <button
@@ -759,7 +804,7 @@ if(cars?.length>0){
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Upload Car Photos (Max 5)
+                    {t('uploadCarPhotos') || 'Upload Car Photos'} (Max 5)
                   </h3>
                   
                   {/* Image Grid */}
@@ -781,7 +826,7 @@ if(cars?.length>0){
                         </button>
                         {index === 0 && (
                           <span className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                            Primary
+                            {t('primary') || 'Primary'}
                           </span>
                         )}
                       </div>
@@ -816,7 +861,7 @@ if(cars?.length>0){
                   </div>
                   
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {carImages.length} of 5 photos uploaded. First photo will be the primary display image.
+                    {carImages.length} {t('firstPhotoWillBePrimary') || 'out of 5 photos uploaded. First photo will be the primary display image.'}
                   </p>
                 </div>
 
@@ -830,7 +875,7 @@ if(cars?.length>0){
                     }}
                     className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
                   >
-                    Cancel
+                    {t('cancel') || 'Cancel'}
                   </button>
                   <button
                     type="button"
@@ -838,7 +883,7 @@ if(cars?.length>0){
                     disabled={carImages.length === 0}
                     className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Continue to Info
+                    {t('continueToInfo') || 'Continue to Info'}
                   </button>
                 </div>
               </div>
@@ -849,7 +894,7 @@ if(cars?.length>0){
               <form onSubmit={(e) => { e.preventDefault(); handleNextStep(); }} className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Car Information
+                    {t('carInformation') || 'Car Information'}
                   </h3>
                   
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -863,7 +908,7 @@ if(cars?.length>0){
                         required
                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="">Select a brand...</option>
+                        <option value="">{t('selectABrand') || 'Select a brand...'}...</option>
                         {categories.map((category) => (
                           <option key={category._id} value={category.name}>
                             {category.name}
@@ -985,8 +1030,8 @@ if(cars?.length>0){
                         onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       >
-                        <option value="new">New</option>
-                        <option value="used">Used</option>
+                        <option value="new">{t('new') || 'New'}</option>
+                        <option value="used">{t('used') || 'Used'}</option>
                       </select>
                     </div>
                     <div>
@@ -1046,16 +1091,16 @@ if(cars?.length>0){
                 {/* Color Selection */}
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-                    Available Colors *
+                    {t('availableColors') || 'Available Colors'} *
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Select all colors available for this car
+                    {t('selectAllColors') || 'Select all colors available for this car'}
                   </p>
                   
                   <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
                     {availableColors.map((color) => (
                       <button
-                        key={color.name}
+                        key={t(color.name) || color.name}
                         type="button"
                         onClick={() => toggleColor(color.name)}
                         className={`flex items-center space-x-2 p-3 rounded-lg border-2 transition-all ${
@@ -1069,7 +1114,7 @@ if(cars?.length>0){
                           style={{ backgroundColor: color.hex }}
                         ></div>
                         <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          {color.name}
+                          {t(color.name) || color.name}
                         </span>
                         {formData.colors.includes(color.name) && (
                           <svg className="w-5 h-5 text-blue-600 ml-auto" fill="currentColor" viewBox="0 0 20 20">
@@ -1093,13 +1138,13 @@ if(cars?.length>0){
                     onClick={handlePrevStep}
                     className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
                   >
-                    Back to Photos
+                    {t('backToPhotos') || 'Back to Photos'}
                   </button>
                   <button
                     type="submit"
                     className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg font-semibold transition-all"
                   >
-                    Continue to Features
+                    {t('continueToFeatures') || 'Continue to Features'}
                   </button>
                 </div>
               </form>
@@ -1110,12 +1155,12 @@ if(cars?.length>0){
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    Car Features
+                    {t('carFeatures') || 'Car Features'}
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    Add features manually. Examples: Sunroof, Leather Seats, Navigation System, etc.
+                    {t('addFeaturesManually') || 'Add features manually. Examples: Sunroof, Leather Seats, Navigation System, etc.'}
                   </p>
-                  
+
                   {/* Add Feature Input */}
                   <div className="flex space-x-2 mb-4">
                     <input
@@ -1168,8 +1213,8 @@ if(cars?.length>0){
                       <svg className="w-16 h-16 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
-                      <p>No features added yet</p>
-                      <p className="text-sm mt-1">Start adding features to describe your car</p>
+                      <p>{t('noFeatures') || "No features added yet"}</p>
+                      <p className="text-sm mt-1">{t('startAddingFeatures') || "Start adding features to describe your car"}</p>
                     </div>
                   )}
                   
@@ -1186,7 +1231,7 @@ if(cars?.length>0){
                     onClick={handlePrevStep}
                     className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 font-medium transition-colors"
                   >
-                    Back to Info
+                    {t('backToInfo') || 'Back to Info'}
                   </button>
                   <button
                     type="button"

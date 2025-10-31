@@ -29,19 +29,34 @@ export default function DocumentsModule() {
             fetch('/api/admin/documents'),
             fetch('/api/cars'),
           ]);
-          const documentsData = await documentsResponse.json();
-          const carsData = await carsResponse.json();
-          setDocuments(documentsData);
-          setCars(carsData);
-          if (carsData.length > 0) {
-            const map = {};
-            (carsData || [])?.forEach(car => {
-              map[car._id] = car;
-            });
-            setCarsMap(map);
+          
+          if (!documentsResponse.ok) {
+            console.error('Error fetching documents:', documentsResponse.statusText);
+            setDocuments([]);
+          } else {
+            const documentsData = await documentsResponse.json();
+            setDocuments(Array.isArray(documentsData) ? documentsData : []);
+          }
+          
+          if (!carsResponse.ok) {
+            console.error('Error fetching cars:', carsResponse.statusText);
+            setCars([]);
+          } else {
+            const carsData = await carsResponse.json();
+            setCars(Array.isArray(carsData) ? carsData : []);
+            
+            if (carsData.length > 0) {
+              const map = {};
+              (carsData || [])?.forEach(car => {
+                map[car._id] = car;
+              });
+              setCarsMap(map);
+            }
           }
         } catch (error) {
           console.error('Error fetching data:', error);
+          setDocuments([]);
+          setCars([]);
         } finally {
           setLoading(false);
         }
@@ -111,7 +126,7 @@ export default function DocumentsModule() {
       }
 
       // Delete from database
-      const response = await fetch(`/api/documents/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/admin/documents/${id}`, { method: 'DELETE' });
       if (response.ok) {
         // Update local state by removing the deleted document
         setDocuments(prevDocs => prevDocs.filter(d => d._id !== id));

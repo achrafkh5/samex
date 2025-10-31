@@ -14,6 +14,7 @@ export default function CarsPageContent() {
   const [searchTerm, setSearchTerm] = useState('');
   const [carsData, setCarsData] = useState([]); 
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState({
     brand: 'all',
     model: 'all',
@@ -27,6 +28,11 @@ export default function CarsPageContent() {
   const [sortBy, setSortBy] = useState('default');
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Set mounted state
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Set brand filter from URL on mount
   useEffect(() => {
@@ -108,6 +114,20 @@ export default function CarsPageContent() {
       case 'brandZA':
         result.sort((a, b) => b.brand.localeCompare(a.brand));
         break;
+      case 'newestFirst':
+        result.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+          const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+          return dateB - dateA;
+        });
+        break;
+      case 'oldestFirst':
+        result.sort((a, b) => {
+          const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+          const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+          return dateA - dateB;
+        });
+        break;
       default:
         break;
     }
@@ -141,6 +161,19 @@ export default function CarsPageContent() {
     setSortBy('default');
     setCurrentPage(1);
   };
+
+  // Show loading state until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+        <div className="flex space-x-2">
+          <div className="w-3 h-3 bg-blue-600 dark:bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+          <div className="w-3 h-3 bg-blue-600 dark:bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+          <div className="w-3 h-3 bg-blue-600 dark:bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -243,6 +276,8 @@ export default function CarsPageContent() {
                     className="px-4 py-2 rounded-lg bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="default">{t('sortBy')}</option>
+                    <option value="newestFirst">{t('newestFirst')}</option>
+                    <option value="oldestFirst">{t('oldestFirst')}</option>
                     <option value="priceLowToHigh">{t('priceLowToHigh')}</option>
                     <option value="priceHighToLow">{t('priceHighToLow')}</option>
                     <option value="yearNewest">{t('yearNewest')}</option>

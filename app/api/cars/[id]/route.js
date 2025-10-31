@@ -40,6 +40,13 @@ export async function PUT(request, { params }) {
         const client = await clientPromise;
         const db = client.db("dreamcars");
         const updateData = await request.json();
+        
+        // Remove createdAt from update data if it exists to preserve original
+        delete updateData.createdAt;
+        
+        // Add updatedAt timestamp
+        updateData.updatedAt = new Date();
+        
         const result = await db.collection("cars").updateOne({ _id: new ObjectId(id) }, { $set: updateData });
         if (result.matchedCount === 0) {
             return NextResponse.json({ error: "Car not found" }, { status: 404 });

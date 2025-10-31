@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { verifyAdmin } from '@/lib/auth';
 
 
 async function convertCurrency(from, to, amount) {
@@ -105,6 +106,9 @@ async function convertCurrency(from, to, amount) {
 // GET - Fetch all transactions
 export async function GET(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db('dreamcars');
 
@@ -117,6 +121,9 @@ export async function GET(request) {
     return NextResponse.json(transactions);
   } catch (error) {
     console.error('Error fetching transactions:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
   }
 }
@@ -124,6 +131,9 @@ export async function GET(request) {
 // POST - Create new transaction with currency conversion
 export async function POST(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db('dreamcars');
     const body = await request.json();
@@ -166,6 +176,9 @@ export async function POST(request) {
     });
   } catch (error) {
     console.error('Error creating transaction:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json({ error: 'Failed to create transaction' }, { status: 500 });
   }
 }
@@ -173,6 +186,9 @@ export async function POST(request) {
 // PUT - Update transaction conversion rate
 export async function PUT(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db('dreamcars');
     const body = await request.json();
@@ -226,6 +242,9 @@ export async function PUT(request) {
     });
   } catch (error) {
     console.error('Error updating transaction:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json({ error: 'Failed to update transaction' }, { status: 500 });
   }
 }
@@ -233,6 +252,9 @@ export async function PUT(request) {
 // DELETE - Delete a transaction (optional, for admin cleanup)
 export async function DELETE(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db('dreamcars');
     const { searchParams } = new URL(request.url);
@@ -251,6 +273,9 @@ export async function DELETE(request) {
     return NextResponse.json({ message: 'Transaction deleted successfully' });
   } catch (error) {
     console.error('Error deleting transaction:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 });
   }
 }

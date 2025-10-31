@@ -75,29 +75,31 @@ export default function ContactForm() {
     setSubmitStatus(null);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // In a real app, you would send the data to your backend:
-      // const response = await fetch('/api/contact', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData)
-      // });
-
-      console.log('Form submitted:', formData);
-      
-      setSubmitStatus('success');
-      setFormData({
-        fullName: '',
-        email: '',
-        phone: '',
-        subject: 'generalInquiry',
-        message: ''
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
 
-      // Clear success message after 5 seconds
-      setTimeout(() => setSubmitStatus(null), 5000);
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({
+          fullName: '',
+          email: '',
+          phone: '',
+          subject: 'generalInquiry',
+          message: ''
+        });
+
+        // Clear success message after 5 seconds
+        setTimeout(() => setSubmitStatus(null), 5000);
+      } else {
+        setSubmitStatus('error');
+        // Clear error message after 5 seconds
+        setTimeout(() => setSubmitStatus(null), 5000);
+      }
     } catch (error) {
       console.error('Submit error:', error);
       setSubmitStatus('error');

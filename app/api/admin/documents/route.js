@@ -1,11 +1,13 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { getAuthUser } from '@/app/lib/auth';
+import { verifyAdmin } from '@/lib/auth';
 
 // GET - Fetch all documents
 export async function GET(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
 
     const client = await clientPromise;
     const db = client.db("dreamcars");
@@ -18,6 +20,9 @@ export async function GET(request) {
     return NextResponse.json(documents);
   } catch (error) {
     console.error('❌ Error fetching documents:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json(
       { error: 'Failed to fetch documents' },
       { status: 500 }
@@ -28,6 +33,9 @@ export async function GET(request) {
 // POST - Create new document
 export async function POST(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     
@@ -76,6 +84,9 @@ export async function POST(request) {
     }, { status: 201 });
   } catch (error) {
     console.error('❌ Error creating document:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json(
       { error: 'Failed to create document' },
       { status: 500 }
@@ -86,6 +97,9 @@ export async function POST(request) {
 // DELETE - Delete document
 export async function DELETE(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     
@@ -113,6 +127,9 @@ export async function DELETE(request) {
     return NextResponse.json({ message: 'Document deleted successfully' });
   } catch (error) {
     console.error('❌ Error deleting document:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json(
       { error: 'Failed to delete document' },
       { status: 500 }
@@ -123,6 +140,9 @@ export async function DELETE(request) {
 // PUT - Update document
 export async function PUT(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     const body = await request.json();
@@ -150,6 +170,9 @@ export async function PUT(request) {
     return NextResponse.json({ message: 'Document updated successfully' });
   } catch (error) {
     console.error('❌ Error updating document:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json(
       { error: 'Failed to update document' },
       { status: 500 }

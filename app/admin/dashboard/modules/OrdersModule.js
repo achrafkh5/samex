@@ -129,7 +129,7 @@ export default function OrdersModule() {
   }
   const updateStatus = async(id, newStatus) => {
     try {
-      const response = await fetch(`/api/orders/${id}`, {
+      const response = await fetch(`/api/admin/orders/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ export default function OrdersModule() {
     }
 
     try {
-      const response = await fetch(`/api/orders/${editingTrackingOrder._id}`, {
+      const response = await fetch(`/api/admin/orders/${editingTrackingOrder._id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -59,6 +59,15 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
       ),
     },
     {
+      id: 'contacts',
+      name: t('contactsTitle') || 'Contacts',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+    },
+    {
       id: 'orders',
       name: t('orders') || 'Orders',
       icon: (
@@ -168,7 +177,7 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
         <nav className="flex-1 p-4 overflow-y-auto">
           <div className="space-y-1">
             {menuItems.map((item) => {
-              const isExternalRoute = item.id === 'finance' || item.id === 'transactions';
+              const isExternalRoute = item.id === 'finance' || item.id === 'transactions' || item.id === 'contacts';
               
               return (
                 <button

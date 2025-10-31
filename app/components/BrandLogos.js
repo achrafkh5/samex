@@ -8,9 +8,20 @@ export default function BrandLogos() {
   const isRTL = language === 'ar';
 
   const brands = [
+    
+    { 
+      name: 'KIA', 
+      logo: '/[CITYPNG.COM]Kia White Logo HD PNG - 4000x4000.png',
+      alt: 'KIA Logo'
+    },
+    { 
+      name: 'Hyundai', 
+      logo: '/571276e93235e1b7c73cbdc55718782b.png',
+      alt: 'Hyundai Logo'
+    },
     { 
       name: 'Renault', 
-      logo: '/e9446002a57b27a27149a3a7b9a115c0.png',
+      logo: '/[CITYPNG.COM]Renault White Logo Icon Sign HD PNG - 4000x4000.png',
       alt: 'Renault Logo'
     },
     { 
@@ -19,24 +30,14 @@ export default function BrandLogos() {
       alt: 'Chevrolet Logo'
     },
     { 
-      name: 'Dacia', 
-      logo: '/18f669fbbd534df1bc1497985d4c15ce.png',
-      alt: 'Dacia Logo'
+      name: 'Honda', 
+      logo: '/73765d19a02eb2c94ad4f9b463d4dd91.png',
+      alt: 'Honda Logo'
     },
     { 
       name: 'Mercedes', 
       logo: 'https://cdn.worldvectorlogo.com/logos/mercedes-benz-9.svg',
       alt: 'Mercedes-Benz Logo'
-    },
-    { 
-      name: 'BMW', 
-      logo: '/[CITYPNG.COM]BMW Car Logo - 1500x1500.png',
-      alt: 'BMW Logo'
-    },
-    { 
-      name: 'Volkswagen', 
-      logo: '/73df89a1d80b2d3b5926ae189547d475.png',
-      alt: 'Volkswagen Logo'
     },
   ];
 
@@ -59,7 +60,7 @@ export default function BrandLogos() {
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 relative z-10 text-center">
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
-          Premium Automotive Brands
+          {t('ourBrands') || 'Our Brands'}
         </h2>
         <div className="h-1 w-24 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full"></div>
       </div>

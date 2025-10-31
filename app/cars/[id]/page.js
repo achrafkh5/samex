@@ -5,12 +5,14 @@ import Footer from '../../components/Footer';
 import CarDetailsContent from '../../components/CarDetailsContent';
 import { useState, useEffect, use } from 'react';
 import React from 'react';
+import { useLanguage } from '../../components/LanguageProvider';
 
 export default function CarDetailsPage({ params }) {
   const [car, setCar] = useState(null);
   const [loading, setLoading] = useState(true);
     const unwrappedParams = React.use(params);
   const id = unwrappedParams.id;
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchCar = async () => {
@@ -40,7 +42,7 @@ export default function CarDetailsPage({ params }) {
             <div className="w-4 h-4 bg-blue-600 dark:bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
           </div>
           <p className="mt-6 text-lg font-semibold text-gray-700 dark:text-gray-300">
-            Loading car details...
+            {t('loadingCarsPage')}
           </p>
         </div>
         <Footer />

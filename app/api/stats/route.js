@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getAuthAdmin } from '@/app/lib/adminAuth';
+import { verifyAdmin } from '@/lib/auth';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 
@@ -10,14 +10,7 @@ import { ObjectId } from 'mongodb';
 export async function GET(request) {
   try {
     // Check authentication
-    const authAdmin = await getAuthAdmin(request);
-    
-    if (!authAdmin) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
-    }
+    await verifyAdmin();
 
     const client = await clientPromise;
     const db = client.db('dreamcars');
@@ -242,6 +235,9 @@ export async function GET(request) {
     });
   } catch (error) {
     console.error('Error fetching stats:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
     return NextResponse.json(
       { error: 'Failed to fetch statistics' },
       { status: 500 }

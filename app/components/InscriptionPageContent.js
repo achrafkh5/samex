@@ -37,6 +37,7 @@ export default function InscriptionPageContent({ id }) {
     
     // Car Selection
     selectedCarId: id || '',
+    selectedColor: '',
     
     // Payment Info
     paymentMethod: '',
@@ -162,7 +163,7 @@ export default function InscriptionPageContent({ id }) {
         ['Marque:', selectedCar.brand],
         ['Modèle:', selectedCar.model],
         ['Année:', selectedCar.year?.toString()],
-        ['Couleur:', selectedCar.specs?.colors?.join(', ') || selectedCar.specs?.color || 'N/A'],
+        ['Couleur:', formData.selectedColor || selectedCar.specs?.colors?.join(', ') || selectedCar.specs?.color || 'N/A'],
         ['Type de carburant:', selectedCar.fuelType],
         ['Transmission:', selectedCar.transmission],
         ['N° VIN:', selectedCar.vin || 'N/A'],
@@ -390,7 +391,7 @@ export default function InscriptionPageContent({ id }) {
         ['Marque:', selectedCar.brand],
         ['Modèle:', selectedCar.model],
         ['Année:', selectedCar.year?.toString()],
-        ['Couleur:', selectedCar.specs?.colors?.join(', ') || selectedCar.specs?.color || 'N/A'],
+        ['Couleur:', formData.selectedColor || selectedCar.specs?.colors?.join(', ') || selectedCar.specs?.color || 'N/A'],
         ['Type de carburant:', selectedCar.fuelType],
         ['Transmission:', selectedCar.transmission],
         ['N° VIN:', selectedCar.vin || 'N/A'],
@@ -527,7 +528,12 @@ export default function InscriptionPageContent({ id }) {
     }
 
     if (step === 2) {
-
+      // Car color validation
+      if (selectedCar?.specs?.colors && selectedCar.specs.colors.length > 0) {
+        if (!formData.selectedColor) {
+          newErrors.selectedColor = t('required');
+        }
+      }
     }
 
     if (step === 3) {
@@ -1207,7 +1213,7 @@ export default function InscriptionPageContent({ id }) {
                         <div>
                           <p className="text-sm text-gray-600 dark:text-gray-400">{t('mileage')}</p>
                           <p className="font-semibold text-gray-900 dark:text-white">
-                            {selectedCar.mileage?.toLocaleString() || 'N/A'} km
+                            {selectedCar.mileage?.toLocaleString() || '0'} km
                           </p>
                         </div>
                         <div>
@@ -1223,6 +1229,41 @@ export default function InscriptionPageContent({ id }) {
                           </p>
                         </div>
                       </div>
+
+                      {/* Color Selection */}
+                      {selectedCar.specs?.colors && selectedCar.specs.colors.length > 0 && (
+                        <div className="mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                            {t('selectColor')} <span className="text-red-500">*</span>
+                          </label>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {selectedCar.specs.colors.map((color) => (
+                              <button
+                                key={t(color) || color}
+                                type="button"
+                                onClick={() => {
+                                  setFormData(prev => ({ ...prev, selectedColor: color }));
+                                  if (errors.selectedColor) {
+                                    setErrors(prev => ({ ...prev, selectedColor: '' }));
+                                  }
+                                }}
+                                className={`px-4 py-3 rounded-xl border-2 transition-all text-sm font-medium ${
+                                  formData.selectedColor === color
+                                    ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                                    : 'border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-500'
+                                }`}
+                              >
+                                {t(color) || color}
+                              </button>
+                            ))}
+                          </div>
+                          {errors.selectedColor && (
+                            <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                              {errors.selectedColor}
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                       <div className="mt-6 pt-6 border-t border-blue-200 dark:border-blue-700">
                         <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{t('carPrice')}</p>

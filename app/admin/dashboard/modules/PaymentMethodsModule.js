@@ -24,10 +24,16 @@ export default function PaymentMethodsModule() {
     setLoading(true);
     try {
       const response = await fetch('/api/payments');
+      if (!response.ok) {
+        console.error('Error fetching payment methods:', response.statusText);
+        setMethods([]);
+        return;
+      }
       const data = await response.json();
-      setMethods(data);
+      setMethods(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error('Error fetching payment methods:', error);
+      setMethods([]);
     } finally {
       setLoading(false);
     }

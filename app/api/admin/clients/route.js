@@ -1,10 +1,12 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
 import { ObjectId } from "mongodb";
-import { getAuthUser } from '@/app/lib/auth';
+import { verifyAdmin } from '@/lib/auth';
 
 export async function GET(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
 
     const client = await clientPromise;
     const db = client.db("dreamcars");
@@ -17,12 +19,18 @@ export async function GET(request) {
     return NextResponse.json(clientInfo);
   } catch (error) {
     console.error("Error fetching client info:", error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
+    }
     return NextResponse.json({ error: "Failed to fetch client info" }, { status: 500 });
   }
 }
 
 export async function POST(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     const data = await request.json();
@@ -30,11 +38,18 @@ export async function POST(request) {
     return NextResponse.json({ message: "Client added", id: result.insertedId }, { status: 201 });
   } catch (error) {
     console.error("Error adding client:", error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
+    }
     return NextResponse.json({ error: "Failed to add client" }, { status: 500 });
   }
 }
+
 export async function DELETE(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     const { id } = await request.json();
@@ -45,12 +60,18 @@ export async function DELETE(request) {
     return NextResponse.json({ message: "Client deleted" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting client:", error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
+    }
     return NextResponse.json({ error: "Failed to delete client" }, { status: 500 });
   }
 }
 
 export async function PUT(request) {
     try {
+        // Verify admin authentication
+        await verifyAdmin();
+
         const client = await clientPromise;
         const db = client.db("dreamcars");
         const { id, ...updateData } = await request.json();
@@ -64,6 +85,9 @@ export async function PUT(request) {
         return NextResponse.json({ message: "Client updated" }, { status: 200 });
     } catch (error) {
         console.error("Error updating client:", error);
+        if (error.message.includes("authenticated") || error.message.includes("token")) {
+          return NextResponse.json({ error: "Unauthorized - Admin access required" }, { status: 401 });
+        }
         return NextResponse.json({ error: "Failed to update client" }, { status: 500 });
     }
 }

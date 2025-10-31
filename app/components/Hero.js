@@ -20,6 +20,16 @@ export default function Hero() {
     fetchCarsCount();
   }, []);
 
+  const scrollToSection = (sectionId) => {
+    const element = document.querySelector(sectionId);
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <section
       id="home"
@@ -63,9 +73,9 @@ export default function Hero() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-slide-up animation-delay-400">
-            <a
-              href="#cars"
-              className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+            <button
+              onClick={() => scrollToSection('#cars')}
+              className="group px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full font-semibold text-lg hover:shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer"
             >
               {t('browseCars')}
               <svg
@@ -79,13 +89,13 @@ export default function Hero() {
               >
                 <path d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
-            </a>
-            <a
-              href="#contact"
-              className="px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-semibold text-lg hover:bg-white/20 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
+            </button>
+            <button
+              onClick={() => scrollToSection('#contact')}
+              className="px-8 py-4 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white rounded-full font-semibold text-lg hover:bg-white/20 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto cursor-pointer"
             >
               {t('contactUs')}
-            </a>
+            </button>
           </div>
 
           {/* Stats */}

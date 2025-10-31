@@ -202,7 +202,7 @@ export default function ContactPageContent() {
                   {t('sendMessage')}
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400 mb-8">
-                  Fill out the form below and we&apos;ll get back to you within 24 hours.
+                  {t('contactFormDescription')}
                 </p>
                 <ContactForm />
               </div>

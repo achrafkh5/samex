@@ -1,10 +1,13 @@
 import clientPromise from "@/lib/mongodb";
 import { NextResponse } from "next/server";
-import { getAuthUser } from '@/app/lib/auth';
+import { verifyAdmin } from '@/lib/auth';
 import { ObjectId } from 'mongodb';
 
 export async function POST(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
+
     const client = await clientPromise;
     const db = client.db("dreamcars");
     const orderData = await request.json();
@@ -14,12 +17,17 @@ export async function POST(request) {
     return NextResponse.json({ success: true, orderId: result.insertedId });
   } catch (error) {
     console.error("Error creating order:", error);
-    return NextResponse.json({ success: false, error: "Failed to create order" });
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ success: false, error: "Unauthorized - Admin access required" }, { status: 401 });
+    }
+    return NextResponse.json({ success: false, error: "Failed to create order" }, { status: 500 });
   }
 }
 
 export async function GET(request) {
   try {
+    // Verify admin authentication
+    await verifyAdmin();
 
     const client = await clientPromise;
     const db = client.db("dreamcars");
@@ -34,6 +42,9 @@ export async function GET(request) {
     return NextResponse.json({ success: true, orders });
   } catch (error) {
     console.error("Error fetching orders:", error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ success: false, error: "Unauthorized - Admin access required" }, { status: 401 });
+    }
     return NextResponse.json({ success: false, error: "Failed to fetch orders" }, { status: 500 });
   }
 }
