@@ -158,16 +158,6 @@ export default function AdminLoginContent() {
               )}
             </button>
           </form>
-
-          {/* Signup Link */}
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('dontHaveAccount') || 'Don\'t have an account?'}{' '}
-              <Link href="/admin/signup" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
-                {t('signUpHere') || 'Sign up here'}
-              </Link>
-            </p>
-          </div>
         </div>
 
         {/* Back to Home */}

@@ -13,7 +13,7 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
   const pathname = usePathname();
   const {  language, changeLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const { logout } = useAdminAuth();
+  const { logout, admin } = useAdminAuth();
   const [mounted, setMounted] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
@@ -113,6 +113,15 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
       ),
     },
     {
+      id: 'add-admin',
+      name: t('addAdmin') || 'Add Admin',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+        </svg>
+      ),
+    },
+    {
       id: 'change-password',
       name: t('changePassword') || 'Change Password',
       icon: (
@@ -171,13 +180,31 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
               <p className="text-xs text-gray-500 dark:text-gray-400">{t('adminPanel') || 'Admin Panel'}</p>
             </div>
           </Link>
+          {/* Admin Info */}
+          {admin && (
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center text-white font-bold">
+                  {admin.fullName?.charAt(0).toUpperCase() || 'A'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    {admin.fullName}
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {admin.email}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 overflow-y-auto">
           <div className="space-y-1">
             {menuItems.map((item) => {
-              const isExternalRoute = item.id === 'finance' || item.id === 'transactions' || item.id === 'contacts';
+              const isExternalRoute = item.id === 'finance' || item.id === 'transactions' || item.id === 'contacts' || item.id === 'add-admin';
               
               return (
                 <button
@@ -185,7 +212,11 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
                   onClick={() => {
                     if (isExternalRoute) {
                       // Navigate to separate route
-                      router.push(`/admin/${item.id}`);
+                      if (item.id === 'add-admin') {
+                        router.push('/admin/signup');
+                      } else {
+                        router.push(`/admin/${item.id}`);
+                      }
                     } else {
                       // Navigate within dashboard
                       onNavigate(item.id);

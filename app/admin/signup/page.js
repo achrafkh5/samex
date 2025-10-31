@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAdminAuth } from '@/app/context/AdminAuthContext';
@@ -9,11 +9,12 @@ import { useTheme } from 'next-themes';
 
 export default function AdminSignupPage() {
   const router = useRouter();
-  const { signup } = useAdminAuth();
+  const { signup, admin } = useAdminAuth();
   const { t, language } = useLanguage();
   const { theme } = useTheme();
   const isRTL = language === 'ar';
 
+  const [isChecking, setIsChecking] = useState(true);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -22,6 +23,32 @@ export default function AdminSignupPage() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  // Check if user is authenticated admin
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!admin) {
+        // Not authenticated, redirect to login
+        router.push('/admin/login');
+      } else {
+        setIsChecking(false);
+      }
+    };
+    
+    checkAuth();
+  }, [admin, router]);
+
+  // Show loading while checking authentication
+  if (isChecking || !admin) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">{t('loading') || 'Loading...'}</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,7 +104,7 @@ export default function AdminSignupPage() {
       if (result.success) {
         setMessage(t('adminCreated'));
         setTimeout(() => {
-          router.push('/admin/login');
+          router.push('/admin/dashboard');
         }, 2000);
       } else {
         setErrors({ form: result.error });
@@ -99,6 +126,9 @@ export default function AdminSignupPage() {
           </h2>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
             {t('adminSignupDescription')}
+          </p>
+          <p className="mt-2 text-sm text-blue-600 dark:text-blue-400">
+            {t('registeredBy')}: {admin?.name || admin?.email}
           </p>
         </div>
 
@@ -184,20 +214,10 @@ export default function AdminSignupPage() {
             {loading ? t('loading') : t('createAccount')}
           </button>
 
-          {/* Login Link */}
+          {/* Back to Dashboard */}
           <div className="text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {t('alreadyHaveAccount')}{' '}
-              <Link href="/admin/login" className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400">
-                {t('signIn')}
-              </Link>
-            </p>
-          </div>
-
-          {/* Back to Home */}
-          <div className="text-center">
-            <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-              {t('backToHome')}
+            <Link href="/admin/dashboard" className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+              {t('backToDashboard') || 'Back to Dashboard'}
             </Link>
           </div>
         </form>

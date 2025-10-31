@@ -54,6 +54,7 @@ export const translations = {
       forgotPasswordSubtitle: 'Enter your email to receive reset instructions',
       sendResetLink: 'Send Reset Link',
       backToLogin: 'Back to Login',
+      backToDashboard: 'Back to Dashboard',
       resetLinkSent: 'Reset link sent to your email',
       loginSuccess: 'Login successful!',
       signupSuccess: 'Account created successfully!',
@@ -72,7 +73,12 @@ export const translations = {
     
     // Dashboard
     // Dashboard Page
-    dashboardWelcome: 'Manage your orders and profile information',
+    ordersDescription: 'Manage your orders and profile information',
+    totalOrders: 'Total Orders',
+    deliveredOrders: 'Delivered Orders',
+    ordersManagement: 'Orders Management',
+    passwordPlaceholder: 'Enter your password',
+    registeredBy: 'Registered by',
     myOrders: 'My Orders',
     clientInfo: 'Client Information',
     noOrders: 'No orders found',
@@ -573,6 +579,10 @@ export const translations = {
     alreadyHaveAccount: 'Already have an account?',
     dontHaveAccount: 'Don\'t have an account?',
     signUpHere: 'Sign up here',
+    
+    // Add Admin
+    addAdmin: 'Add Admin',
+    addAdminDescription: 'Register a new administrator',
     
     // Change Password
     changePassword: 'Change Password',
@@ -1199,6 +1209,7 @@ export const translations = {
       forgotPasswordSubtitle: 'Entrez votre email pour recevoir les instructions',
       sendResetLink: 'Envoyer le lien de réinitialisation',
       backToLogin: 'Retour à la connexion',
+      backToDashboard: 'Retour au Tableau de Bord',
       resetLinkSent: 'Lien de réinitialisation envoyé à votre email',
       loginSuccess: 'Connexion réussie!',
       signupSuccess: 'Compte créé avec succès!',
@@ -1785,6 +1796,13 @@ quickStats: 'Statistiques Rapides',
     alreadyHaveAccount: 'Vous avez déjà un compte?',
     dontHaveAccount: 'Vous n\'avez pas de compte?',
     signUpHere: 'Inscrivez-vous ici',
+    
+    // Add Admin
+    addAdmin: 'Ajouter un Administrateur',
+    addAdminDescription: 'Enregistrer un nouvel administrateur',
+    passwordPlaceholder: 'Entrez votre mot de passe',
+    registeredBy: 'Enregistré par',
+
     changePassword: 'Changer le Mot de Passe',
     changePasswordDescription: 'Mettre à jour votre mot de passe administrateur',
     oldPassword: 'Mot de Passe Actuel',
@@ -2404,6 +2422,7 @@ quickStats: 'Statistiques Rapides',
       forgotPasswordSubtitle: 'أدخل بريدك الإلكتروني لتلقي التعليمات',
       sendResetLink: 'إرسال رابط إعادة التعيين',
       backToLogin: 'العودة لتسجيل الدخول',
+      backToDashboard: 'العودة إلى لوحة التحكم',
       resetLinkSent: 'تم إرسال رابط إعادة التعيين إلى بريدك',
       loginSuccess: 'تم تسجيل الدخول بنجاح!',
       signupSuccess: 'تم إنشاء الحساب بنجاح!',
@@ -2866,6 +2885,12 @@ quickStats: 'Statistiques Rapides',
     alreadyHaveAccount: 'هل لديك حساب بالفعل؟',
     dontHaveAccount: 'ليس لديك حساب؟',
     signUpHere: 'سجل هنا',
+    
+    // Add Admin
+    addAdmin: 'إضافة مسؤول',
+    addAdminDescription: 'تسجيل مسؤول جديد',
+    passwordPlaceholder: 'أدخل كلمة المرور',
+    registeredBy: 'تم التسجيل بواسطة',
     changePassword: 'تغيير كلمة المرور',
     changePasswordDescription: 'تحديث كلمة مرور المسؤول',
     oldPassword: 'كلمة المرور الحالية',
