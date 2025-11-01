@@ -164,7 +164,7 @@ export default function PDFGeneratorModule() {
             carBrand: car.brand,
             carModel: car.model,
             carYear: car.year,
-            carColor: car.specs?.colors?.[0] || 'N/A',
+            carColor: order.selectedColor || 'N/A',
             carVin: car.vin || 'N/A',
             carPrice: `$${car.price?.toLocaleString('en-US')}`,
             paymentMethod: order.paymentMethod || 'N/A',

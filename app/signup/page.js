@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/app/context/AuthContext';
 import { useLanguage } from '@/app/components/LanguageProvider';
 import { useTheme } from 'next-themes';
-
+import Image from 'next/image';
 function SignupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -107,14 +107,15 @@ function SignupContent() {
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-950 ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <div className="flex items-center justify-between">
+            <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl">DC</span>
+              <div className="flex items-center justify-center w-25 h-15 relative rounded-full bg-gradient-to-r from-blue-600 to-purple-600">
+                <Image src="/logo.png" alt="Logo" height={80} width={80} className="object-contain" />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">DreamCars</span>
             </Link>
+          </div>
 
             <div className="flex items-center space-x-4">
               {/* Language Switcher */}

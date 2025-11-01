@@ -111,34 +111,75 @@ function configureArabicDocument(doc) {
   doc.setFont('Amiri', 'normal');
 }
 
+/**
+ * Load logo image and add it to PDF
+ * 
+ * @param {jsPDF} doc - jsPDF document instance
+ * @param {number} x - X position
+ * @param {number} y - Y position
+ * @param {number} width - Logo width
+ * @param {number} height - Logo height
+ * @returns {Promise<boolean>} - True if successful
+ */
+async function addLogoToPDF(doc, x, y, width, height) {
+  try {
+    // In browser environment, load from public folder
+    const logoUrl = '/logo.png';
+    const response = await fetch(logoUrl);
+    
+    if (!response.ok) {
+      console.warn('Logo not found, using placeholder');
+      return false;
+    }
+    
+    const blob = await response.blob();
+    const reader = new FileReader();
+    
+    return new Promise((resolve) => {
+      reader.onloadend = () => {
+        try {
+          const base64data = reader.result;
+          doc.addImage(base64data, 'PNG', x, y, width, height);
+          resolve(true);
+        } catch (error) {
+          console.warn('Failed to add logo image:', error);
+          resolve(false);
+        }
+      };
+      reader.onerror = () => resolve(false);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.warn('Failed to load logo:', error);
+    return false;
+  }
+}
+
 
 const COMPANY_INFO = {
   en: {
-    name: 'DreamCars Premium Agency',
-    address: '123 Luxury Avenue, Downtown',
-    city: 'Casablanca, Morocco',
-    phone: '+212 5 22 XX XX XX',
-    email: 'contact@dreamcars.ma',
-    website: 'www.dreamcars.ma',
-    taxId: 'TAX-MA-123456789',
+    name: 'ALKO Cars',
+    address: 'Algiers, Algeria',
+    city: 'Algiers, Algeria',
+    phone: '+213 550 399 115',
+    email: 'contact@alkocars.com',
+    website: 'www.alkocars.com',
   },
   fr: {
-    name: 'Agence Premium DreamCars',
-    address: '123 Avenue du Luxe, Centre-ville',
-    city: 'Casablanca, Maroc',
-    phone: '+212 5 22 XX XX XX',
-    email: 'contact@dreamcars.ma',
-    website: 'www.dreamcars.ma',
-    taxId: 'N° FISCAL: MA-123456789',
+    name: 'ALKO Cars',
+    address: 'Alger, Algérie',
+    city: 'Alger, Algérie',
+    phone: '+213 550 399 115',
+    email: 'contact@alkocars.com',
+    website: 'www.alkocars.com',
   },
   ar: {
-    name: 'وكالة دريم كارز الفاخرة',
-    address: '١٢٣ شارع الرفاهية، وسط المدينة',
-    city: 'الدار البيضاء، المغرب',
-    phone: '+٢١٢ ٥ ٢٢ XX XX XX',
-    email: 'contact@dreamcars.ma',
-    website: 'www.dreamcars.ma',
-    taxId: 'الرقم الضريبي: MA-123456789',
+    name: 'ألكو كارز',
+    address: 'الجزائر، الجزائر',
+    city: 'الجزائر، الجزائر',
+    phone: '+213 550 399 115',
+    email: 'contact@alkocars.com',
+    website: 'www.alkocars.com',
   }
 };
 
@@ -170,7 +211,7 @@ const PDF_TRANSLATIONS = {
     amount: 'Amount Paid',
     trackingCode: 'Tracking Code',
     registrationDate: 'Registration Date',
-    certificationText: 'This document certifies that the above-mentioned client has successfully completed the registration process for the specified vehicle with DreamCars Premium Agency.',
+    certificationText: 'This document certifies that the above-mentioned client has successfully completed the registration process for the specified vehicle with ALKO Cars.',
     signature: 'Authorized Signature',
     digitalSignature: 'This is a digitally generated document',
     
@@ -237,7 +278,7 @@ const PDF_TRANSLATIONS = {
     amount: 'Montant Payé',
     trackingCode: 'Code de Suivi',
     registrationDate: 'Date d\'Inscription',
-    certificationText: 'Ce document certifie que le client mentionné ci-dessus a terminé avec succès le processus d\'inscription pour le véhicule spécifié auprès de l\'Agence Premium DreamCars.',
+    certificationText: 'Ce document certifie que le client mentionné ci-dessus a terminé avec succès le processus d\'inscription pour le véhicule spécifié auprès de ALKO Cars.',
     signature: 'Signature Autorisée',
     digitalSignature: 'Ceci est un document généré numériquement',
     
@@ -304,7 +345,7 @@ const PDF_TRANSLATIONS = {
     amount: 'المبلغ المدفوع',
     trackingCode: 'رمز التتبع',
     registrationDate: 'تاريخ التسجيل',
-    certificationText: 'تشهد هذه الوثيقة بأن العميل المذكور أعلاه قد أكمل بنجاح عملية تسجيل المركبة المحددة لدى وكالة دريم كارز الفاخرة.',
+    certificationText: 'تشهد هذه الوثيقة بأن العميل المذكور أعلاه قد أكمل بنجاح عملية تسجيل المركبة المحددة لدى ألكو كارز.',
     signature: 'التوقيع المعتمد',
     digitalSignature: 'هذه وثيقة مُنشأة رقمياً',
     
@@ -423,12 +464,17 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
   doc.setFillColor(...colors.headerBg);
   doc.rect(0, 0, pageWidth, 50, 'F');
   
-  // Company Logo Placeholder (circle)
-  doc.setFillColor(...colors.primary);
-  doc.circle(pageWidth / 2, 25, 8, 'F');
-  doc.setTextColor(...colors.background);
-  doc.setFontSize(10);
-  addText('DC', pageWidth / 2, 27, { align: 'center' });
+  // Company Logo
+  const logoAdded = await addLogoToPDF(doc, pageWidth / 2 - 10, 10, 20, 20);
+  
+  // If logo failed to load, use placeholder
+  if (!logoAdded) {
+    doc.setFillColor(...colors.primary);
+    doc.circle(pageWidth / 2, 25, 8, 'F');
+    doc.setTextColor(...colors.background);
+    doc.setFontSize(10);
+    addText('AC', pageWidth / 2, 27, { align: 'center' });
+  }
 
   // Company Name
   doc.setTextColor(...colors.text);
@@ -540,8 +586,6 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
 
   const paymentData = [
     [t.paymentMethod, String(data.paymentMethod || 'N/A')],
-    [t.amount, String(data.amountPaid || 'N/A')],
-    [t.trackingCode, String(data.trackingCode || 'N/A')],
   ];
 
   paymentData.forEach(([label, value]) => {
@@ -563,15 +607,6 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
     align: isRTL ? 'right' : 'left', 
     maxWidth: pageWidth - 2 * margin - 10 
   });
-
-  // Signature Section
-  yPos = pageHeight - 50;
-  doc.setDrawColor(...colors.border);
-  doc.line(pageWidth - margin - 60, yPos, pageWidth - margin - 5, yPos);
-  doc.setFontSize(9);
-  doc.setTextColor(...colors.text);
-  addText(t.signature, pageWidth - margin - 32.5, yPos + 5, { align: 'center' });
-
   // Footer
   yPos = pageHeight - 25;
   doc.setFillColor(...colors.headerBg);
@@ -580,7 +615,7 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
   doc.setTextColor(...colors.textSecondary);
   addText(company.address, pageWidth / 2, yPos + 8, { align: 'center' });
   addText(`${company.phone} | ${company.email}`, pageWidth / 2, yPos + 13, { align: 'center' });
-  addText(t.digitalSignature, pageWidth / 2, yPos + 18, { align: 'center' });
+  addText(company.website, pageWidth / 2, yPos + 18, { align: 'center' });
 
   return doc;
 }
@@ -630,12 +665,18 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
   doc.rect(0, 0, pageWidth, 45, 'F');
   
   // Logo
-  doc.setFillColor(...colors.primary);
-  const logoX = isRTL ? pageWidth - margin - 8 : margin + 8;
-  doc.circle(logoX, 22, 8, 'F');
-  doc.setTextColor(...colors.background);
-  doc.setFontSize(10);
-  addText('DC', logoX, 24, { align: 'center' });
+  const logoX = isRTL ? pageWidth - margin - 20 : margin;
+  const logoAdded = await addLogoToPDF(doc, logoX, 12, 20, 20);
+  
+  // If logo failed to load, use placeholder
+  if (!logoAdded) {
+    doc.setFillColor(...colors.primary);
+    const placeholderX = isRTL ? pageWidth - margin - 8 : margin + 8;
+    doc.circle(placeholderX, 22, 8, 'F');
+    doc.setTextColor(...colors.background);
+    doc.setFontSize(10);
+    addText('AC', placeholderX, 24, { align: 'center' });
+  }
 
   // Company Info
   doc.setTextColor(...colors.text);
@@ -829,18 +870,6 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
   doc.setFontSize(8);
   doc.setTextColor(...colors.textSecondary);
   addText(t.invoiceNotes, margin, yPos);
-
-  yPos += 10;
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.setTextColor(...colors.text);
-  addText(t.termsConditions, margin, yPos);
-  
-  yPos += 5;
-  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...colors.textSecondary);
-  addText(t.termsText, margin, yPos);
 
   return doc;
 }

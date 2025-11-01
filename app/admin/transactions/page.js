@@ -535,7 +535,7 @@ if (!admin) {
                                 </svg>
                               </button>
                             </>
-                          ) : transaction.senderFullName === admin?.fullName ? (
+                          ) : (transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) ? (
                             <button
                               onClick={() => handleEditClick(transaction)}
                               className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"

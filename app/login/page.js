@@ -101,7 +101,7 @@ function LoginContent() {
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-950 ${isRTL ? 'rtl' : 'ltr'}`}>
       {/* Header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
           <div className="flex items-center justify-between">
             <div className="flex-shrink-0 flex items-center">
             <Link href="/" className="flex items-center space-x-2">
