@@ -10,7 +10,7 @@ import BrandLogos from './components/BrandLogos';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
+    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden">
       <Navbar />
       <Hero />
       <BrandLogos />

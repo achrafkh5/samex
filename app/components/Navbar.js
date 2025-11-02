@@ -74,7 +74,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 overflow-x-hidden ${
         isScrolled
           ? 'bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg shadow-lg'
           : 'bg-transparent'
@@ -234,8 +234,8 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
-          <div className="px-4 pt-2 pb-4 space-y-2">
+        <div className="md:hidden absolute left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg">
+          <div className="container mx-auto px-4 pt-2 pb-4 space-y-2">
             {navLinks.map((link) => (
               <a
                 key={link.name}

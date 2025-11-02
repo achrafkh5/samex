@@ -86,7 +86,7 @@ export default function BrandLogos() {
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-2xl opacity-0 group-hover:opacity-40 transition-all duration-500 scale-150"></div>
                   
                   {/* Logo container */}
-                  <div className="relative w-32 h-32 rounded-2xl bg-white/90 dark:bg-gray-800 backdrop-blur-sm border border-white/20 shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 flex items-center justify-center group-hover:scale-110 group-hover:border-blue-400/50 cursor-pointer p-5">
+                  <div className="relative w-32 h-32 rounded-2xl bg-gray-500 dark:bg-gray-800 backdrop-blur-sm border border-white/20 shadow-2xl hover:shadow-blue-500/50 transition-all duration-500 flex items-center justify-center group-hover:scale-110 group-hover:border-blue-400/50 cursor-pointer p-5">
                     <div className="relative w-full h-full group-hover:scale-105 transition-transform duration-500">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
