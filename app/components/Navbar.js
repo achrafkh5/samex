@@ -234,8 +234,8 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden absolute left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg">
-          <div className="container mx-auto px-4 pt-2 pb-4 space-y-2">
+        <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-lg">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-4 space-y-2">
             {navLinks.map((link) => (
               <a
                 key={link.name}
