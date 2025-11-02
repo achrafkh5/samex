@@ -811,11 +811,15 @@ if(cars?.length>0){
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                     {carImages.map((url, index) => (
                       <div key={index} className="relative group">
-                        <img
-                          src={url}
-                          alt={`Car ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
-                        />
+                        <div className="relative w-full h-48">
+                          <Image
+                            src={url}
+                            alt={`Car ${index + 1}`}
+                            fill
+                            className="object-cover rounded-lg border-2 border-gray-300 dark:border-gray-600"
+                            sizes="(max-width: 768px) 50vw, 33vw"
+                          />
+                        </div>
                         <button
                           onClick={() => removeImage(index)}
                           className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"

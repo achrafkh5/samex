@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata = {
-  title: "DreamCars - Find Your Perfect Vehicle",
+  title: "ALKO Cars - Find Your Perfect Vehicle",
   description: "Browse our premium collection of cars and find your dream vehicle today",
 };
 

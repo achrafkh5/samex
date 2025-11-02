@@ -98,7 +98,7 @@ export default function AdminLoginContent() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-colors"
-                placeholder="admin@dreamcars.com"
+                placeholder="admin@alkocars.com"
               />
             </div>
 

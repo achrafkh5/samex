@@ -63,8 +63,8 @@ export default function ContactInfo() {
                     <p className="text-gray-600 dark:text-gray-400 mb-3">
                       Get response within 24 hours
                     </p>
-                    <a href="mailto:info@dreamcars.com" className="text-xl font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
-                      info@dreamcars.com
+                    <a href="mailto:info@alkocars.com" className="text-xl font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
+                      info@alkocars.com
                     </a>
                   </div>
                 </div>

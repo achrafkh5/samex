@@ -6,7 +6,7 @@ export default function ThemeProvider({ children }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="light"
+      defaultTheme="system"
       enableSystem={false}
       storageKey="dreamcars-theme"
       themes={["light", "dark"]}

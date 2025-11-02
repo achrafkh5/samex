@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Admin Dashboard - DreamCars',
+  title: 'Admin Dashboard - ALKO Cars',
   description: 'Admin dashboard for managing cars, clients, payments, and more',
 };
 

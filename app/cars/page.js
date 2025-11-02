@@ -4,7 +4,7 @@ import Footer from '../components/Footer';
 import CarsPageContent from '../components/CarsPageContent';
 
 export const metadata = {
-  title: "Available Cars - DreamCars",
+  title: "Available Cars - ALKO Cars",
   description: "Browse our extensive collection of premium vehicles. Find your perfect car from our inventory of new, used, and certified pre-owned vehicles.",
 };
 

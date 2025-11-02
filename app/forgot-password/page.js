@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-xl">DC</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">DreamCars</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">ALKO Cars</span>
               </Link>
 
               <div className="flex items-center space-x-4">
@@ -131,7 +131,7 @@ export default function ForgotPasswordPage() {
               <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">DC</span>
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">DreamCars</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-white">ALKO Cars</span>
             </Link>
 
             <div className="flex items-center space-x-4">

@@ -1,7 +1,7 @@
 import UploadContent from './UploadContent';
 
 export const metadata = {
-  title: 'Upload Documents - DreamCars Agency',
+  title: 'Upload Documents - ALKO Cars',
   description: 'Upload your required documents securely',
 };
 

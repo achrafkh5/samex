@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'My Documents - DreamCars',
+  title: 'My Documents - ALKO Cars',
   description: 'View and download your vehicle documents',
 };
 

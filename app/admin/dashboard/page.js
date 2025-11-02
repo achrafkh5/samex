@@ -1,7 +1,7 @@
 import AdminDashboardContent from './AdminDashboardContent';
 import { Suspense } from 'react';
 export const metadata = {
-  title: 'Dashboard - DreamCars Admin',
+  title: 'Dashboard - ALKO Cars Admin',
   description: 'Admin dashboard for managing the car agency',
 };
 

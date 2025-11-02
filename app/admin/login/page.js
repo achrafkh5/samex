@@ -1,7 +1,7 @@
 import AdminLoginContent from './AdminLoginContent';
 
 export const metadata = {
-  title: 'Admin Login - DreamCars',
+  title: 'Admin Login - ALKO Cars',
   description: 'Admin login page',
 };
 

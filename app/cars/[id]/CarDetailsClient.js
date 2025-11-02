@@ -6,13 +6,13 @@ export async function generateMetadata({ params }) {
     );
 
     if (!response.ok) {
-      return { title: 'Car Not Found | DreamCars' };
+      return { title: 'Car Not Found | ALKO Cars' };
     }
 
     const car = await response.json();
 
     return {
-      title: `${car.brand} ${car.model} ${car.year} | DreamCars`,
+      title: `${car.brand} ${car.model} ${car.year} | ALKO Cars`,
       description: `View details for ${car.brand} ${car.model} ${car.year}. ${
         car.condition === 'new'
           ? 'Brand new'
@@ -24,7 +24,7 @@ export async function generateMetadata({ params }) {
   } catch (error) {
     console.error('Metadata generation error:', error);
     return {
-      title: 'Car Not Found | DreamCars',
+      title: 'Car Not Found | ALKO Cars',
     };
   }
 }
