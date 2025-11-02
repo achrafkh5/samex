@@ -251,7 +251,7 @@ export default function Navbar() {
             {user ? (
               <>
                 <Link
-                  href="/profile"
+                  href="/dashboard"
                   className="flex items-center space-x-2 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -264,7 +264,7 @@ export default function Navbar() {
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium"
                 >
-                  Logout
+                  {t('logout')}
                 </button>
               </>
             ) : (
@@ -274,14 +274,14 @@ export default function Navbar() {
                   className="block px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Login
+                  {t('login')}
                 </Link>
                 <Link
                   href="/signup"
                   className="block px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg font-medium"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Sign Up
+                  {t('signup')}
                 </Link>
               </>
             )}
