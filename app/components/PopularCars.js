@@ -13,10 +13,25 @@ export default function PopularCars() {
     const fetchPopularCars = async () => {
       try {
         const response = await fetch('/api/cars?pinned=true&limit=4');
+        
+        if (!response.ok) {
+          console.error('Failed to fetch popular cars:', response.status);
+          setCars([]);
+          return;
+        }
+        
         const data = await response.json();
-        setCars(data);
+        
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setCars(data);
+        } else {
+          console.error('Expected array but got:', data);
+          setCars([]);
+        }
       } catch (error) {
         console.error('Error fetching popular cars:', error);
+        setCars([]);
       } finally {
         setLoading(false);
       }

@@ -118,7 +118,7 @@ export default function ContactsPage() {
         }}
       />
 
-      <div className="flex-1 min-h-screen">
+      <div className="flex-1 min-h-screen lg:pl-64">
         <div className="p-6 lg:p-8">
           {/* Header */}
           <div className="mb-8">

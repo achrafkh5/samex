@@ -30,6 +30,7 @@ export default function InscriptionPageContent({ id }) {
     gender: '',
     nationality: '',
     nationalId: '',
+    passportNumber: '',
     streetAddress: '',
     city: '',
     country: '',
@@ -48,6 +49,7 @@ export default function InscriptionPageContent({ id }) {
     nationalIdFile: null,
     birthCertificate: null,
     proofOfResidence: null,
+    mandatTransitaire: null,
     
     // Terms
     acceptTerms: false
@@ -71,7 +73,18 @@ export default function InscriptionPageContent({ id }) {
     const pageWidth = doc.internal.pageSize.width;
     const pageHeight = doc.internal.pageSize.height;
     const margin = 20;
+    const bottomMargin = 40; // Reserve space for footer
     let yPos = 20;
+
+    // Helper function to check if we need a new page
+    const checkPageBreak = (spaceNeeded) => {
+      if (yPos + spaceNeeded > pageHeight - bottomMargin) {
+        doc.addPage();
+        yPos = margin;
+        return true;
+      }
+      return false;
+    };
 
     // Add logo
     try {
@@ -111,6 +124,7 @@ export default function InscriptionPageContent({ id }) {
 
     // Client Information Section
     yPos += 15;
+    checkPageBreak(30);
     doc.setFillColor(37, 99, 235);
     doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
     doc.setTextColor(255, 255, 255);
@@ -130,6 +144,7 @@ export default function InscriptionPageContent({ id }) {
       ['Date de naissance:', formData.dateOfBirth],
       ['Nationalité:', formData.nationality],
       ['N° ID National:', formData.nationalId],
+      ['N° Passeport:', formData.passportNumber],
       ['Adresse:', formData.streetAddress],
       ['Ville:', formData.city],
       ['Pays:', formData.country],
@@ -137,6 +152,7 @@ export default function InscriptionPageContent({ id }) {
     ];
 
     clientInfo.forEach(([label, value]) => {
+      checkPageBreak(10);
       doc.setFont('helvetica', 'bold');
       doc.text(label, margin + 5, yPos);
       doc.setFont('helvetica', 'normal');
@@ -147,6 +163,7 @@ export default function InscriptionPageContent({ id }) {
     // Vehicle Details Section
     if (selectedCar) {
       yPos += 10;
+      checkPageBreak(30);
       doc.setFillColor(37, 99, 235);
       doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
       doc.setTextColor(255, 255, 255);
@@ -171,6 +188,7 @@ export default function InscriptionPageContent({ id }) {
       ];
 
       vehicleInfo.forEach(([label, value]) => {
+        checkPageBreak(10);
         doc.setFont('helvetica', 'bold');
         doc.text(label, margin + 5, yPos);
         doc.setFont('helvetica', 'normal');
@@ -181,6 +199,7 @@ export default function InscriptionPageContent({ id }) {
 
     // Payment Information Section
     yPos += 10;
+    checkPageBreak(30);
     doc.setFillColor(37, 99, 235);
     doc.rect(margin, yPos, pageWidth - 2 * margin, 10, 'F');
     doc.setTextColor(255, 255, 255);
@@ -200,6 +219,7 @@ export default function InscriptionPageContent({ id }) {
     ];
 
     paymentInfo.forEach(([label, value]) => {
+      checkPageBreak(10);
       doc.setFont('helvetica', 'bold');
       doc.text(label, margin + 5, yPos);
       doc.setFont('helvetica', 'normal');
@@ -207,25 +227,34 @@ export default function InscriptionPageContent({ id }) {
       yPos += 8;
     });
 
-    // Footer
-    yPos = pageHeight - 30;
-    doc.setFillColor(240, 240, 240);
-    doc.rect(0, yPos, pageWidth, 30, 'F');
-    
-    doc.setTextColor(100, 100, 100);
-    doc.setFontSize(9);
-    yPos += 10;
-    doc.text('Ce document certifie l\'inscription et la réservation du véhicule mentionné ci-dessus.', pageWidth / 2, yPos, { align: 'center' });
-    yPos += 6;
-    doc.text('Pour toute question, veuillez nous contacter à contact@samex.com', pageWidth / 2, yPos, { align: 'center' });
+    // Add footer on the last page
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
+      
+      // Footer
+      const footerY = pageHeight - 30;
+      doc.setFillColor(240, 240, 240);
+      doc.rect(0, footerY, pageWidth, 30, 'F');
+      
+      doc.setTextColor(100, 100, 100);
+      doc.setFontSize(9);
+      doc.text('Ce document certifie l\'inscription et la réservation du véhicule mentionné ci-dessus.', pageWidth / 2, footerY + 10, { align: 'center' });
+      doc.text('Pour toute question, veuillez nous contacter à contact@samex.com', pageWidth / 2, footerY + 16, { align: 'center' });
+      
+      // Page number
+      doc.setFontSize(8);
+      doc.text(`Page ${i} / ${totalPages}`, pageWidth - margin, footerY + 25, { align: 'right' });
+    }
 
-    // Signature placeholder
-    yPos += 10;
+    // Signature on last page
+    doc.setPage(totalPages);
+    const signatureY = pageHeight - 50;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
-    doc.text('_____________________', pageWidth - margin - 40, yPos);
-    yPos += 5;
-    doc.text('Signature autorisée', pageWidth - margin - 40, yPos);
+    doc.setTextColor(0, 0, 0);
+    doc.text('_____________________', pageWidth - margin - 40, signatureY);
+    doc.text('Signature autorisée', pageWidth - margin - 40, signatureY + 5);
 
     // Return PDF as Blob
     return doc.output('blob');
@@ -522,6 +551,7 @@ export default function InscriptionPageContent({ id }) {
       if (!formData.dateOfBirth) newErrors.dateOfBirth = t('required');
       if (!formData.nationality.trim()) newErrors.nationality = t('required');
       if (!formData.nationalId.trim()) newErrors.nationalId = t('required');
+      if (!formData.passportNumber.trim()) newErrors.passportNumber = t('required');
       if (!formData.streetAddress.trim()) newErrors.streetAddress = t('required');
       if (!formData.city.trim()) newErrors.city = t('required');
       if (!formData.country.trim()) newErrors.country = t('required');
@@ -568,6 +598,7 @@ export default function InscriptionPageContent({ id }) {
       if (!formData.nationalIdFile) newErrors.nationalIdFile = t('required');
       if (!formData.birthCertificate) newErrors.birthCertificate = t('required');
       if (!formData.proofOfResidence) newErrors.proofOfResidence = t('required');
+      if (!formData.mandatTransitaire) newErrors.mandatTransitaire = t('required');
       if (!formData.acceptTerms) newErrors.acceptTerms = t('required');
     }
 
@@ -624,11 +655,12 @@ export default function InscriptionPageContent({ id }) {
     try {
       // Step 1: Upload all documents to Cloudinary
       console.log('Uploading documents to Cloudinary...');
-      const [passportUrl, nationalIdUrl, birthCertificateUrl, proofOfResidenceUrl] = await Promise.all([
+      const [passportUrl, nationalIdUrl, birthCertificateUrl, proofOfResidenceUrl, mandatTransitaireUrl] = await Promise.all([
         uploadFileToCloudinary(formData.passport, 'clients/passports'),
         uploadFileToCloudinary(formData.nationalIdFile, 'clients/national-ids'),
         uploadFileToCloudinary(formData.birthCertificate, 'clients/birth-certificates'),
         uploadFileToCloudinary(formData.proofOfResidence, 'clients/residence'),
+        uploadFileToCloudinary(formData.mandatTransitaire, 'clients/mandat-transitaire'),
       ]);
 
       console.log('Documents uploaded successfully');
@@ -642,6 +674,7 @@ export default function InscriptionPageContent({ id }) {
         gender: formData.gender,
         nationality: formData.nationality,
         nationalId: formData.nationalId,
+        passportNumber: formData.passportNumber,
         streetAddress: formData.streetAddress,
         city: formData.city,
         country: formData.country,
@@ -678,7 +711,8 @@ export default function InscriptionPageContent({ id }) {
         nationalIdUrl: nationalIdUrl,
         birthCertificateUrl: birthCertificateUrl,
         proofOfResidenceUrl: proofOfResidenceUrl,
-        paymentProofUrl: paymentProofUrl,
+        mandatTransitaireUrl: mandatTransitaireUrl,
+        paymentProofUrl: null,
         acceptTerms: formData.acceptTerms,
         status: 'pending',
         userId: user?._id || user?.id,
@@ -1081,7 +1115,7 @@ export default function InscriptionPageContent({ id }) {
 
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                        {t('nationalId')} <span className="text-red-500">*</span>
+                        {t('nationalIdNumber')} <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
@@ -1095,6 +1129,24 @@ export default function InscriptionPageContent({ id }) {
                       />
                       {errors.nationalId && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.nationalId}</p>}
                     </div>
+                  </div>
+
+                  {/* Passport Number */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      {t('passportNumber')} <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="passportNumber"
+                      value={formData.passportNumber}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-800 border ${
+                        errors.passportNumber ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+                      } text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                      placeholder="P123456789"
+                    />
+                    {errors.passportNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.passportNumber}</p>}
                   </div>
 
                   {/* Street Address */}
@@ -1435,6 +1487,15 @@ export default function InscriptionPageContent({ id }) {
                       name="proofOfResidence"
                       onChange={(file) => handleFileChange('proofOfResidence', file)}
                       error={errors.proofOfResidence}
+                      required={true}
+                    />
+
+                    {/* Mandat Transitaire */}
+                    <FileUploader
+                      label={t('mandatTransitaire')}
+                      name="mandatTransitaire"
+                      onChange={(file) => handleFileChange('mandatTransitaire', file)}
+                      error={errors.mandatTransitaire}
                       required={true}
                     />
                   </div>

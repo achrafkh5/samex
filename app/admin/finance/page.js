@@ -66,7 +66,7 @@ export default function FinancePage() {
       />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto lg:pl-64">
         <div className="p-6 lg:p-8">
         {/* Header */}
         <div className="mb-8">

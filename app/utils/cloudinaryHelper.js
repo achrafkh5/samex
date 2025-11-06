@@ -134,8 +134,6 @@ export function viewCloudinaryPDF(url, filename = 'document.pdf') {
   
   if (!newWindow) {
     console.warn('⚠️ Popup blocked. Please allow popups for this site.');
-    // Don't navigate current tab - just show warning
-    alert('Please allow popups to view files in a new tab.');
   } else {
     console.log('✅ PDF opened successfully in new tab');
   }

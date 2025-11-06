@@ -98,7 +98,7 @@ export default function AdminDashboardContent() {
       <AdminSidebar currentPage={currentPage} onNavigate={handleNavigate} />
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto lg:pl-64">
         {renderModule()}
       </div>
     </div>

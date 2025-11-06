@@ -95,10 +95,10 @@ export default function CarCard({ car }) {
             )}
 
             {/* Power */}
-            {car.power && (
+            {car.specs?.power && (
               <div className="text-center">
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t('power') || 'Power'}</p>
-                <p className="text-xs font-semibold text-gray-900 dark:text-white">{car.power}</p>
+                <p className="text-xs font-semibold text-gray-900 dark:text-white">{car.specs?.power}</p>
               </div>
             )}
           </div>

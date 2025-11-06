@@ -589,11 +589,11 @@ if(orders?.length > 0) {
                   {t('uploadedDocuments') || 'Uploaded Documents'}
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
-                  {selectedOrder.idCardUrl && (
+                  {selectedOrder.nationalIdUrl && (
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          {getFileType(selectedOrder.idCardUrl) === 'image' ? (
+                          {getFileType(selectedOrder.nationalIdUrl) === 'image' ? (
                             <svg className="w-8 h-8 text-blue-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                             </svg>
@@ -603,15 +603,15 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('idCard') || 'ID Card'}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('nationalId') || 'National ID'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.idCardUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
+                              {getFileType(selectedOrder.nationalIdUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={(e) => viewFile(e, selectedOrder.idCardUrl, 'id-card.pdf')}
+                            onClick={(e) => viewFile(e, selectedOrder.nationalIdUrl, 'national-id.pdf')}
                             className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -620,9 +620,9 @@ if(orders?.length > 0) {
                             </svg>
                             {t('view') || 'View'}
                           </button>
-                          {getFileType(selectedOrder.idCardUrl) === 'image' && (
+                          {getFileType(selectedOrder.nationalIdUrl) === 'image' && (
                             <button
-                              onClick={(e) => downloadFile(e, selectedOrder.idCardUrl, 'id-card.' + selectedOrder.idCardUrl.split('.').pop().split('?')[0])}
+                              onClick={(e) => downloadFile(e, selectedOrder.nationalIdUrl, 'national-id.' + selectedOrder.nationalIdUrl.split('.').pop().split('?')[0])}
                               className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -633,22 +633,22 @@ if(orders?.length > 0) {
                           )}
                         </div>
                       </div>
-                      {getFileType(selectedOrder.idCardUrl) === 'image' && (
+                      {getFileType(selectedOrder.nationalIdUrl) === 'image' && (
                         <div className="mt-2">
-                          <img 
-                            src={selectedOrder.idCardUrl} 
-                            alt="ID Card" 
+                          <img
+                            src={selectedOrder.nationalIdUrl}
+                            alt="National ID"
                             className="w-full h-48 object-contain bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
                           />
                         </div>
                       )}
                     </div>
                   )}
-                  {selectedOrder.driversLicenseUrl && (
+                  {selectedOrder.birthCertificateUrl && (
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          {getFileType(selectedOrder.driversLicenseUrl) === 'image' ? (
+                          {getFileType(selectedOrder.birthCertificateUrl) === 'image' ? (
                             <svg className="w-8 h-8 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                             </svg>
@@ -658,15 +658,15 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('driversLicense') || 'Driver License'}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('birthCertificate') || 'Birth Certificate'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.driversLicenseUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
+                              {getFileType(selectedOrder.birthCertificateUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={(e) => viewFile(e, selectedOrder.driversLicenseUrl, 'drivers-license.pdf')}
+                            onClick={(e) => viewFile(e, selectedOrder.birthCertificateUrl, 'birth-certificate.pdf')}
                             className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded text-xs font-medium hover:bg-green-200 dark:hover:bg-green-900/50 flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -675,9 +675,9 @@ if(orders?.length > 0) {
                             </svg>
                             {t('view') || 'View'}
                           </button>
-                          {getFileType(selectedOrder.driversLicenseUrl) === 'image' && (
+                          {getFileType(selectedOrder.birthCertificateUrl) === 'image' && (
                             <button
-                              onClick={(e) => downloadFile(e, selectedOrder.driversLicenseUrl, 'drivers-license.' + selectedOrder.driversLicenseUrl.split('.').pop().split('?')[0])}
+                              onClick={(e) => downloadFile(e, selectedOrder.birthCertificateUrl, 'birth-certificate.' + selectedOrder.birthCertificateUrl.split('.').pop().split('?')[0])}
                               className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded text-xs font-medium hover:bg-blue-200 dark:hover:bg-blue-900/50 flex items-center gap-1"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -688,22 +688,22 @@ if(orders?.length > 0) {
                           )}
                         </div>
                       </div>
-                      {getFileType(selectedOrder.driversLicenseUrl) === 'image' && (
+                      {getFileType(selectedOrder.birthCertificateUrl) === 'image' && (
                         <div className="mt-2">
                           <img 
-                            src={selectedOrder.driversLicenseUrl} 
-                            alt="Driver License" 
+                            src={selectedOrder.birthCertificateUrl} 
+                            alt="Birth Certificate" 
                             className="w-full h-48 object-contain bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
                           />
                         </div>
                       )}
                     </div>
                   )}
-                  {selectedOrder.paymentProofUrl && (
+                  {selectedOrder.passportUrl && (
                     <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center">
-                          {getFileType(selectedOrder.paymentProofUrl) === 'image' ? (
+                          {getFileType(selectedOrder.passportUrl) === 'image' ? (
                             <svg className="w-8 h-8 text-purple-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                             </svg>
@@ -713,15 +713,15 @@ if(orders?.length > 0) {
                             </svg>
                           )}
                           <div>
-                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('paymentProof') || 'Payment Proof'}</p>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('passport') || 'Passport'}</p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {getFileType(selectedOrder.paymentProofUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
+                              {getFileType(selectedOrder.passportUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
                             </p>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={(e) => viewFile(e, selectedOrder.paymentProofUrl, 'payment-proof.pdf')}
+                            onClick={(e) => viewFile(e, selectedOrder.passportUrl, 'passport.pdf')}
                             className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 flex items-center gap-1"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -730,9 +730,9 @@ if(orders?.length > 0) {
                             </svg>
                             {t('view') || 'View'}
                           </button>
-                          {getFileType(selectedOrder.paymentProofUrl) === 'image' && (
+                          {getFileType(selectedOrder.passportUrl) === 'image' && (
                             <button
-                              onClick={(e) => downloadFile(e, selectedOrder.paymentProofUrl, 'payment-proof.' + selectedOrder.paymentProofUrl.split('.').pop().split('?')[0])}
+                              onClick={(e) => downloadFile(e, selectedOrder.passportUrl, 'passport.' + selectedOrder.passportUrl.split('.').pop().split('?')[0])}
                               className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded text-xs font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 flex items-center gap-1"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -743,11 +743,66 @@ if(orders?.length > 0) {
                           )}
                         </div>
                       </div>
-                      {getFileType(selectedOrder.paymentProofUrl) === 'image' && (
+                      {getFileType(selectedOrder.passportUrl) === 'image' && (
                         <div className="mt-2">
                           <img 
-                            src={selectedOrder.paymentProofUrl} 
-                            alt="Payment Proof" 
+                            src={selectedOrder.passportUrl} 
+                            alt="passport" 
+                            className="w-full h-48 object-contain bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {selectedOrder.mandatTransitaireUrl && (
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center">
+                          {getFileType(selectedOrder.mandatTransitaireUrl) === 'image' ? (
+                            <svg className="w-8 h-8 text-orange-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                            </svg>
+                          ) : (
+                            <svg className="w-8 h-8 text-orange-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                            </svg>
+                          )}
+                          <div>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">{t('mandatTransitaire') || 'Mandat Transitaire'}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {getFileType(selectedOrder.mandatTransitaireUrl) === 'image' ? t('image') || 'Image' : t('pdfDocument') || 'PDF Document'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={(e) => viewFile(e, selectedOrder.mandatTransitaireUrl, 'mandat-transitaire.pdf')}
+                            className="px-3 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded text-xs font-medium hover:bg-orange-200 dark:hover:bg-orange-900/50 flex items-center gap-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            {t('view') || 'View'}
+                          </button>
+                          {getFileType(selectedOrder.mandatTransitaireUrl) === 'image' && (
+                            <button
+                              onClick={(e) => downloadFile(e, selectedOrder.mandatTransitaireUrl, 'mandat-transitaire.' + selectedOrder.mandatTransitaireUrl.split('.').pop().split('?')[0])}
+                              className="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded text-xs font-medium hover:bg-purple-200 dark:hover:bg-purple-900/50 flex items-center gap-1"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                              </svg>
+                              {t('download') || 'Download'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {getFileType(selectedOrder.mandatTransitaireUrl) === 'image' && (
+                        <div className="mt-2">
+                          <img 
+                            src={selectedOrder.mandatTransitaireUrl} 
+                            alt="Proof of Residence" 
                             className="w-full h-48 object-contain bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600"
                           />
                         </div>

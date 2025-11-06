@@ -6,7 +6,7 @@ import ImageGallery from './ImageGallery';
 import { useState } from 'react';
 
 export default function CarDetailsContent({ cars }) {
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
   if (!cars || cars.length === 0) {
@@ -37,37 +37,6 @@ export default function CarDetailsContent({ cars }) {
         ? [cars.image] 
         : [],
     version: cars.model,
-    doors:
-      ['Tesla', 'Ferrari', 'Lamborghini', 'McLaren'].includes(cars.brand)
-        ? '2'
-        : '4',
-    seats:
-      ['Ferrari', 'Lamborghini', 'McLaren'].includes(cars.brand)
-        ? '2'
-        : cars.brand === 'Range Rover'
-        ? '7'
-        : '5',
-    engineCapacity:
-      cars.fuelType === 'electric'
-        ? 'Electric Motor'
-        : ['Ferrari', 'Lamborghini'].includes(cars.brand)
-        ? '6.5L V12'
-        : ['Porsche', 'BMW'].includes(cars.brand)
-        ? '3.0L Turbo'
-        : '4.0L V8',
-    // Use features from database if available
-    features: cars.specs?.features && cars.specs.features.length > 0
-      ? cars.specs.features
-      : [
-          'Premium Sound System',
-          'Leather Interior',
-          'Navigation System',
-          'Parking Sensors',
-          'Backup Camera',
-          'Bluetooth Connectivity',
-          'Keyless Entry',
-          'Climate Control',
-        ],
   };
 
   const finalPrice = car.priceType === 'range' 
@@ -183,18 +152,18 @@ export default function CarDetailsContent({ cars }) {
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                           <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{car.specs?.power}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Power</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('power')}</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{car.specs?.speed || car.specs?.range}</div>
-                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{car.specs?.speed ? 'Top Speed' : 'Range'}</div>
+                          <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">{car.specs?.speed || car.specs?.range }</div>
+                          <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{car.specs?.speed ? t('topSpeed') : t('range')}</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                          <div className="text-3xl font-bold text-green-600 dark:text-green-400">{car.doors}</div>
+                          <div className="text-3xl font-bold text-green-600 dark:text-green-400">{car.specs?.doors}</div>
                           <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('doors')}</div>
                         </div>
                         <div className="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{car.seats}</div>
+                          <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">{car.specs?.seats}</div>
                           <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{t('seats')}</div>
                         </div>
                       </div>
@@ -218,7 +187,7 @@ export default function CarDetailsContent({ cars }) {
                             <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                             </svg>
-                            <span className="text-gray-700 dark:text-gray-300">Premium leather interior with heated seats</span>
+                            <span className="text-gray-700 dark:text-gray-300">{t('primiumLeather')}</span>
                           </li>
                         </ul>
                       </div>
@@ -237,12 +206,12 @@ export default function CarDetailsContent({ cars }) {
                           { label: t('version'), value: car.version },
                           { label: t('fuelType'), value: t(car.fuelType) },
                           { label: t('transmission'), value: t(car.transmission) },
-                          { label: t('engineCapacity'), value: car.engineCapacity },
-                          { label: 'Power', value: car.specs?.power },
-                          { label: car.specs?.speed ? 'Top Speed' : 'Range', value: car.specs?.speed || car.specs?.range },
-                          { label: 'Mileage', value: car.specs?.mileage },
-                          { label: t('doors'), value: car.doors },
-                          { label: t('seats'), value: car.seats },
+                          { label: t('engineCapacity'), value: t(car.fuelType) },
+                          { label: t('power'), value: car.specs?.power },
+                          { label: car.specs?.speed ? t('topSpeed') : t('range'), value: car.specs?.speed || car.specs?.range },
+                          { label: t('mileage'), value: car.specs?.mileage },
+                          { label: t('doors'), value: car.specs?.doors },
+                          { label: t('seats'), value: car.specs?.seats },
                           { label: t('vinNumber'), value: car.vin },
                         ].map((spec, index) => (
                           <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
@@ -254,14 +223,14 @@ export default function CarDetailsContent({ cars }) {
                         {/* Colors - Full width */}
                         {car.specs?.colors && car.specs.colors.length > 0 && (
                           <div className="md:col-span-2 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
-                            <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-3">Available Colors</span>
+                            <span className="font-semibold text-gray-700 dark:text-gray-300 block mb-3">{t('availableColors')}</span>
                             <div className="flex flex-wrap gap-2">
                               {car.specs.colors.map((color, idx) => (
                                 <span 
                                   key={idx}
                                   className="px-3 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg text-sm font-medium border border-gray-200 dark:border-gray-600"
                                 >
-                                  {color}
+                                  {t(color)}
                                 </span>
                               ))}
                             </div>
@@ -373,7 +342,7 @@ export default function CarDetailsContent({ cars }) {
                 {/* Contact Card */}
                 <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
                   <h3 className="text-xl font-bold mb-2">{t('contactDealer')}</h3>
-                  <p className="text-blue-100 mb-4">Have questions? Our team is ready to help.</p>
+                  <p className="text-blue-100 mb-4">{t('haveQuestions')}</p>
                   <Link href={`/contact`}>
                     <button className="w-full px-6 py-3 bg-white text-blue-600 hover:bg-blue-50 rounded-xl font-semibold transition-all">
                       {t('contact')}

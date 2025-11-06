@@ -14,10 +14,25 @@ export default function BrandsShowcase() {
     const fetchBrands = async () => {
       try {
         const response = await fetch('/api/brands');
+        
+        if (!response.ok) {
+          console.error('Failed to fetch brands:', response.status);
+          setBrands([]);
+          return;
+        }
+        
         const data = await response.json();
-        setBrands(data);
+        
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setBrands(data);
+        } else {
+          console.error('Expected array but got:', data);
+          setBrands([]);
+        }
       } catch (error) {
         console.error('Error fetching brands:', error);
+        setBrands([]);
       } finally {
         setLoading(false);
       }
@@ -68,7 +83,7 @@ export default function BrandsShowcase() {
 
         {/* Brands Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-          {brands.map((brand) => (
+          {brands?.map((brand) => (
             <Link
               key={brand._id}
               href={`/cars?brand=${encodeURIComponent(brand.name)}`}

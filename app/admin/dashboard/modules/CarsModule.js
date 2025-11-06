@@ -144,6 +144,10 @@ if(cars?.length>0){
       fuelType: 'gasoline',
       transmission: 'automatic',
       power: '',
+      doors: '',
+      seats: '',
+      range: '',
+      mileage: '0',
       colors: [],
       vin: '',
       images: []
@@ -317,6 +321,10 @@ if(cars?.length>0){
       fuelType: car.fuelType,
       transmission: car.transmission,
       power: car.specs?.power || '',
+      doors: car.specs?.doors || '',
+      seats: car.specs?.seats || '',
+      range: car.specs?.range || '',
+      mileage: car.specs?.mileage || (car.condition === 'new' ? '0' : ''),
       colors: existingColors,
       vin: car.vin || '',
       images: existingImages
@@ -470,6 +478,10 @@ if(cars?.length>0){
             image: carImages[0] || '',
             specs: {
               power: formData.power,
+              doors: formData.doors,
+              seats: formData.seats,
+              range: formData.range,
+              mileage: formData.condition === 'new' ? '0 km' : formData.mileage,
               colors: formData.colors,
               features: features
             }
@@ -504,6 +516,10 @@ if(cars?.length>0){
                   specs: {
                     ...car.specs,
                     power: formData.power,
+                    doors: formData.doors,
+                    seats: formData.seats,
+                    range: formData.range,
+                    mileage: formData.condition === 'new' ? '0 km' : formData.mileage,
                     colors: formData.colors,
                     features: features
                   }
@@ -529,9 +545,12 @@ if(cars?.length>0){
         image: carImages[0] || '',
         specs: {
           power: formData.power,
+          doors: formData.doors,
+          seats: formData.seats,
+          range: formData.range,
+          mileage: formData.condition === 'new' ? '0 km' : formData.mileage,
           colors: formData.colors,
-          features: features,
-          mileage: '0 miles'
+          features: features
         },
         availability: 'available'
       };
@@ -1031,13 +1050,35 @@ if(cars?.length>0){
                       </label>
                       <select
                         value={formData.condition}
-                        onChange={(e) => setFormData({ ...formData, condition: e.target.value })}
+                        onChange={(e) => {
+                          const newCondition = e.target.value;
+                          setFormData({ 
+                            ...formData, 
+                            condition: newCondition,
+                            mileage: newCondition === 'new' ? '0' : formData.mileage
+                          });
+                        }}
                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="new">{t('new') || 'New'}</option>
                         <option value="used">{t('used') || 'Used'}</option>
                       </select>
                     </div>
+                    {/* Mileage - Only show for used cars */}
+                    {formData.condition === 'used' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          {t('mileage') || 'Mileage'}
+                        </label>
+                        <input
+                          type="text"
+                          value={formData.mileage}
+                          onChange={(e) => setFormData({ ...formData, mileage: e.target.value })}
+                          placeholder="e.g., 15000 km"
+                          className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         {t('fuelType') || 'Fuel Type'}
@@ -1075,6 +1116,46 @@ if(cars?.length>0){
                         value={formData.power}
                         onChange={(e) => setFormData({ ...formData, power: e.target.value })}
                         placeholder="e.g., 503 HP"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t('doors') || 'Doors'}
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.doors}
+                        onChange={(e) => setFormData({ ...formData, doors: e.target.value })}
+                        placeholder="e.g., 4"
+                        min="2"
+                        max="5"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t('seats') || 'Seats'}
+                      </label>
+                      <input
+                        type="number"
+                        value={formData.seats}
+                        onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
+                        placeholder="e.g., 5"
+                        min="2"
+                        max="9"
+                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        {t('range') || 'Range'}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.range}
+                        onChange={(e) => setFormData({ ...formData, range: e.target.value })}
+                        placeholder="e.g., 500 km or N/A"
                         className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                       />
                     </div>

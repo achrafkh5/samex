@@ -351,7 +351,7 @@ export default function DashboardPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                          Date of Birth
+                          {t('dateOfBirth')}
                         </label>
                         <p className="text-gray-900 dark:text-white">
                           {formatDate(client.dateOfBirth)}
@@ -360,21 +360,28 @@ export default function DashboardPage() {
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                          Nationality
+                          {t('nationality')}
                         </label>
                         <p className="text-gray-900 dark:text-white">{client.nationality || 'N/A'}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                          National ID
+                          {t('nationalIdNumber')}
                         </label>
                         <p className="text-gray-900 dark:text-white">{client.nationalId || 'N/A'}</p>
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
-                          City
+                          {t('passportNumber')}
+                        </label>
+                        <p className="text-gray-900 dark:text-white">{client.passportNumber || 'N/A'}</p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1">
+                          {t('city')}
                         </label>
                         <p className="text-gray-900 dark:text-white">{client.city || 'N/A'}</p>
                       </div>

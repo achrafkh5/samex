@@ -14,10 +14,25 @@ export default function RecentCars() {
     const fetchRecentCars = async () => {
       try {
         const response = await fetch('/api/cars?recent=true&limit=6');
+        
+        if (!response.ok) {
+          console.error('Failed to fetch recent cars:', response.status);
+          setCars([]);
+          return;
+        }
+        
         const data = await response.json();
-        setCars(data);
+        
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setCars(data);
+        } else {
+          console.error('Expected array but got:', data);
+          setCars([]);
+        }
       } catch (error) {
         console.error('Error fetching recent cars:', error);
+        setCars([]);
       } finally {
         setLoading(false);
       }

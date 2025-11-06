@@ -168,7 +168,7 @@ export default function AdminSidebar({ currentPage, onNavigate }) {
       </button>
 
       {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:sticky top-0 left-0 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out z-40 flex flex-col`}>
+      <div className={`${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed top-0 left-0 h-screen w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-transform duration-300 ease-in-out z-40 flex flex-col`}>
         {/* Logo */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <Link href="/admin" className="flex items-center space-x-2">

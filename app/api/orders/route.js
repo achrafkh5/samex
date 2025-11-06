@@ -34,6 +34,7 @@ export async function GET(request) {
     const orders = await db
       .collection('orders')
       .find({ userId: authUser.userId })
+      .sort({ createdAt: -1 })
       .toArray();
 
     return NextResponse.json({ success: true, orders });
