@@ -32,8 +32,8 @@ export default function Mission() {
                   <div className="text-xs text-gray-600 dark:text-gray-400">{t('deliveryTime')}</div>
                 </div>
                 <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">Jijel</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">{t('shippingPort')}</div>
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{t('ourSiteAlg')}</div>
+                  <div className="text-xs text-gray-600 dark:text-gray-400">QX5C+H5M, Chéraga</div>
                 </div>
               </div>
             </div>

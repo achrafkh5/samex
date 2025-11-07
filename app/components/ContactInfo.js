@@ -36,12 +36,18 @@ export default function ContactInfo() {
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                       {t('callUs')}
                     </h3>
+                    
                     <p className="text-gray-600 dark:text-gray-400 mb-3">
-                      Mon-Sat: 9:00 AM - 6:00 PM
+                      <a href="tel:+213550399115" >
+                      +213 550 399 115
+                      </a>
                     </p>
-                    <a href="tel:+1234567890" className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
-                      
-                    </a>
+                    <p className="text-gray-600 dark:text-gray-400 mb-3">
+                      <a href="tel:+821030861401" >
+                      +82 10-3086-1401
+                      </a>
+                    </p>
+
                   </div>
                 </div>
               </div>
@@ -61,7 +67,7 @@ export default function ContactInfo() {
                       {t('emailUs')}
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-3">
-                      Get response within 24 hours
+                      {t('emailResponseTime')}
                     </p>
                     <a href="mailto:info@alkocars.com" className="text-xl font-bold text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors">
                       info@alkocars.com
@@ -104,7 +110,7 @@ export default function ContactInfo() {
                   <svg className="w-6 h-6 mr-3 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  {t('businessHours')}
+                  {t('callingHours')}
                 </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
