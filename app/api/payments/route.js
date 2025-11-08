@@ -5,8 +5,6 @@ import { verifyAdmin } from '@/lib/auth';
 
 export async function GET() {
   try {
-    // Verify admin authentication
-    await verifyAdmin();
 
     const client = await clientPromise;
     const db = client.db("dreamcars");
