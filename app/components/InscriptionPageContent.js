@@ -1448,7 +1448,7 @@ export default function InscriptionPageContent({ id }) {
               )}
 
               {/* Step 4: Documents and Terms */}
-              {currentStep === 1 && (
+              {currentStep === 4 && (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-800 space-y-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                     {t('documentUpload')}
