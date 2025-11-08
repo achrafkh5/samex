@@ -16,6 +16,7 @@ import PaymentMethodsModule from './modules/PaymentMethodsModule';
 import DocumentsModule from './modules/DocumentsModule';
 import PDFGeneratorModule from './modules/PDFGeneratorModule';
 import ChangePasswordModule from './modules/ChangePasswordModule';
+import TransitairesModule from './modules/TransitairesModule';
 
 export default function AdminDashboardContent() {
   const router = useRouter();
@@ -83,6 +84,8 @@ export default function AdminDashboardContent() {
         return <PaymentMethodsModule />;
       case 'documents':
         return <DocumentsModule />;
+      case 'transitaires':
+        return <TransitairesModule />;
       case 'pdf-generator':
         return <PDFGeneratorModule />;
       case 'change-password':

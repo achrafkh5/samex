@@ -104,7 +104,7 @@ export default function Hero() {
               { label: t('vehicleTypes'), value: t('vehicleTypes').split(' ')[0] || 'Petrol' },
               { label: t('deliveryTime'), value: '35 ' + t('days') },
               { label: t('foundedYear'), value: '2024' },
-              { label: t('shippingPort'), value: t('jijel') },
+              { label: 'QX5C+H5M, Chéraga', value: t('ourSiteAlg') },
             ].map((stat, index) => (
               <div
                 key={index}

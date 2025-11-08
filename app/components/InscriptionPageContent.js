@@ -7,6 +7,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import Link from 'next/link';
 import Image from 'next/image';
 import FileUploader from './FileUploader';
+import TransitaireSelector from './TransitaireSelector';
 import jsPDF from 'jspdf';
 
 export default function InscriptionPageContent({ id }) {
@@ -1447,7 +1448,7 @@ export default function InscriptionPageContent({ id }) {
               )}
 
               {/* Step 4: Documents and Terms */}
-              {currentStep === 4 && (
+              {currentStep === 1 && (
                 <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-gray-800 space-y-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
                     {t('documentUpload')}
@@ -1490,7 +1491,10 @@ export default function InscriptionPageContent({ id }) {
                       required={true}
                     />
 
-                    {/* Mandat Transitaire */}
+                    {/* Transitaire Selector - Generate Mandat */}
+                    <TransitaireSelector />
+
+                    {/* Mandat Transitaire Upload */}
                     <FileUploader
                       label={t('mandatTransitaire')}
                       name="mandatTransitaire"
