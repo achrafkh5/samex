@@ -42,10 +42,6 @@ export default function TransitairesModule() {
     'El Meniaa'
   ];
 
-  useEffect(() => {
-    fetchTransitaires();
-  }, []);
-
   const fetchTransitaires = async () => {
     setLoading(true);
     try {
@@ -60,6 +56,11 @@ export default function TransitairesModule() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchTransitaires();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const showToastMessage = (message, type = 'success') => {
     setToastMessage(message);
@@ -137,6 +138,7 @@ export default function TransitairesModule() {
       
       const method = editingTransitaire ? 'PUT' : 'POST';
       
+      // Always send just the form data - PDF will be regenerated on edit
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },

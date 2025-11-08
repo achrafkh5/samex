@@ -72,18 +72,27 @@ class TransitaireModel {
   static async update(id, updateData) {
     const collection = await this.getCollection();
     
-    const result = await collection.findOneAndUpdate(
-      { _id: new ObjectId(id) },
-      { 
-        $set: { 
-          ...updateData,
-          updatedAt: new Date() 
-        } 
-      },
-      { returnDocument: 'after' }
-    );
+    try {
+      const result = await collection.updateOne(
+        { _id: new ObjectId(id) },
+        { 
+          $set: { 
+            ...updateData,
+            updatedAt: new Date() 
+          } 
+        }
+      );
 
-    return result.value;
+      if (result.matchedCount === 0) {
+        return null;
+      }
+
+      // Fetch and return the updated document
+      return await collection.findOne({ _id: new ObjectId(id) });
+    } catch (error) {
+      console.error('Error in TransitaireModel.update:', error);
+      throw error;
+    }
   }
 
   /**

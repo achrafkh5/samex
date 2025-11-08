@@ -11,19 +11,20 @@ export default function CategoriesModule() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
 
+  const fetchCategories = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/brands');
+      const data = await response.json();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCategories = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch('/api/brands');
-        const data = await response.json();
-        setCategories(data);
-      } catch (error) {
-        console.error('Error fetching categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchCategories();
   }, []);
 
@@ -38,6 +39,8 @@ export default function CategoriesModule() {
   const [uploading, setUploading] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -89,44 +92,62 @@ export default function CategoriesModule() {
   };
 
   const handleDelete = async (id) => {
-    if (confirm(t('confirmDelete') || 'Are you sure you want to delete this category?')) {
-      setProcessing(true);
-      try {
-        const category = categories.find(cat => cat._id === id);
-        
-        // Delete category from database
-        await fetch(`/api/brands`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ id })
-        });
-        
-        // Delete image from Cloudinary if it exists
-        if (category?.image) {
-          try {
-            await fetch('/api/upload/delete', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ url: category.image }),
-            });
-            console.log('✅ Category image deleted from Cloudinary');
-          } catch (error) {
-            console.error('⚠️ Failed to delete category image from Cloudinary:', error);
-          }
+    setProcessing(true);
+    try {
+      const category = categories.find(cat => cat._id === id);
+      
+      // Delete category from database (will also delete cars and images via API)
+      const response = await fetch(`/api/brands`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
+      
+      const result = await response.json();
+      
+      // Delete category image from Cloudinary if it exists
+      if (category?.image) {
+        try {
+          await fetch('/api/upload/delete', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: category.image }),
+          });
+          console.log('✅ Category image deleted from Cloudinary');
+        } catch (error) {
+          console.error('⚠️ Failed to delete category image from Cloudinary:', error);
         }
-        
-        setCategories(categories.filter(cat => cat._id !== id));
-        showToastMessage(t('categoryDeleted') || 'Category deleted successfully');
-      } catch (error) {
-        console.error('Error deleting category:', error);
-      } finally {
-        setProcessing(false);
       }
+      
+      // Refetch categories to get updated list
+      await fetchCategories();
+      
+      // Show success message with car count
+      const message = result.deletedCars > 0 
+        ? `${t('categoryDeleted') || 'Category deleted successfully'} (${result.deletedCars} ${t('cars') || 'cars'} deleted)`
+        : t('categoryDeleted') || 'Category deleted successfully';
+      showToastMessage(message);
+    } catch (error) {
+      console.error('Error deleting category:', error);
+    } finally {
+      setProcessing(false);
+      setDeleteConfirmOpen(false);
+      setCategoryToDelete(null);
     }
+  };
+
+  const openDeleteConfirm = (category) => {
+    setCategoryToDelete(category);
+    setDeleteConfirmOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+    setCategoryToDelete(null);
   };
 
   const handleSubmit = async (e) => {
@@ -172,21 +193,15 @@ export default function CategoriesModule() {
           },
           body: JSON.stringify({ id: editingCategory._id, ...categoryData })
         });
-        setCategories(categories.map(cat =>
-          cat._id === editingCategory._id
-            ? { ...cat, ...categoryData }
-            : cat
-        ));
         showToastMessage(t('categoryUpdated') || 'Category updated successfully');
       } else {
         // Add new category
         const newCategory = {
           ...categoryData,
-          carCount: 0,
           createdAt: new Date().toISOString().split('T')[0]
         };
         
-        const response = await fetch('/api/brands', {
+        await fetch('/api/brands', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -194,11 +209,11 @@ export default function CategoriesModule() {
           body: JSON.stringify(newCategory)
         });
         
-        const addedCategory = await response.json();
-        console.log('Added category:', addedCategory);
-        setCategories([...categories, addedCategory]);
         showToastMessage(t('categoryAdded') || 'Category added successfully');
       }
+      
+      // Refetch categories to get updated car counts
+      await fetchCategories();
       
       setIsModalOpen(false);
       setFormData({ name: '', image: '' });
@@ -309,7 +324,7 @@ export default function CategoriesModule() {
                         </svg>
                       </button>
                       <button
-                        onClick={() => handleDelete(category._id)}
+                        onClick={() => openDeleteConfirm(category)}
                         disabled={processing}
                         className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title={t('delete') || 'Delete'}
@@ -411,6 +426,99 @@ export default function CategoriesModule() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="font-medium">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirmOpen && categoryToDelete && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" onClick={closeDeleteConfirm}>
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20">
+            {/* Background overlay */}
+            <div className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"></div>
+
+            {/* Dialog panel */}
+            <div 
+              className="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full z-10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="px-8 py-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                      {t('confirmDelete') || 'Delete Category?'}
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">
+                      {t('deleteCategoryWarning') || 'Are you sure you want to delete this category? This action cannot be undone.'}
+                    </p>
+                    {categoryToDelete.carCount > 0 && (
+                      <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                        <p className="text-sm text-red-800 dark:text-red-400 font-medium flex items-center gap-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          {t('warningCarsWillBeDeleted') || `Warning: ${categoryToDelete.carCount} car(s) and their images will also be permanently deleted!`}
+                        </p>
+                      </div>
+                    )}
+                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex items-center gap-3">
+                      {categoryToDelete.image && (
+                        <img 
+                          src={categoryToDelete.image} 
+                          alt={categoryToDelete.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{categoryToDelete.name}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {categoryToDelete.carCount || 0} {t('cars') || 'cars'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="px-8 py-6 bg-gray-50 dark:bg-gray-900 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={closeDeleteConfirm}
+                  disabled={processing}
+                  className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+                >
+                  {t('cancel') || 'Cancel'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(categoryToDelete._id)}
+                  disabled={processing}
+                  className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-lg hover:shadow-xl"
+                >
+                  {processing ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t('deleting') || 'Deleting...'}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      {t('delete') || 'Delete'}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

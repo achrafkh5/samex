@@ -41,7 +41,7 @@ export async function PUT(request, { params }) {
 
     const { id } = await params;
     const body = await request.json();
-    const { num_agrement, nom_ou_raison_sociale, nif, wilaya, represente_par, pdfUrl: providedPdfUrl } = body;
+    const { num_agrement, nom_ou_raison_sociale, nif, wilaya, represente_par, pdfUrl: providedPdfUrl, cloudinaryPublicId: providedPublicId } = body;
 
     // Validate required fields
     if (!num_agrement || !nom_ou_raison_sociale || !nif || !wilaya) {
@@ -68,44 +68,80 @@ export async function PUT(request, { params }) {
       represente_par: represente_par || '',
     };
 
-    // If pdfUrl is provided in the request, use it (for manual updates from frontend)
-    if (providedPdfUrl) {
-      updateData.pdfUrl = providedPdfUrl;
-    } else {
-      // Otherwise, regenerate PDF with new data and upload to Cloudinary
-      let cloudinaryPublicId = null;
+    // Get the existing transitaire to access old PDF info
+    const existingTransitaire = await TransitaireModel.findById(id);
+    if (!existingTransitaire) {
+      return NextResponse.json(
+        { error: 'Transitaire not found' },
+        { status: 404 }
+      );
+    }
+
+    // Delete old PDF from Cloudinary if it exists
+    if (existingTransitaire.cloudinaryPublicId) {
       try {
-        const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/generate-mandat`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            num_agrement,
-            nom_ou_raison_sociale,
-            nif,
-            wilaya,
-            represente_par,
-          }),
+        console.log('🗑️ Deleting old PDF from Cloudinary:', existingTransitaire.cloudinaryPublicId);
+        
+        const result = await cloudinary.uploader.destroy(existingTransitaire.cloudinaryPublicId, { 
+          resource_type: 'raw',
+          invalidate: true
         });
 
-        if (pdfResponse.ok) {
-          const pdfData = await pdfResponse.json();
-          updateData.pdfUrl = pdfData.url;
-          updateData.cloudinaryPublicId = pdfData.publicId;
-          console.log('✅ PDF regenerated with public_id:', pdfData.publicId);
-        } else {
-          console.warn('Failed to regenerate PDF during transitaire update');
+        console.log('✅ Cloudinary deletion result:', result);
+        
+        if (result.result === 'ok') {
+          console.log(`✅ Successfully deleted old PDF from Cloudinary: ${existingTransitaire.cloudinaryPublicId}`);
+        } else if (result.result === 'not found') {
+          console.log(`⚠️ Old PDF not found in Cloudinary: ${existingTransitaire.cloudinaryPublicId}`);
         }
-      } catch (pdfError) {
-        console.error('Error regenerating PDF:', pdfError);
-        // Continue without PDF update
+      } catch (cloudinaryError) {
+        console.error('⚠️ Failed to delete old PDF from Cloudinary:', cloudinaryError);
+        // Continue with update even if deletion fails
       }
     }
 
+    // Always regenerate PDF with new data and upload to Cloudinary
+    try {
+      const pdfResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/generate-mandat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          num_agrement,
+          nom_ou_raison_sociale,
+          nif,
+          wilaya,
+          represente_par,
+        }),
+      });
+
+      if (pdfResponse.ok) {
+        const pdfData = await pdfResponse.json();
+        updateData.pdfUrl = pdfData.url;
+        updateData.cloudinaryPublicId = pdfData.publicId;
+        console.log('✅ New PDF generated with public_id:', pdfData.publicId);
+      } else {
+        console.error('Failed to generate new PDF during transitaire update');
+        return NextResponse.json(
+          { error: 'Failed to generate PDF' },
+          { status: 500 }
+        );
+      }
+    } catch (pdfError) {
+      console.error('Error generating new PDF:', pdfError);
+      return NextResponse.json(
+        { error: 'Failed to generate PDF' },
+        { status: 500 }
+      );
+    }
+
     const transitaire = await TransitaireModel.update(id, updateData);
+    
+    console.log('Update result:', transitaire);
 
     if (!transitaire) {
+      console.error('Transitaire not found for ID:', id);
       return NextResponse.json(
         { error: 'Transitaire not found' },
         { status: 404 }

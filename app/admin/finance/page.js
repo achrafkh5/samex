@@ -67,13 +67,13 @@ export default function FinancePage() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto lg:pl-64">
-        <div className="p-6 lg:p-8">
+        <div className="p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             {t('finance_title') || 'Finance Management'}
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             {t('finance_description') || 'Manage company finances, car transactions, and revenue'}
           </p>
         </div>
@@ -84,13 +84,13 @@ export default function FinancePage() {
         {/* Tabs */}
         <div className="mb-6">
           <div className="border-b border-gray-200 dark:border-gray-700">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex space-x-4 sm:space-x-8 overflow-x-auto">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
-                    whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                    whitespace-nowrap py-3 sm:py-4 px-1 border-b-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0
                     ${
                       activeTab === tab.id
                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
