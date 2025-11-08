@@ -11,10 +11,12 @@ export default function OnlineSalesSection({ onDataChange }) {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
-    const [clientsMap, setClientsMap] = useState({});
-    const [carsMap, setCarsMap] = useState({});
-    const [clients, setClients] = useState([]);
-    const [cars, setCars] = useState([]);
+  const [clientsMap, setClientsMap] = useState({});
+  const [carsMap, setCarsMap] = useState({});
+  const [clients, setClients] = useState([]);
+  const [cars, setCars] = useState([]);
+  const [dateFilter, setDateFilter] = useState('all');
+  const [financeFilter, setFinanceFilter] = useState('all'); // 'all', 'added', 'not_added'
 
 
   useEffect(() => {
@@ -101,12 +103,60 @@ export default function OnlineSalesSection({ onDataChange }) {
     return entry ? entry.netProfit : null;
   };
 
+  // Date filtering function
+  const filterByDate = (date) => {
+    if (!date) return true;
+    
+    const itemDate = new Date(date);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (dateFilter) {
+      case 'today':
+        return itemDate >= today;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return itemDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return itemDate >= monthAgo;
+      case 'year':
+        const yearAgo = new Date(today);
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        return itemDate >= yearAgo;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
+  // Filter by finance status
+  const filterByFinanceStatus = (orderId) => {
+    const hasFinance = isFinanceAdded(orderId);
+    
+    switch (financeFilter) {
+      case 'added':
+        return hasFinance;
+      case 'not_added':
+        return !hasFinance;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
   // Filter completed/confirmed orders
-  const completedOrders = orders?.filter(order => 
-    order.status === 'completed' || 
-    order.status === 'paid' || 
-    order.status === 'delivered'
-  );
+  const completedOrders = orders?.filter(order => {
+    const isCompleted = order.status === 'completed' || 
+                        order.status === 'paid' || 
+                        order.status === 'delivered';
+    const matchesDate = filterByDate(order?.createdAt);
+    const matchesFinanceStatus = filterByFinanceStatus(order._id);
+    
+    return isCompleted && matchesDate && matchesFinanceStatus;
+  });
 
   if (loading) {
     return (
@@ -138,6 +188,58 @@ export default function OnlineSalesSection({ onDataChange }) {
           </svg>
           {t('refresh') || 'Refresh'}
         </button>
+      </div>
+
+      {/* Date Filter Buttons */}
+      <div className="flex flex-wrap gap-2">
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center mr-2">
+          {t('date_filter') || 'Date'}:
+        </div>
+        {[
+          { value: 'all', label: t('all') || 'All' },
+          { value: 'today', label: t('today') || 'Today' },
+          { value: 'week', label: t('this_week') || 'This Week' },
+          { value: 'month', label: t('this_month') || 'This Month' },
+          { value: 'year', label: t('this_year') || 'This Year' },
+        ].map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            onClick={() => setDateFilter(filter.value)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              dateFilter === filter.value
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Finance Status Filter */}
+      <div className="flex flex-wrap gap-2">
+        <div className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center mr-2">
+          {t('finance_status') || 'Finance'}:
+        </div>
+        {[
+          { value: 'all', label: t('all') || 'All' },
+          { value: 'added', label: t('finance_added') || 'Added' },
+          { value: 'not_added', label: t('finance_not_added') || 'Not Added' },
+        ].map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            onClick={() => setFinanceFilter(filter.value)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              financeFilter === filter.value
+                ? 'bg-green-600 text-white shadow-lg'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
 
       {/* Orders Table */}

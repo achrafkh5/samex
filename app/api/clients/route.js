@@ -31,7 +31,14 @@ export async function POST(request) {
     const client = await clientPromise;
     const db = client.db("dreamcars");
     const data = await request.json();
-    const result = await db.collection("clients").insertOne(data);
+    
+    // Add createdAt timestamp
+    const clientData = {
+      ...data,
+      createdAt: new Date()
+    };
+    
+    const result = await db.collection("clients").insertOne(clientData);
     return NextResponse.json({ message: "Client added", id: result.insertedId }, { status: 201 });
   } catch (error) {
     console.error("Error adding client:", error);

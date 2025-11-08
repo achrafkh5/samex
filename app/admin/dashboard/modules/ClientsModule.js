@@ -7,6 +7,7 @@ export default function ClientsModule() {
   const { t } = useLanguage();
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('all');
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -28,13 +29,46 @@ export default function ClientsModule() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Date filtering function
+  const filterByDate = (date) => {
+    if (!date) return true;
+    
+    const itemDate = new Date(date);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (dateFilter) {
+      case 'today':
+        return itemDate >= today;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return itemDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return itemDate >= monthAgo;
+      case 'year':
+        const yearAgo = new Date(today);
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        return itemDate >= yearAgo;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
   let filteredClients = [];
    if (clients.length > 0) {
-     filteredClients = clients?.filter(client =>
-      client.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      client.phone.includes(searchTerm)
-    );
+     filteredClients = clients?.filter(client => {
+       const matchesSearch = (
+         client.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+         client.phone.includes(searchTerm)
+       );
+       const matchesDate = filterByDate(client?.createdAt);
+       return matchesSearch && matchesDate;
+     });
   }
 
   return (
@@ -58,6 +92,29 @@ export default function ClientsModule() {
             className="w-full px-4 py-3 pl-12 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+      </div>
+
+      {/* Date Filter Buttons */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {[
+          { value: 'all', label: t('all') || 'All' },
+          { value: 'today', label: t('today') || 'Today' },
+          { value: 'week', label: t('this_week') || 'This Week' },
+          { value: 'month', label: t('this_month') || 'This Month' },
+          { value: 'year', label: t('this_year') || 'This Year' },
+        ].map((filter) => (
+          <button
+            key={filter.value}
+            onClick={() => setDateFilter(filter.value)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              dateFilter === filter.value
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">

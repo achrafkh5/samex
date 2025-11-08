@@ -22,6 +22,7 @@ export default function OrdersModule() {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('all');
   
   // Tracking code modal state
   const [showTrackingModal, setShowTrackingModal] = useState(false);
@@ -115,16 +116,47 @@ export default function OrdersModule() {
     return `${carsMap[carId]?.brand || 'Unknown brand'} ${carsMap[carId]?.model || 'Unknown model'}`;
   };
 
+  // Date filtering function
+  const filterByDate = (date) => {
+    if (!date) return true;
+    
+    const itemDate = new Date(date);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (dateFilter) {
+      case 'today':
+        return itemDate >= today;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return itemDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return itemDate >= monthAgo;
+      case 'year':
+        const yearAgo = new Date(today);
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        return itemDate >= yearAgo;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
   let filteredOrders = [];
   if(orders?.length > 0) {
    filteredOrders = orders?.filter(order => {
      const clientName = getClientName(order?.clientId);
      const carName = getCarName(order?.selectedCarId);
-     return (
+     const matchesSearch = (
        order?.trackingCode?.toLowerCase().includes(searchTerm.toLowerCase()) ||
        clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
        carName?.toLowerCase().includes(searchTerm.toLowerCase())
      );
+     const matchesDate = filterByDate(order?.createdAt);
+     return matchesSearch && matchesDate;
    });
   }
   const updateStatus = async(id, newStatus) => {
@@ -282,6 +314,29 @@ if(orders?.length > 0) {
             />
           </svg>
         </div>
+      </div>
+
+      {/* Date Filter Buttons */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        {[
+          { value: 'all', label: t('all') || 'All' },
+          { value: 'today', label: t('today') || 'Today' },
+          { value: 'week', label: t('this_week') || 'This Week' },
+          { value: 'month', label: t('this_month') || 'This Month' },
+          { value: 'year', label: t('this_year') || 'This Year' },
+        ].map((filter) => (
+          <button
+            key={filter.value}
+            onClick={() => setDateFilter(filter.value)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              dateFilter === filter.value
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
 
       {/* Stats Cards */}

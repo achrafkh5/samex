@@ -13,6 +13,7 @@ export default function B2CAlgeriaSection({ onDataChange }) {
   const [entryToDelete, setEntryToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('all');
   
   const [formData, setFormData] = useState({
     auctionFees: '',
@@ -172,7 +173,39 @@ export default function B2CAlgeriaSection({ onDataChange }) {
     setEditingId(null);
   };
 
-  const totalNetProfit = entries.reduce((sum, entry) => sum + entry.netProfit, 0);
+  // Date filtering function
+  const filterByDate = (date) => {
+    if (!date) return true;
+    
+    const itemDate = new Date(date);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (dateFilter) {
+      case 'today':
+        return itemDate >= today;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return itemDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return itemDate >= monthAgo;
+      case 'year':
+        const yearAgo = new Date(today);
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        return itemDate >= yearAgo;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
+  // Filter entries by date
+  const filteredEntries = entries?.filter(entry => filterByDate(entry?.createdAt)) || [];
+
+  const totalNetProfit = filteredEntries.reduce((sum, entry) => sum + entry.netProfit, 0);
 
   if (initialLoading) {
     return (
@@ -192,13 +225,37 @@ export default function B2CAlgeriaSection({ onDataChange }) {
         </h2>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
-          {t('add_car_button') || 'Add Car'}
+          {t('add_sale_button') || 'Add Sale'}
         </button>
+      </div>
+
+      {/* Date Filter Buttons */}
+      <div className="flex flex-wrap gap-2">
+        {[
+          { value: 'all', label: t('all') || 'All' },
+          { value: 'today', label: t('today') || 'Today' },
+          { value: 'week', label: t('this_week') || 'This Week' },
+          { value: 'month', label: t('this_month') || 'This Month' },
+          { value: 'year', label: t('this_year') || 'This Year' },
+        ].map((filter) => (
+          <button
+            key={filter.value}
+            type="button"
+            onClick={() => setDateFilter(filter.value)}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              dateFilter === filter.value
+                ? 'bg-blue-600 text-white shadow-lg'
+                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+            }`}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
 
       {/* Form */}
@@ -361,14 +418,14 @@ export default function B2CAlgeriaSection({ onDataChange }) {
               </tr>
             </thead>
             <tbody>
-              {entries.length === 0 ? (
+              {filteredEntries.length === 0 ? (
                 <tr>
                   <td colSpan="10" className="py-8 text-center text-gray-500 dark:text-gray-400">
-                    {t('no_entries') || 'No entries yet. Add your first car transaction.'}
+                    {t('no_entries') || 'No entries yet. Add your first car sale.'}
                   </td>
                 </tr>
               ) : (
-                entries.map((entry) => (
+                filteredEntries.map((entry) => (
                   <tr key={entry._id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
                     <td className="py-4 px-6 text-gray-900 dark:text-white">
                       {entry.fields.auctionFees.toLocaleString()}DA

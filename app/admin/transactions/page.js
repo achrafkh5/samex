@@ -30,6 +30,7 @@ export default function TransactionsPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [dateFilter, setDateFilter] = useState('all');
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -79,6 +80,38 @@ export default function TransactionsPage() {
       setPopup({ show: false, type: '', message: '' });
     }, 3000);
   };
+
+  // Date filtering function
+  const filterByDate = (date) => {
+    if (!date) return true;
+    
+    const itemDate = new Date(date);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (dateFilter) {
+      case 'today':
+        return itemDate >= today;
+      case 'week':
+        const weekAgo = new Date(today);
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return itemDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(today);
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        return itemDate >= monthAgo;
+      case 'year':
+        const yearAgo = new Date(today);
+        yearAgo.setFullYear(yearAgo.getFullYear() - 1);
+        return itemDate >= yearAgo;
+      case 'all':
+      default:
+        return true;
+    }
+  };
+
+  // Filter transactions by date
+  const filteredTransactions = transactions?.filter(transaction => filterByDate(transaction?.createdAt)) || [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -424,7 +457,7 @@ if (!admin) {
 
         {/* Transaction History */}
         <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
               {t('transaction_history_title') || 'Transaction History'}
             </h2>
@@ -436,11 +469,34 @@ if (!admin) {
             </button>
           </div>
 
+          {/* Date Filter Buttons */}
+          <div className="mb-6 flex flex-wrap gap-2">
+            {[
+              { value: 'all', label: t('all') || 'All' },
+              { value: 'today', label: t('today') || 'Today' },
+              { value: 'week', label: t('this_week') || 'This Week' },
+              { value: 'month', label: t('this_month') || 'This Month' },
+              { value: 'year', label: t('this_year') || 'This Year' },
+            ].map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setDateFilter(filter.value)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  dateFilter === filter.value
+                    ? 'bg-blue-600 text-white shadow-lg'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+
           {loading ? (
             <div className="text-center py-12 text-sm sm:text-base text-gray-500 dark:text-gray-400">
               {t('loading') || 'Loading...'}
             </div>
-          ) : transactions.length === 0 ? (
+          ) : filteredTransactions.length === 0 ? (
             <div className="text-center py-12 text-sm sm:text-base text-gray-500 dark:text-gray-400">
               {t('no_transactions') || 'No transactions yet'}
             </div>
@@ -448,7 +504,7 @@ if (!admin) {
             <>
               {/* Mobile Card View */}
               <div className="block lg:hidden space-y-4">
-                {transactions.map((transaction) => (
+                {filteredTransactions.map((transaction) => (
                   <div
                     key={transaction._id}
                     className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600"
@@ -644,7 +700,7 @@ if (!admin) {
                     </tr>
                   </thead>
                   <tbody>
-                    {transactions.map((transaction) => (
+                    {filteredTransactions.map((transaction) => (
                       <tr
                         key={transaction._id}
                         className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
