@@ -18,11 +18,8 @@ export async function GET(request) {
       userId: authUser.userId 
     }).toArray();
 
-    if (!clientInfo || clientInfo.length === 0) {
-      return NextResponse.json({  message: 'No client info found' }, { status: 404 });
-    }
-    
-    return NextResponse.json(clientInfo);
+    // Return empty array if no clients found
+    return NextResponse.json(clientInfo || []);
   } catch (error) {
     console.error("Error fetching client info:", error);
     return NextResponse.json({ error: "Failed to fetch client info" }, { status: 500 });

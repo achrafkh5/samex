@@ -7,6 +7,8 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
   const { t } = useLanguage();
   const [selectedType, setSelectedType] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     // B2B fields
     buyingCosts: '',
@@ -16,6 +18,7 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
     auctionFees: '',
     transactionFees: '',
     // B2C Korea fields (shares some with Algeria)
+    otherFees: '',
   });
 
   const sellingPrice = order.paymentAmount || 0;
@@ -26,6 +29,7 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
     const transportFees = parseFloat(formData.transportFees) || 0;
     const auctionFees = parseFloat(formData.auctionFees) || 0;
     const transactionFees = parseFloat(formData.transactionFees) || 0;
+    const otherFees = parseFloat(formData.otherFees) || 0;
 
     let alcocaRevenue = 0;
     let totalCost = 0;
@@ -36,20 +40,21 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
     if (selectedType === 'B2B') {
       paidToBusiness = buyingCosts * 0.044; // 4.4%
       alcocaRevenue = buyingCosts * 0.044; // 4.4%
-      totalCost = buyingCosts + papersFees + transportFees - paidToBusiness;
+      totalCost = buyingCosts + papersFees + transportFees + otherFees - paidToBusiness;
       netProfit = sellingPrice - totalCost + alcocaRevenue;
       
       fields = {
         buyingCosts,
         papersFees,
         transportFees,
+        otherFees,
         paidToBusiness,
         alcocaRevenue,
         sellingPrice,
       };
     } else if (selectedType === 'B2C_Algeria') {
       alcocaRevenue = buyingCosts * 0.088; // 8.8%
-      totalCost = auctionFees + transportFees + buyingCosts + transactionFees + papersFees;
+      totalCost = auctionFees + transportFees + buyingCosts + transactionFees + papersFees + otherFees;
       netProfit = sellingPrice - totalCost + alcocaRevenue;
       
       fields = {
@@ -58,12 +63,13 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
         buyingCosts,
         transactionFees,
         papersFees,
+        otherFees,
         sellingPrice,
         alcocaRevenue,
       };
     } else if (selectedType === 'B2C_Korea') {
       alcocaRevenue = buyingCosts * 0.088; // 8.8%
-      totalCost = auctionFees + transportFees + buyingCosts + papersFees;
+      totalCost = auctionFees + transportFees + buyingCosts + papersFees + otherFees;
       netProfit = sellingPrice - totalCost + alcocaRevenue;
       
       fields = {
@@ -71,6 +77,7 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
         transportFees,
         buyingCosts,
         papersFees,
+        otherFees,
         sellingPrice,
         alcocaRevenue,
       };
@@ -82,7 +89,8 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedType) {
-      alert(t('select_sale_type') || 'Please select a sale type');
+      setErrorMessage(t('select_sale_type') || 'Please select a sale type');
+      setShowErrorPopup(true);
       return;
     }
 
@@ -107,11 +115,13 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
       if (response.ok) {
         onSave();
       } else {
-        alert(t('save_error') || 'Failed to save finance data');
+        setErrorMessage(t('save_error') || 'Failed to save finance data');
+        setShowErrorPopup(true);
       }
     } catch (error) {
       console.error('Error saving finance:', error);
-      alert(t('save_error') || 'Failed to save finance data');
+      setErrorMessage(t('save_error') || 'Failed to save finance data');
+      setShowErrorPopup(true);
     } finally {
       setLoading(false);
     }
@@ -196,6 +206,23 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
               required
               value={formData.transactionFees}
               onChange={(e) => setFormData({ ...formData, transactionFees: e.target.value })}
+              className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        )}
+
+        {/* Other Fees Field (optional for all types) */}
+        {selectedType && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              {t('other_fees') || 'Other Fees'} (DA)
+            </label>
+            <input
+              type="number"
+              step="0.01"
+              value={formData.otherFees}
+              onChange={(e) => setFormData({ ...formData, otherFees: e.target.value })}
+              placeholder="0.00"
               className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -318,6 +345,31 @@ export default function FinanceFormModal({ order, onClose, onSave }) {
           </div>
         </form>
       </div>
+
+      {/* Error Popup */}
+      {showErrorPopup && (
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
+              {t('error') || 'Error'}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-6">
+              {errorMessage}
+            </p>
+            <button
+              onClick={() => setShowErrorPopup(false)}
+              className="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              {t('ok') || 'OK'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

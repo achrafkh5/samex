@@ -55,23 +55,28 @@ export default function DashboardPage() {
         const clientsData = await clientsResponse.json();
         const carsData = await carsResponse.json();
 
-        setOrders(ordersData.orders);
-        setClients(clientsData);
-        setCars(carsData);
+        // Ensure we always have arrays
+        setOrders(Array.isArray(ordersData?.orders) ? ordersData.orders : []);
+        setClients(Array.isArray(clientsData) ? clientsData : []);
+        setCars(Array.isArray(carsData) ? carsData : []);
 
         const carMap = {};
-        (carsData || []).forEach(car => {
+        (Array.isArray(carsData) ? carsData : []).forEach(car => {
           carMap[car._id] = car;
         });
         setCarsMap(carMap);
 
         const map = {};
-        (clientsData || []).forEach(client => {
+        (Array.isArray(clientsData) ? clientsData : []).forEach(client => {
           map[client._id] = client;
         });
         setClientsMap(map);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
+      // Set empty arrays on error
+      setOrders([]);
+      setClients([]);
+      setCars([]);
     } finally {
       setLoading(false);
     }

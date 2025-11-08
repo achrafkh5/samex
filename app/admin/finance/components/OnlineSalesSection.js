@@ -108,6 +108,15 @@ export default function OnlineSalesSection({ onDataChange }) {
     order.status === 'delivered'
   );
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">{t('loading') || 'Loading online sales data...'}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}

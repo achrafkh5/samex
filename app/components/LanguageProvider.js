@@ -329,6 +329,7 @@ export const translations = {
     advancedTech: 'Advanced Technology',
     exceptionalComfort: 'Exceptional Comfort',
     loadingCarsPage: 'Loading car details...',
+    other_fees: 'Other Fees',
     
     // Contact Page
     contactUs: 'Contact Us',
@@ -1673,6 +1674,7 @@ export const translations = {
     advancedTech: 'Technologie Avancée',
     exceptionalComfort: 'Confort Exceptionnel',
     loadingCarsPage: 'Chargement des détails de la voiture...',
+    other_fees: 'Autres Frais',
     step: 'Étape',
     of: 'de',
     uploadCarPhotos: 'Télécharger des Photos de Voiture',
@@ -2830,6 +2832,7 @@ export const translations = {
     advancedTech: 'التكنولوجيا المتقدمة',
     exceptionalComfort: 'الراحة الاستثنائية',
     loadingCarsPage: 'جاري تحميل تفاصيل السيارة...',
+    other_fees: 'رسوم أخرى',
     // Contact Page
     contactUs: 'اتصل بنا',
     callingHours: 'ساعات الاتصال',

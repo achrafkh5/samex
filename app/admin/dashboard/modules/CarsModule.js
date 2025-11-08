@@ -48,6 +48,10 @@ export default function CarsModule() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newestFirst');
   
+  // Delete confirmation popup state
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [carToDelete, setCarToDelete] = useState(null);
+  
   // Available colors
   const availableColors = [
     { name: 'Black', hex: '#000000' },
@@ -333,48 +337,59 @@ if(cars?.length>0){
   };
 
   const handleDelete = async (id) => {
-    if (confirm(t('confirmDelete') || 'Are you sure you want to delete this car?')) {
-      setProcessing(true);
-      try {
-        const car = cars.find(c => c._id === id);
-        
-        // Delete car from database
-        await fetch(`/api/cars/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ id })
-        });
-        
-        // Delete all car images from Cloudinary
-        const imagesToDelete = car?.images || (car?.image ? [car.image] : []);
-        
-        if (imagesToDelete.length > 0) {
-          for (const imageUrl of imagesToDelete) {
-            try {
-              await fetch('/api/upload/delete', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ url: imageUrl }),
-              });
-              console.log('✅ Car image deleted from Cloudinary:', imageUrl);
-            } catch (error) {
-              console.error('⚠️ Failed to delete car image from Cloudinary:', error);
-            }
+    setProcessing(true);
+    try {
+      const car = cars.find(c => c._id === id);
+      
+      // Delete car from database
+      await fetch(`/api/cars/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id })
+      });
+      
+      // Delete all car images from Cloudinary
+      const imagesToDelete = car?.images || (car?.image ? [car.image] : []);
+      
+      if (imagesToDelete.length > 0) {
+        for (const imageUrl of imagesToDelete) {
+          try {
+            await fetch('/api/upload/delete', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ url: imageUrl }),
+            });
+            console.log('✅ Car image deleted from Cloudinary:', imageUrl);
+          } catch (error) {
+            console.error('⚠️ Failed to delete car image from Cloudinary:', error);
           }
         }
-        
-        setCars(cars.filter(car => car._id !== id));
-        showToastMessage(t('carDeleted') || 'Car deleted successfully');
-      } catch (error) {
-        console.error('Error deleting car:', error);
-      } finally {
-        setProcessing(false);
       }
+      
+      setCars(cars.filter(car => car._id !== id));
+      showToastMessage(t('carDeleted') || 'Car deleted successfully');
+    } catch (error) {
+      console.error('Error deleting car:', error);
+      showToastMessage(t('errorDeletingCar') || 'Error deleting car');
+    } finally {
+      setProcessing(false);
+      setDeleteConfirmOpen(false);
+      setCarToDelete(null);
     }
+  };
+
+  const openDeleteConfirm = (car) => {
+    setCarToDelete(car);
+    setDeleteConfirmOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+    setCarToDelete(null);
   };
 
   const toggleAvailability = async (id) => {
@@ -755,7 +770,7 @@ if(cars?.length>0){
                   </svg>
                 </button>
                 <button
-                  onClick={() => handleDelete(car._id)}
+                  onClick={() => openDeleteConfirm(car)}
                   disabled={processing}
                   className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
@@ -1343,6 +1358,77 @@ if(cars?.length>0){
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
           </svg>
           <span className="font-medium">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* Delete Confirmation Popup */}
+      {deleteConfirmOpen && carToDelete && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="p-8">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+                    <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    {t('confirmDelete') || 'Delete Car?'}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                    {t('deleteCarWarning') || 'Are you sure you want to delete this car? All images will be permanently removed from Cloudinary. This action cannot be undone.'}
+                  </p>
+                  <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 flex items-center gap-3">
+                    {carToDelete.images && carToDelete.images[0] && (
+                      <img 
+                        src={carToDelete.images[0]} 
+                        alt={carToDelete.model}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{carToDelete.brand} {carToDelete.model}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {carToDelete.year} • {carToDelete.images?.length || 0} {t('images') || 'images'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-8 py-6 bg-gray-50 dark:bg-gray-900 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={closeDeleteConfirm}
+                disabled={processing}
+                className="px-6 py-3 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors font-medium"
+              >
+                {t('cancel') || 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(carToDelete._id)}
+                disabled={processing}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium shadow-lg hover:shadow-xl"
+              >
+                {processing ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {t('deleting') || 'Deleting...'}
+                  </span>
+                ) : (
+                  t('delete') || 'Delete'
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

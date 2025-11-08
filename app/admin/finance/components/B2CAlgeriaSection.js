@@ -9,6 +9,10 @@ export default function B2CAlgeriaSection({ onDataChange }) {
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   
   const [formData, setFormData] = useState({
     auctionFees: '',
@@ -17,6 +21,7 @@ export default function B2CAlgeriaSection({ onDataChange }) {
     transactionFees: '',
     papersFees: '',
     sellingPrice: '',
+    otherFees: '',
   });
 
   useEffect(() => {
@@ -32,6 +37,8 @@ export default function B2CAlgeriaSection({ onDataChange }) {
       }
     } catch (error) {
       console.error('Error fetching entries:', error);
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -42,9 +49,10 @@ export default function B2CAlgeriaSection({ onDataChange }) {
     const transactionFees = parseFloat(data.transactionFees) || 0;
     const papersFees = parseFloat(data.papersFees) || 0;
     const sellingPrice = parseFloat(data.sellingPrice) || 0;
+    const otherFees = parseFloat(data.otherFees) || 0;
     
     const alcocaRevenue = buyingCosts * 0.088; // 8.8% revenue from government
-    const totalCost = auctionFees + transportFees + buyingCosts + transactionFees + papersFees;
+    const totalCost = auctionFees + transportFees + buyingCosts + transactionFees + papersFees + otherFees;
     const netProfit = sellingPrice - totalCost + alcocaRevenue;
     
     return {
@@ -69,6 +77,7 @@ export default function B2CAlgeriaSection({ onDataChange }) {
         transactionFees: parseFloat(formData.transactionFees),
         papersFees: parseFloat(formData.papersFees),
         sellingPrice: parseFloat(formData.sellingPrice),
+        otherFees: parseFloat(formData.otherFees),
         alcocaRevenue: financials.alcocaRevenue,
       },
       totalCost: financials.totalCost,
@@ -114,13 +123,24 @@ export default function B2CAlgeriaSection({ onDataChange }) {
       transactionFees: entry.fields.transactionFees.toString(),
       papersFees: entry.fields.papersFees.toString(),
       sellingPrice: entry.fields.sellingPrice.toString(),
+      otherFees: (entry.fields.otherFees || 0).toString(),
     });
     setEditingId(entry._id);
     setShowForm(true);
   };
 
+  const openDeleteConfirm = (entry) => {
+    setEntryToDelete(entry);
+    setDeleteConfirmOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+    setEntryToDelete(null);
+  };
+
   const handleDelete = async (id) => {
-    if (!confirm(t('confirm_delete') || 'Are you sure you want to delete this entry?')) return;
+    setDeleting(true);
     
     try {
       const response = await fetch(`/api/finance?id=${id}`, {
@@ -129,9 +149,12 @@ export default function B2CAlgeriaSection({ onDataChange }) {
       if (response.ok) {
         await fetchEntries();
         onDataChange();
+        closeDeleteConfirm();
       }
     } catch (error) {
       console.error('Error deleting entry:', error);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -143,12 +166,22 @@ export default function B2CAlgeriaSection({ onDataChange }) {
       transactionFees: '',
       papersFees: '',
       sellingPrice: '',
+      otherFees: '',
     });
     setShowForm(false);
     setEditingId(null);
   };
 
   const totalNetProfit = entries.reduce((sum, entry) => sum + entry.netProfit, 0);
+
+  if (initialLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mb-4"></div>
+        <p className="text-gray-500 dark:text-gray-400 text-lg">{t('loading') || 'Loading B2C Algeria data...'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -254,6 +287,19 @@ export default function B2CAlgeriaSection({ onDataChange }) {
                   className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('other_fees') || 'Other Fees'} (DA)
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={formData.otherFees}
+                  onChange={(e) => setFormData({ ...formData, otherFees: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
+                />
+              </div>
             </div>
             
             <div className="flex gap-3 pt-4">
@@ -301,6 +347,9 @@ export default function B2CAlgeriaSection({ onDataChange }) {
                   {t('selling_price') || 'Selling Price'}
                 </th>
                 <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {t('other_fees') || 'Other Fees'}
+                </th>
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   {t('alkoca_revenue') || 'Revenue (8.8%)'}
                 </th>
                 <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -314,7 +363,7 @@ export default function B2CAlgeriaSection({ onDataChange }) {
             <tbody>
               {entries.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan="10" className="py-8 text-center text-gray-500 dark:text-gray-400">
                     {t('no_entries') || 'No entries yet. Add your first car transaction.'}
                   </td>
                 </tr>
@@ -339,6 +388,9 @@ export default function B2CAlgeriaSection({ onDataChange }) {
                     <td className="py-4 px-6 text-blue-600 dark:text-blue-400 font-semibold">
                       {entry.fields.sellingPrice.toLocaleString()}DA
                     </td>
+                    <td className="py-4 px-6 text-gray-900 dark:text-white">
+                      {(entry.fields.otherFees || 0).toLocaleString()}DA
+                    </td>
                     <td className="py-4 px-6 text-green-600 dark:text-green-400 font-semibold">
                       {entry.fields.alcocaRevenue.toLocaleString()}DA
                     </td>
@@ -354,7 +406,7 @@ export default function B2CAlgeriaSection({ onDataChange }) {
                           {t('edit') || 'Edit'}
                         </button>
                         <button
-                          onClick={() => handleDelete(entry._id)}
+                          onClick={() => openDeleteConfirm(entry)}
                           className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
                         >
                           {t('delete') || 'Delete'}
@@ -368,7 +420,7 @@ export default function B2CAlgeriaSection({ onDataChange }) {
             {entries.length > 0 && (
               <tfoot className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <td colSpan="7" className="py-4 px-6 text-right font-bold text-gray-900 dark:text-white">
+                  <td colSpan="8" className="py-4 px-6 text-right font-bold text-gray-900 dark:text-white">
                     {t('total_net_profit') || 'Total Net Profit:'}
                   </td>
                   <td className={`py-4 px-6 font-bold text-lg ${totalNetProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
@@ -381,6 +433,69 @@ export default function B2CAlgeriaSection({ onDataChange }) {
           </table>
         </div>
       </div>
+
+      {/* Delete Confirmation Popup */}
+      {deleteConfirmOpen && entryToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
+              <svg className="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
+              {t('confirm_delete') || 'Delete Entry?'}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+              {t('delete_warning') || 'This action cannot be undone. The entry will be permanently removed.'}
+            </p>
+            
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('selling_price') || 'Selling Price'}:</span>
+                <span className="font-semibold text-blue-600 dark:text-blue-400">{entryToDelete.fields.sellingPrice.toLocaleString()}DA</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('buying_costs') || 'Buying Costs'}:</span>
+                <span className="font-medium text-gray-900 dark:text-white">{entryToDelete.fields.buyingCosts.toLocaleString()}DA</span>
+              </div>
+              <div className="flex justify-between border-t border-gray-200 dark:border-gray-600 pt-2 mt-2">
+                <span className="text-gray-600 dark:text-gray-400">{t('net_profit') || 'Net Profit'}:</span>
+                <span className={`font-semibold ${entryToDelete.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  {entryToDelete.netProfit.toLocaleString()}DA
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={closeDeleteConfirm}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                {t('cancel') || 'Cancel'}
+              </button>
+              <button
+                onClick={() => handleDelete(entryToDelete._id)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {t('deleting') || 'Deleting...'}
+                  </>
+                ) : (
+                  t('delete') || 'Delete'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

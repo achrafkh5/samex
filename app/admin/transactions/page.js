@@ -27,6 +27,9 @@ export default function TransactionsPage() {
   const [editRate, setEditRate] = useState('');
   const [updating, setUpdating] = useState(false);
   const [popup, setPopup] = useState({ show: false, type: '', message: '' });
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -188,6 +191,42 @@ export default function TransactionsPage() {
       showPopup('error', 'Failed to update transaction');
     } finally {
       setUpdating(false);
+    }
+  };
+
+  const openDeleteConfirm = (transaction) => {
+    setTransactionToDelete(transaction);
+    setDeleteConfirmOpen(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setDeleteConfirmOpen(false);
+    setTransactionToDelete(null);
+  };
+
+  const handleDelete = async (transactionId) => {
+    setDeleting(true);
+    try {
+      const response = await fetch('/api/transactions', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: transactionId }),
+      });
+
+      if (response.ok) {
+        showPopup('success', 'Transaction deleted successfully!');
+        fetchTransactions();
+      } else {
+        const error = await response.json();
+        showPopup('error', error.error || 'Failed to delete transaction');
+      }
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      showPopup('error', 'Failed to delete transaction');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+      setTransactionToDelete(null);
     }
   };
 
@@ -546,15 +585,26 @@ if (!admin) {
                             </button>
                           </>
                         ) : (transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) ? (
-                          <button
-                            onClick={() => handleEditClick(transaction)}
-                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                            title="Edit Rate"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleEditClick(transaction)}
+                              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                              title="Edit Rate"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => openDeleteConfirm(transaction)}
+                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title="Delete"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </>
                         ) : null}
                       </div>
                     </div>
@@ -693,15 +743,26 @@ if (!admin) {
                               </button>
                             </>
                           ) : (transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) ? (
-                            <button
-                              onClick={() => handleEditClick(transaction)}
-                              className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                              title="Edit Rate"
-                            >
-                              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
+                            <>
+                              <button
+                                onClick={() => handleEditClick(transaction)}
+                                className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                title="Edit Rate"
+                              >
+                                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                              </button>
+                              <button
+                                onClick={() => openDeleteConfirm(transaction)}
+                                className="p-1.5 sm:p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                title="Delete"
+                              >
+                                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                              </button>
+                            </>
                           ) : (
                             <span className="text-xs text-gray-400 dark:text-gray-600">-</span>
                           )}
@@ -716,6 +777,71 @@ if (!admin) {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Popup */}
+      {deleteConfirmOpen && transactionToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full mb-4">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">Delete Transaction?</h3>
+            <p className="text-sm text-gray-600 text-center mb-4">
+              This action cannot be undone. The transaction will be permanently removed.
+            </p>
+            
+            <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Sender:</span>
+                <span className="font-medium text-gray-900">{transactionToDelete.senderFullName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Receiver:</span>
+                <span className="font-medium text-gray-900">{transactionToDelete.receiverFullName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Amount:</span>
+                <span className="font-medium text-gray-900">
+                  {transactionToDelete.senderCurrency} {transactionToDelete.senderAmount} → {transactionToDelete.receiverCurrency} {transactionToDelete.receiverAmount}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Rate:</span>
+                <span className="font-medium text-gray-900">{transactionToDelete.exchangeRate}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={closeDeleteConfirm}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDelete(transactionToDelete._id)}
+                disabled={deleting}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </div>
   );

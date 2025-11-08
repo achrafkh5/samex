@@ -257,11 +257,11 @@ export async function DELETE(request) {
 
     const client = await clientPromise;
     const db = client.db('dreamcars');
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
+    const body = await request.json();
+    const { id } = body;
 
     if (!id) {
-      return NextResponse.json({ error: 'ID parameter is required' }, { status: 400 });
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
     }
 
     const result = await db.collection('transactions').deleteOne({ _id: new ObjectId(id) });
