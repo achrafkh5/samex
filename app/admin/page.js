@@ -2,20 +2,22 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAdminAuth } from '@/app/context/AdminAuthContext';
 
 export default function AdminPage() {
   const router = useRouter();
+  const { admin, loading } = useAdminAuth();
 
   useEffect(() => {
-    // Check if user is authenticated (check localStorage)
-    const isAuthenticated = localStorage.getItem('adminAuthenticated') === 'true';
+    // Wait for auth check to complete
+    if (loading) return;
     
-    if (isAuthenticated) {
+    if (admin) {
       router.push('/admin/dashboard');
     } else {
       router.push('/admin/login');
     }
-  }, [router]);
+  }, [admin, loading, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
