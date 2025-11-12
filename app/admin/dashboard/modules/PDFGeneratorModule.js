@@ -16,7 +16,7 @@ export default function PDFGeneratorModule() {
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState('certificate');
   const [pdfTheme, setPdfTheme] = useState('light');
-  const [pdfLanguage, setPdfLanguage] = useState('en'); // EN/FR only
+  const [pdfLanguage, setPdfLanguage] = useState('fr'); // FR as default
   const [showPreview, setShowPreview] = useState(false);
   const [generatedDocs, setGeneratedDocs] = useState([]);
   const [toast, setToast] = useState(null);
@@ -31,6 +31,7 @@ export default function PDFGeneratorModule() {
   // Selected Order State
   const [selectedOrderId, setSelectedOrderId] = useState('');
   const [amountReceived, setAmountReceived] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -160,6 +161,7 @@ export default function PDFGeneratorModule() {
             clientEmail: client.email,
             clientPhone: client.phone,
             clientId: client.nationalId || 'N/A',
+            clientPassport: client.passportNumber || 'N/A',
             clientAddress: `${client.streetAddress || ''}, ${client.city || ''}, ${client.country || ''}`.trim(),
             carBrand: car.brand,
             carModel: car.model,
@@ -207,6 +209,9 @@ export default function PDFGeneratorModule() {
           const finalPrice = car.price || 0;
           const received = parseFloat(amountReceived);
 
+          // Calculate credit (remaining balance)
+          const credit = Math.max(0, finalPrice - received);
+
           // Prepare invoice data
           const pdfData = {
             clientName: client.fullName,
@@ -252,6 +257,18 @@ export default function PDFGeneratorModule() {
             url: cloudinaryData.url,
             cloudinaryPublicId: cloudinaryData.publicId,
             cloudinaryResourceType: cloudinaryData.resourceType,
+          });
+
+          // Update client credit
+          await fetch('/api/admin/clients', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              id: order.clientId,
+              credit: credit,
+              lastPaymentDate: new Date(),
+              lastPaymentAmount: received,
+            }),
           });
 
           showToast(t('invoiceGeneratedUploaded') || 'Invoice certificate generated and uploaded successfully!', 'success');
@@ -381,9 +398,9 @@ export default function PDFGeneratorModule() {
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
-              {tab === 'certificate' && '📜 '}
-              {tab === 'invoice' && '🧾 '}
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              {tab === t('certificate') && '📜 '}
+              {tab === t('invoice') && '🧾 '}
+              {t(tab) || (tab.charAt(0).toUpperCase() + tab.slice(1))}
             </button>
           ))}
         </div>
@@ -401,6 +418,20 @@ export default function PDFGeneratorModule() {
               </div>
             ) : (
               <>
+                {/* Search Bar */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('searchClient') || 'Search Client'}
+                  </label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={t('searchByClientName') || 'Search by client name...'}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     {t('selectOrder') || 'Select Order'}
@@ -411,15 +442,20 @@ export default function PDFGeneratorModule() {
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">{t('selectAnOrder') || 'Select an order...'}</option>
-                    {orders.map((order) => {
-                      const client = clients.find(c => c._id === order.clientId);
-                      const car = cars.find(c => c._id === order.carId);
-                      return (
-                        <option key={order._id} value={order._id}>
-                          {order.trackingCode} - {client?.fullName || 'Unknown'} - {car?.brand} {car?.model}
-                        </option>
-                      );
-                    })}
+                    {orders
+                      .filter((order) => {
+                        const client = clients.find(c => c._id === order.clientId);
+                        return !searchTerm || client?.fullName.toLowerCase().includes(searchTerm.toLowerCase());
+                      })
+                      .map((order) => {
+                        const client = clients.find(c => c._id === order.clientId);
+                        const car = cars.find(c => c._id === order.selectedCarId);
+                        return (
+                          <option key={order._id} value={order._id}>
+                            {client?.fullName || 'Unknown'} - {car?.brand} {car?.model} - {order.createdAt.slice(0,10)}
+                          </option>
+                        );
+                      })}
                   </select>
                 </div>
 
@@ -497,9 +533,23 @@ export default function PDFGeneratorModule() {
               </div>
             ) : (
               <>
+                {/* Search Bar */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    {t('selectOrder') || 'Select Order'}
+                    {t('searchClient') || 'Search Client'}
+                  </label>
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder={t('searchByClientName') || 'Search by client name...'}
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t('selectOrder') || 'Select Order'} ({t('paidOrdersOnly') || 'Paid orders only'})
                   </label>
                   <select
                     value={selectedOrderId}
@@ -507,15 +557,24 @@ export default function PDFGeneratorModule() {
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   >
                     <option value="">{t('selectAnOrder') || 'Select an order...'}</option>
-                    {orders.map((order) => {
-                      const client = clients.find(c => c._id === order.clientId);
-                      const car = cars.find(c => c._id === order.carId);
-                      return (
-                        <option key={order._id} value={order._id}>
-                          {order.trackingCode} - {client?.fullName || 'Unknown'} - {car?.brand} {car?.model}
-                        </option>
-                      );
-                    })}
+                    {orders
+                      .filter((order) => {
+                        // Filter for paid orders only (paymentStatus === 'paid')
+                        if (order.status !== 'paid') return false;
+                        
+                        // Filter by search term
+                        const client = clients.find(c => c._id === order.clientId);
+                        return !searchTerm || client?.fullName.toLowerCase().includes(searchTerm.toLowerCase());
+                      })
+                      .map((order) => {
+                        const client = clients.find(c => c._id === order.clientId);
+                        const car = cars.find(c => c._id === order.selectedCarId);
+                        return (
+                          <option key={order._id} value={order._id}>
+                            {client?.fullName || 'Unknown'} - {car?.brand} {car?.model} - {order.createdAt.slice(0,10)}
+                          </option>
+                        );
+                      })}
                   </select>
                 </div>
 

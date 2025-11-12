@@ -28,6 +28,7 @@ export default function ClientsModule() {
 
   const [selectedClient, setSelectedClient] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [creditFilter, setCreditFilter] = useState('all'); // all, withCredit, noCredit
 
   // Date filtering function
   const filterByDate = (date) => {
@@ -67,7 +68,17 @@ export default function ClientsModule() {
          client.phone.includes(searchTerm)
        );
        const matchesDate = filterByDate(client?.createdAt);
-       return matchesSearch && matchesDate;
+       
+       // Credit filter
+       const clientCredit = client.credit || 0;
+       let matchesCredit = true;
+       if (creditFilter === 'withCredit') {
+         matchesCredit = clientCredit > 0;
+       } else if (creditFilter === 'noCredit') {
+         matchesCredit = clientCredit === 0;
+       }
+       
+       return matchesSearch && matchesDate && matchesCredit;
      });
   }
 
@@ -117,6 +128,40 @@ export default function ClientsModule() {
         ))}
       </div>
 
+      {/* Credit Filter Buttons */}
+      <div className="mb-6 flex flex-wrap gap-2">
+        <button
+          onClick={() => setCreditFilter('all')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            creditFilter === 'all'
+              ? 'bg-purple-600 text-white shadow-lg'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+          }`}
+        >
+          {t('all_clients') || 'All Clients'}
+        </button>
+        <button
+          onClick={() => setCreditFilter('withCredit')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            creditFilter === 'withCredit'
+              ? 'bg-orange-600 text-white shadow-lg'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+          }`}
+        >
+          {t('with_credit') || 'With Credit'} ({clients.filter(c => (c.credit || 0) > 0).length})
+        </button>
+        <button
+          onClick={() => setCreditFilter('noCredit')}
+          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+            creditFilter === 'noCredit'
+              ? 'bg-green-600 text-white shadow-lg'
+              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+          }`}
+        >
+          {t('no_credit') || 'No Credit'} ({clients.filter(c => (c.credit || 0) === 0).length})
+        </button>
+      </div>
+
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -132,6 +177,9 @@ export default function ClientsModule() {
                   {t('location') || 'Location'}
                 </th>
                 <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  {t('credit') || 'Credit'}
+                </th>
+                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
                   {t('actions') || 'Actions'}
                 </th>
               </tr>
@@ -139,7 +187,7 @@ export default function ClientsModule() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="4" className="py-12">
+                  <td colSpan="5" className="py-12">
                     <div className="flex flex-col items-center justify-center">
                       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                       <p className="text-gray-500 dark:text-gray-400">{t('loading') || 'Loading clients...'}</p>
@@ -148,7 +196,7 @@ export default function ClientsModule() {
                 </tr>
               ) : filteredClients.length === 0 ? (
                 <tr>
-                  <td colSpan="4" className="py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan="5" className="py-12 text-center text-gray-500 dark:text-gray-400">
                     {t('noClients') || 'No clients found'}
                   </td>
                 </tr>
@@ -163,6 +211,22 @@ export default function ClientsModule() {
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-900 dark:text-white">
                     {client.city}, {client.country}
+                  </td>
+                  <td className="py-4 px-6">
+                    {client.credit && client.credit > 0 ? (
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-orange-600 dark:text-orange-400">
+                          {client.credit?.toLocaleString()} DZD
+                        </span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          {t('owes_company') || 'Owes company'}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-400 dark:text-gray-500">
+                        -
+                      </span>
+                    )}
                   </td>
                   <td className="py-4 px-6">
                     <button
@@ -250,6 +314,12 @@ export default function ClientsModule() {
                       {t('nationalId') || 'National ID'}
                     </label>
                     <p className="text-gray-900 dark:text-white font-mono">{selectedClient.nationalId}</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      {t('passportNumber') || 'Passport Number'}
+                    </label>
+                    <p className="text-gray-900 dark:text-white font-mono">{selectedClient.passportNumber}</p>
                   </div>
                 </div>
               </div>

@@ -196,7 +196,8 @@ const PDF_TRANSLATIONS = {
     fullName: 'Full Name',
     email: 'Email Address',
     phone: 'Phone Number',
-    idPassport: 'ID/Passport',
+    nationalId: 'National ID',
+    passportNumber: 'Passport Number',
     address: 'Address',
     vehicleDetails: 'Vehicle Details',
     brand: 'Brand',
@@ -263,7 +264,8 @@ const PDF_TRANSLATIONS = {
     fullName: 'Nom Complet',
     email: 'Adresse Email',
     phone: 'Numéro de Téléphone',
-    idPassport: 'ID/Passeport',
+    nationalId: 'Carte Nationale',
+    passportNumber: 'Numéro du Passeport',
     address: 'Adresse',
     vehicleDetails: 'Détails du Véhicule',
     brand: 'Marque',
@@ -330,7 +332,8 @@ const PDF_TRANSLATIONS = {
     fullName: 'الاسم الكامل',
     email: 'البريد الإلكتروني',
     phone: 'رقم الهاتف',
-    idPassport: 'رقم الهوية/جواز السفر',
+    nationalId: 'البطاقة الوطنية',
+    passportNumber: 'رقم جواز السفر',
     address: 'العنوان',
     vehicleDetails: 'تفاصيل المركبة',
     brand: 'الماركة',
@@ -525,7 +528,8 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
     [t.fullName, String(data.clientName || 'N/A')],
     [t.email, String(data.clientEmail || 'N/A')],
     [t.phone, String(data.clientPhone || 'N/A')],
-    [t.idPassport, String(data.clientId || 'N/A')],
+    [t.nationalId, String(data.clientId || 'N/A')],
+    [t.passportNumber, String(data.clientPassport || 'N/A')],
     [t.address, String(data.clientAddress || 'N/A')],
   ];
 
@@ -607,6 +611,23 @@ export async function generateCertificate(data, language = 'en', theme = 'light'
     align: isRTL ? 'right' : 'left', 
     maxWidth: pageWidth - 2 * margin - 10 
   });
+
+  // Legal Disclaimer Note
+  yPos += splitText.length * 5 + 10;
+  doc.setFontSize(8);
+  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
+  doc.setTextColor(...colors.text);
+  const disclaimerText = language === 'fr' 
+    ? "La responsabilité d'AlkoCars prend fin à la livraison du véhicule au client. L'état du véhicule repose sur les déclarations du vendeur, et aucune réclamation ne pourra être adressée à AlkoCars après la livraison au client."
+    : language === 'ar'
+    ? "تنتهي مسؤولية AlkoCars عند تسليم السيارة للعميل. حالة السيارة تعتمد على تصريحات البائع، ولا يمكن تقديم أي مطالبة إلى AlkoCars بعد التسليم للعميل."
+    : "AlkoCars' responsibility ends upon delivery of the vehicle to the client. The vehicle's condition is based on the seller's declarations, and no claims can be made to AlkoCars after delivery to the client.";
+  const splitDisclaimer = doc.splitTextToSize(disclaimerText, pageWidth - 2 * margin - 10);
+  doc.text(isRTL ? shapeArabicText(disclaimerText) : splitDisclaimer, sectionX, yPos, { 
+    align: isRTL ? 'right' : 'left', 
+    maxWidth: pageWidth - 2 * margin - 10 
+  });
+
   // Footer
   yPos = pageHeight - 25;
   doc.setFillColor(...colors.headerBg);
@@ -870,6 +891,21 @@ export async function generateInvoice(data, language = 'en', theme = 'light') {
   doc.setFontSize(8);
   doc.setTextColor(...colors.textSecondary);
   addText(t.invoiceNotes, margin, yPos);
+
+  // Legal Disclaimer Note
+  yPos += 8;
+  doc.setFont(isRTL ? 'Amiri' : 'helvetica', 'bold');
+  doc.setTextColor(...colors.text);
+  const disclaimerText = language === 'fr' 
+    ? "La responsabilité d'AlkoCars prend fin à la livraison du véhicule au client. L'état du véhicule repose sur les déclarations du vendeur, et aucune réclamation ne pourra être adressée à AlkoCars après la livraison au client."
+    : language === 'ar'
+    ? "تنتهي مسؤولية AlkoCars عند تسليم السيارة للعميل. حالة السيارة تعتمد على تصريحات البائع، ولا يمكن تقديم أي مطالبة إلى AlkoCars بعد التسليم للعميل."
+    : "AlkoCars' responsibility ends upon delivery of the vehicle to the client. The vehicle's condition is based on the seller's declarations, and no claims can be made to AlkoCars after delivery to the client.";
+  const splitDisclaimer = doc.splitTextToSize(disclaimerText, pageWidth - 2 * margin);
+  doc.text(isRTL ? shapeArabicText(disclaimerText) : splitDisclaimer, margin, yPos, { 
+    align: isRTL ? 'right' : 'left', 
+    maxWidth: pageWidth - 2 * margin 
+  });
 
   return doc;
 }

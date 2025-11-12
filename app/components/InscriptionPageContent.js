@@ -87,17 +87,42 @@ export default function InscriptionPageContent({ id }) {
       return false;
     };
 
-    // Add logo
+    // Add logo using fetch and blob method
+    let logoAdded = false;
     try {
-      const logoImg = new window.Image();
-      logoImg.src = '/logo.png';
-      await new Promise((resolve, reject) => {
-        logoImg.onload = resolve;
-        logoImg.onerror = reject;
-      });
-      doc.addImage(logoImg, 'PNG', margin, yPos, 40, 20);
+      const logoUrl = '/logo.png';
+      const response = await fetch(logoUrl);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        logoAdded = await new Promise((resolve) => {
+          reader.onloadend = () => {
+            try {
+              const base64data = reader.result;
+              doc.addImage(base64data, 'PNG', margin, yPos, 40, 20);
+              resolve(true);
+            } catch (error) {
+              console.warn('Failed to add logo image:', error);
+              resolve(false);
+            }
+          };
+          reader.onerror = () => resolve(false);
+          reader.readAsDataURL(blob);
+        });
+      }
     } catch (error) {
       console.log('Logo not loaded:', error);
+    }
+
+    // If logo failed, add placeholder
+    if (!logoAdded) {
+      doc.setFillColor(37, 99, 235);
+      doc.circle(margin + 20, yPos + 10, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.text('AC', margin + 20, yPos + 12, { align: 'center' });
     }
 
     // Header with gradient background simulation
@@ -248,8 +273,17 @@ export default function InscriptionPageContent({ id }) {
       doc.text(`Page ${i} / ${totalPages}`, pageWidth - margin, footerY + 25, { align: 'right' });
     }
 
-    // Signature on last page
+    // Legal Disclaimer on last page
     doc.setPage(totalPages);
+    const disclaimerY = pageHeight - 70;
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    const disclaimerText = "La responsabilité d'AlkoCars prend fin à la livraison du véhicule au client. L'état du véhicule repose sur les déclarations du vendeur, et aucune réclamation ne pourra être adressée à AlkoCars après la livraison au client.";
+    const splitDisclaimer = doc.splitTextToSize(disclaimerText, pageWidth - 2 * margin);
+    doc.text(splitDisclaimer, margin, disclaimerY);
+
+    // Signature on last page
     const signatureY = pageHeight - 50;
     doc.setFontSize(10);
     doc.setFont('helvetica', 'italic');
@@ -329,18 +363,42 @@ export default function InscriptionPageContent({ id }) {
     const margin = 20;
     let yPos = 20;
 
-    // Add logo
+    // Add logo using fetch and blob method
+    let logoAdded = false;
     try {
-      const logoImg = new window.Image();
-      logoImg.src = '/logo.png';
-      await new Promise((resolve, reject) => {
-        logoImg.onload = resolve;
-        logoImg.onerror = reject;
-      });
-      // Add logo at top left
-      doc.addImage(logoImg, 'PNG', margin, yPos, 40, 20);
+      const logoUrl = '/logo.png';
+      const response = await fetch(logoUrl);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        logoAdded = await new Promise((resolve) => {
+          reader.onloadend = () => {
+            try {
+              const base64data = reader.result;
+              doc.addImage(base64data, 'PNG', margin, yPos, 40, 20);
+              resolve(true);
+            } catch (error) {
+              console.warn('Failed to add logo image:', error);
+              resolve(false);
+            }
+          };
+          reader.onerror = () => resolve(false);
+          reader.readAsDataURL(blob);
+        });
+      }
     } catch (error) {
       console.log('Logo not loaded:', error);
+    }
+
+    // If logo failed, add placeholder
+    if (!logoAdded) {
+      doc.setFillColor(37, 99, 235);
+      doc.circle(margin + 20, yPos + 10, 8, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(10);
+      doc.text('AC', margin + 20, yPos + 12, { align: 'center' });
     }
 
     // Header with gradient background simulation
@@ -706,6 +764,7 @@ export default function InscriptionPageContent({ id }) {
         clientId: clientId,
         trackingCode: "",
         selectedCarId: formData.selectedCarId,
+        selectedColor: formData.selectedColor,
         paymentMethod: formData.paymentMethod,
         paymentAmount: formData.paymentAmount,
         passportUrl: passportUrl,

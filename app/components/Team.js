@@ -7,14 +7,14 @@ export default function Team() {
 
   const team = [
     {
-      name: 'Badis',
-      role: t('salesDirector'),
+      name: 'Badis Allalouche',
+      role: t('customerRelations'),
       image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?q=80&w=400',
       whatsapp: 'https://wa.me/+213549006132',
     },
     {
-      name: 'Issam',
-      role: t('serviceManager'),
+      name: 'Issam Belhadi',
+      role: t('salesDirector'),
       image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=400',
       whatsapp: 'https://wa.me/+821068904366',
     },

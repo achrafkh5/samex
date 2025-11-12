@@ -30,6 +30,9 @@ export default function TransactionsPage() {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [confirmReceiptOpen, setConfirmReceiptOpen] = useState(false);
+  const [transactionToConfirm, setTransactionToConfirm] = useState(null);
+  const [confirming, setConfirming] = useState(false);
   const [dateFilter, setDateFilter] = useState('all');
 
   // Redirect to login if not authenticated
@@ -260,6 +263,41 @@ export default function TransactionsPage() {
       setDeleting(false);
       setDeleteConfirmOpen(false);
       setTransactionToDelete(null);
+    }
+  };
+
+  const openConfirmReceipt = (transaction) => {
+    setTransactionToConfirm(transaction);
+    setConfirmReceiptOpen(true);
+  };
+
+  const closeConfirmReceipt = () => {
+    setConfirmReceiptOpen(false);
+    setTransactionToConfirm(null);
+  };
+
+  const handleConfirmReceipt = async (transactionId) => {
+    setConfirming(true);
+    try {
+      const response = await fetch('/api/transactions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: transactionId }),
+      });
+
+      if (response.ok) {
+        showPopup('success', 'Transaction confirmed successfully!');
+        fetchTransactions();
+        closeConfirmReceipt();
+      } else {
+        const error = await response.json();
+        showPopup('error', error.error || 'Failed to confirm transaction');
+      }
+    } catch (error) {
+      console.error('Error confirming transaction:', error);
+      showPopup('error', 'Failed to confirm transaction');
+    } finally {
+      setConfirming(false);
     }
   };
 
@@ -545,7 +583,7 @@ if (!admin) {
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex-1">
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            {t('amount_sent_label') || 'Sent'}
+                            {t('sent') || 'Sent'}
                           </p>
                           <div className="flex items-center gap-1">
                             <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
@@ -571,7 +609,7 @@ if (!admin) {
                         </svg>
                         <div className="flex-1 text-right">
                           <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                            {t('amount_received_label') || 'Received'}
+                            {t('received') || 'Received'}
                           </p>
                           <div className="flex items-center justify-end gap-1">
                             <span className="text-base font-bold text-green-600 dark:text-green-400">
@@ -603,13 +641,32 @@ if (!admin) {
                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
                               {t('conversion_rate_label') || 'Rate'}
                             </p>
-                            <div className="flex items-center gap-2">
-                              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs font-mono">
-                                {transaction.conversionRate.toFixed(5)}
-                              </span>
-                              {transaction.isEdited && (
-                                <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-[10px] font-medium">
-                                  Edited
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-xs font-mono">
+                                  {transaction.conversionRate.toFixed(5)}
+                                </span>
+                                {transaction.isEdited && (
+                                  <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-[10px] font-medium">
+                                    ✎ {t('edited') || 'Edited'}
+                                  </span>
+                                )}
+                                {transaction.confirmedByReceiver && (
+                                  <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-[10px] font-medium">
+                                    ✓ {t('confirmed') || 'Confirmed'}
+                                  </span>
+                                )}
+                              </div>
+                              {transaction.isEdited && transaction.editedBy && transaction.editedAt && (
+                                <div className="text-[11px] text-gray-600 dark:text-gray-300 font-medium">
+                                  👤 {t('edited_by') || 'Edited by'} <span className="font-semibold">{transaction.editedBy}</span>
+                                  <br />
+                                  📅 {t('on') || 'On'} {formatDate(transaction.editedAt)}
+                                </div>
+                              )}
+                              {transaction.isEdited && (!transaction.editedBy || !transaction.editedAt) && (
+                                <span className="text-[10px] text-gray-400 dark:text-gray-500 italic">
+                                  (Edited before tracking was enabled)
                                 </span>
                               )}
                             </div>
@@ -623,7 +680,7 @@ if (!admin) {
                               onClick={() => handleSaveEdit(transaction._id)}
                               disabled={updating}
                               className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50"
-                              title="Save"
+                              title={t('save') || 'Save'}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -633,33 +690,48 @@ if (!admin) {
                               onClick={handleCancelEdit}
                               disabled={updating}
                               className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
-                              title="Cancel"
+                              title={t('cancel') || 'Cancel'}
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                               </svg>
                             </button>
                           </>
-                        ) : (transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) ? (
+                        ) : !transaction.confirmedByReceiver ? (
                           <>
-                            <button
-                              onClick={() => handleEditClick(transaction)}
-                              className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                              title="Edit Rate"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </button>
-                            <button
-                              onClick={() => openDeleteConfirm(transaction)}
-                              className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                              title="Delete"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
+                            {transaction.receiverFullName === admin?.fullName && (
+                              <button
+                                onClick={() => openConfirmReceipt(transaction)}
+                                className="p-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                title={t('confirm_receipt_button') || 'Confirm Receipt'}
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                              </button>
+                            )}
+                            {(transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) && (
+                              <>
+                                <button
+                                  onClick={() => handleEditClick(transaction)}
+                                  className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                  title="Edit Rate"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                </button>
+                                <button
+                                  onClick={() => openDeleteConfirm(transaction)}
+                                  className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                  title="Delete"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                </button>
+                              </>
+                            )}
                           </>
                         ) : null}
                       </div>
@@ -670,32 +742,32 @@ if (!admin) {
 
               {/* Desktop Table View */}
               <div className="hidden lg:block overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('sender_label') || 'Sender'}
+                    <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                      <th className="text-left py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('sender_label') || 'From'}
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('receiver_label') || 'Receiver'}
+                      <th className="text-left py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('receiver_label') || 'To'}
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('from') || 'From'} → {t('to') || 'To'}
+                      <th className="text-center py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('currencies') || 'Currencies'}
                       </th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('amount_sent_label') || 'Amount Sent'}
+                      <th className="text-right py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('sent') || 'Sent'}
                       </th>
-                      <th className="text-right py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('amount_received_label') || 'Amount Received'}
+                      <th className="text-right py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('received') || 'Received'}
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('conversion_rate_label') || 'Rate'}
+                      <th className="text-center py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('rate') || 'Rate'}
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        {t('date_label') || 'Date'}
+                      <th className="text-left py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('date') || 'Date'}
                       </th>
-                      <th className="text-center py-3 px-4 text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
-                        Actions
+                      <th className="text-center py-3 px-3 text-xs font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                        {t('actions') || 'Actions'}
                       </th>
                     </tr>
                   </thead>
@@ -705,19 +777,19 @@ if (!admin) {
                         key={transaction._id}
                         className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                       >
-                        <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">
+                        <td className="py-3 px-3 text-gray-900 dark:text-white">
                           {transaction.senderFullName}
                         </td>
-                        <td className="py-4 px-4 text-sm text-gray-900 dark:text-white">
+                        <td className="py-3 px-3 text-gray-900 dark:text-white">
                           {transaction.receiverFullName}
                         </td>
-                        <td className="py-4 px-4">
-                        <div className="flex items-center gap-1 sm:gap-2">
-                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-[10px] sm:text-xs font-medium">
+                        <td className="py-3 px-3">
+                        <div className="flex items-center justify-center gap-1">
+                          <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded text-xs font-medium">
                             {transaction.currencyFrom}
                           </span>
                           <svg
-                            className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 flex-shrink-0"
+                            className="w-3 h-3 text-gray-400 flex-shrink-0"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -729,24 +801,24 @@ if (!admin) {
                               d="M14 5l7 7m0 0l-7 7m7-7H3"
                             />
                           </svg>
-                          <span className="px-1.5 sm:px-2 py-0.5 sm:py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-[10px] sm:text-xs font-medium">
+                          <span className="px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">
                             {transaction.currencyTo}
                           </span>
                         </div>
                       </td>
-                      <td className="py-3 sm:py-4 px-2 sm:px-4 text-right text-xs sm:text-sm font-semibold text-gray-900 dark:text-white whitespace-nowrap">
+                      <td className="py-3 px-3 text-right font-semibold text-gray-900 dark:text-white whitespace-nowrap">
                         {transaction.amountSent.toLocaleString()}{' '}
-                        <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {getCurrencySymbol(transaction.currencyFrom)}
                         </span>
                       </td>
-                      <td className="py-3 sm:py-4 px-2 sm:px-4 text-right text-xs sm:text-sm font-semibold text-green-600 dark:text-green-400 whitespace-nowrap">
+                      <td className="py-3 px-3 text-right font-semibold text-green-600 dark:text-green-400 whitespace-nowrap">
                         {transaction.amountReceived.toLocaleString()}{' '}
-                        <span className="text-[10px] sm:text-xs">
+                        <span className="text-xs">
                           {getCurrencySymbol(transaction.currencyTo)}
                         </span>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-3 px-3">
                         {editingId === transaction._id ? (
                           <div className="flex items-center justify-center gap-2">
                             <input
@@ -763,64 +835,96 @@ if (!admin) {
                               {transaction.conversionRate.toFixed(5)}
                             </span>
                             {transaction.isEdited && (
-                              <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-xs font-medium">
-                                Edited
+                              <div className="flex flex-col items-center gap-1 mt-1">
+                                <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-xs font-medium">
+                                  ✎ {t('edited') || 'Edited'}
+                                </span>
+                                {transaction.editedBy && transaction.editedAt ? (
+                                  <div className="text-[11px] text-gray-600 dark:text-gray-300 text-center font-medium">
+                                    <div>👤 {transaction.editedBy}</div>
+                                    <div>📅 {formatDate(transaction.editedAt)}</div>
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-gray-400 dark:text-gray-500 italic">
+                                    (before tracking)
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                            {transaction.confirmedByReceiver && (
+                              <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">
+                                ✓ {t('confirmed') || 'Confirmed'}
                               </span>
                             )}
                           </div>
                         )}
                       </td>
-                      <td className="py-4 px-4 text-sm text-gray-500 dark:text-gray-400">
+                      <td className="py-3 px-3 text-gray-500 dark:text-gray-400">
                         {formatDate(transaction.createdAt)}
                       </td>
-                      <td className="py-4 px-4">
-                        <div className="flex items-center justify-center gap-1 sm:gap-2">
+                      <td className="py-3 px-3">
+                        <div className="flex items-center justify-center gap-1">
                           {editingId === transaction._id ? (
                             <>
                               <button
                                 onClick={() => handleSaveEdit(transaction._id)}
                                 disabled={updating}
-                                className="p-1.5 sm:p-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors disabled:opacity-50"
                                 title="Save"
                               >
-                                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                 </svg>
                               </button>
                               <button
                                 onClick={handleCancelEdit}
                                 disabled={updating}
-                                className="p-1.5 sm:p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
-                                title="Cancel"
+                                className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                                title={t('cancel') || 'Cancel'}
                               >
-                                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                 </svg>
                               </button>
                             </>
-                          ) : (transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) ? (
+                          ) : !transaction.confirmedByReceiver ? (
                             <>
-                              <button
-                                onClick={() => handleEditClick(transaction)}
-                                className="p-1.5 sm:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                                title="Edit Rate"
-                              >
-                                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                              </button>
-                              <button
-                                onClick={() => openDeleteConfirm(transaction)}
-                                className="p-1.5 sm:p-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                title="Delete"
-                              >
-                                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                              {transaction.receiverFullName === admin?.fullName && (
+                                <button
+                                  onClick={() => openConfirmReceipt(transaction)}
+                                  className="p-1.5 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                                  title={t('confirm_receipt_button') || 'Confirm Receipt'}
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                </button>
+                              )}
+                              {(transaction.senderFullName === admin?.fullName || transaction.receiverFullName === admin?.fullName) && (
+                                <>
+                                  <button
+                                    onClick={() => handleEditClick(transaction)}
+                                    className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                                    title={t('edit_rate') || 'Edit Rate'}
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => openDeleteConfirm(transaction)}
+                                    className="p-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    title={t('delete') || 'Delete'}
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </>
+                              )}
                             </>
                           ) : (
-                            <span className="text-xs text-gray-400 dark:text-gray-600">-</span>
+                            <span className="text-xs text-gray-400 dark:text-gray-600">{t('locked') || 'Locked'}</span>
                           )}
                         </div>
                       </td>
@@ -834,6 +938,79 @@ if (!admin) {
         </div>
       </div>
 
+      {/* Confirm Receipt Popup */}
+      {confirmReceiptOpen && transactionToConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-green-100 dark:bg-green-900/30 rounded-full mb-4">
+              <svg className="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white text-center mb-2">
+              {t('confirm_receipt_of_transaction') || 'Confirm Receipt of Transaction'}
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center mb-4">
+              {t('confirm_receipt_message') || 'Please review the transaction details below and confirm that you have received the funds.'}
+            </p>
+            
+            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-6 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('sender') || 'Sender'}:</span>
+                <span className="font-medium text-gray-900 dark:text-white">{transactionToConfirm.senderFullName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('receiver_label') || 'Receiver'}:</span>
+                <span className="font-medium text-gray-900 dark:text-white">{transactionToConfirm.receiverFullName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('amount_sent') || 'Amount Sent'}:</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {transactionToConfirm.amountSent.toLocaleString()} {transactionToConfirm.currencyFrom}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('amount_received') || 'Amount Received'}:</span>
+                <span className="font-medium text-green-600 dark:text-green-400">
+                  {transactionToConfirm.amountReceived.toLocaleString()} {transactionToConfirm.currencyTo}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600 dark:text-gray-400">{t('rate') || 'Rate'}:</span>
+                <span className="font-medium text-gray-900 dark:text-white font-mono">{transactionToConfirm.conversionRate.toFixed(5)}</span>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={closeConfirmReceipt}
+                disabled={confirming}
+                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              >
+                {t('cancel') || 'Cancel'}
+              </button>
+              <button
+                onClick={() => handleConfirmReceipt(transactionToConfirm._id)}
+                disabled={confirming}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {confirming ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {t('confirming') || 'Confirming'}...
+                  </>
+                ) : (
+                  t('confirm_receipt') || 'Confirm Receipt'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Confirmation Popup */}
       {deleteConfirmOpen && transactionToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -843,29 +1020,29 @@ if (!admin) {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">Delete Transaction?</h3>
+            <h3 className="text-lg font-semibold text-gray-900 text-center mb-2">{t('delete_transaction') || 'Delete Transaction?'}</h3>
             <p className="text-sm text-gray-600 text-center mb-4">
-              This action cannot be undone. The transaction will be permanently removed.
+              {t('delete_transaction_warning') || 'This action cannot be undone. The transaction will be permanently removed.'}
             </p>
             
             <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-600">Sender:</span>
+                <span className="text-gray-600">{t('sender') || 'Sender'}:</span>
                 <span className="font-medium text-gray-900">{transactionToDelete.senderFullName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Receiver:</span>
+                <span className="text-gray-600">{t('receiver_label') || 'Receiver'}:</span>
                 <span className="font-medium text-gray-900">{transactionToDelete.receiverFullName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Amount:</span>
+                <span className="text-gray-600">{t('amount') || 'Amount'}:</span>
                 <span className="font-medium text-gray-900">
-                  {transactionToDelete.senderCurrency} {transactionToDelete.senderAmount} → {transactionToDelete.receiverCurrency} {transactionToDelete.receiverAmount}
+                  {transactionToDelete.currencyFrom} {transactionToDelete.amountSent} → {transactionToDelete.currencyTo} {transactionToDelete.amountReceived}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Rate:</span>
-                <span className="font-medium text-gray-900">{transactionToDelete.exchangeRate}</span>
+                <span className="text-gray-600">{t('rate') || 'Rate'}:</span>
+                <span className="font-medium text-gray-900">{transactionToDelete.conversionRate.toFixed(4)}</span>
               </div>
             </div>
 
@@ -875,7 +1052,7 @@ if (!admin) {
                 disabled={deleting}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
               >
-                Cancel
+                {t('cancel') || 'Cancel'}
               </button>
               <button
                 onClick={() => handleDelete(transactionToDelete._id)}
@@ -888,10 +1065,10 @@ if (!admin) {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    Deleting...
+                    {t('deleting') || 'Deleting'}...
                   </>
                 ) : (
-                  'Delete'
+                  t('delete') || 'Delete'
                 )}
               </button>
             </div>

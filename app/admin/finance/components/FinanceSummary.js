@@ -9,6 +9,7 @@ export default function FinanceSummary({ refreshTrigger }) {
     totalB2B: 0,
     totalB2CAlgeria: 0,
     totalB2CKorea: 0,
+    totalExtraExpenses: 0,
     totalProfit: 0,
     totalEntries: 0,
   });
@@ -19,33 +20,37 @@ export default function FinanceSummary({ refreshTrigger }) {
 
   const fetchSummary = async () => {
     try {
-      const [b2bRes, algeriaRes, koreaRes] = await Promise.all([
+      const [b2bRes, algeriaRes, koreaRes, expensesRes] = await Promise.all([
         fetch('/api/finance?type=B2B'),
         fetch('/api/finance?type=B2C_Algeria'),
         fetch('/api/finance?type=B2C_Korea'),
+        fetch('/api/finance?type=EXTRA_EXPENSES'),
       ]);
 
       const b2bData = b2bRes.ok ? await b2bRes.json() : [];
       const algeriaData = algeriaRes.ok ? await algeriaRes.json() : [];
       const koreaData = koreaRes.ok ? await koreaRes.json() : [];
+      const expensesData = expensesRes.ok ? await expensesRes.json() : [];
 
       const totalB2B = b2bData.reduce((sum, entry) => sum + entry.netProfit, 0);
       const totalB2CAlgeria = algeriaData.reduce((sum, entry) => sum + entry.netProfit, 0);
       const totalB2CKorea = koreaData.reduce((sum, entry) => sum + entry.netProfit, 0);
+      const totalExtraExpenses = expensesData.reduce((sum, entry) => sum + (entry.fields.amount || 0), 0);
 
       setSummary({
         totalB2B,
         totalB2CAlgeria,
         totalB2CKorea,
+        totalExtraExpenses,
         totalProfit: totalB2B + totalB2CAlgeria + totalB2CKorea,
-        totalEntries: b2bData.length + algeriaData.length + koreaData.length,
+        totalEntries: b2bData.length + algeriaData.length + koreaData.length + expensesData.length,
       });
     } catch (error) {
       console.error('Error fetching summary:', error);
     }
   };
 
-  const cards = [
+  const profitCards = [
     {
       title: t('b2b_profit') || 'B2B Profit',
       value: summary.totalB2B,
@@ -98,40 +103,64 @@ export default function FinanceSummary({ refreshTrigger }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {cards.map((card, index) => (
-        <div
-          key={index}
-          className={`${card.bgColor} rounded-xl p-6 border-2 ${
-            card.highlight
-              ? 'border-orange-200 dark:border-orange-800 shadow-lg'
-              : 'border-transparent'
-          } transition-all hover:shadow-xl hover:scale-105 duration-300`}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${card.color} text-white shadow-lg`}>
-              {card.icon}
+    <div className="space-y-6 mb-8">
+      {/* Profit Cards Row */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {profitCards.map((card, index) => (
+          <div
+            key={index}
+            className={`${card.bgColor} rounded-xl p-6 border-2 ${
+              card.highlight
+                ? 'border-orange-200 dark:border-orange-800 shadow-lg'
+                : 'border-transparent'
+            } transition-all hover:shadow-xl hover:scale-105 duration-300`}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className={`p-3 rounded-xl bg-gradient-to-br ${card.color} text-white shadow-lg`}>
+                {card.icon}
+              </div>
+              {card.highlight && (
+                <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 text-xs font-bold rounded-full">
+                  {t('total') || 'TOTAL'}
+                </span>
+              )}
             </div>
-            {card.highlight && (
-              <span className="px-3 py-1 bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400 text-xs font-bold rounded-full">
-                {t('total') || 'TOTAL'}
-              </span>
-            )}
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{card.title}</p>
+              <p
+                className={`text-2xl font-bold ${
+                  card.value >= 0
+                    ? card.textColor
+                    : 'text-red-600 dark:text-red-400'
+                }`}
+              >
+                {card.value.toLocaleString()}DA
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{card.title}</p>
-            <p
-              className={`text-2xl font-bold ${
-                card.value >= 0
-                  ? card.textColor
-                  : 'text-red-600 dark:text-red-400'
-              }`}
-            >
-              {card.value.toLocaleString()}DA
-            </p>
+        ))}
+      </div>
+
+      {/* Extra Expenses Row */}
+      <div className="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 border-2 border-transparent transition-all hover:shadow-xl hover:scale-[1.02] duration-300">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 text-white shadow-lg">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                {t('total_extra_expenses') || 'Total Extra Expenses'}
+              </p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
+                {summary.totalExtraExpenses.toLocaleString()}DA
+              </p>
+            </div>
           </div>
         </div>
-      ))}
+      </div>
     </div>
   );
 }

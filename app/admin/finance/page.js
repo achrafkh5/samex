@@ -9,6 +9,7 @@ import B2BSection from './components/B2BSection';
 import B2CAlgeriaSection from './components/B2CAlgeriaSection';
 import B2CKoreaSection from './components/B2CKoreaSection';
 import OnlineSalesSection from './components/OnlineSalesSection';
+import ExtraExpensesSection from './components/ExtraExpensesSection';
 import FinanceSummary from './components/FinanceSummary';
 
 export default function FinancePage() {
@@ -44,7 +45,7 @@ export default function FinancePage() {
     { id: 'b2b', label: t('b2b_title') || 'B2B' },
     { id: 'b2c_algeria', label: t('b2c_algeria_title') || 'B2C Algeria' },
     { id: 'b2c_korea', label: t('b2c_korea_title') || 'B2C Korea' },
-    
+    { id: 'extra_expenses', label: t('extra_expenses_title') || 'Extra Expenses' },
   ];
 
   const handleDataChange = () => {
@@ -111,7 +112,7 @@ export default function FinancePage() {
           {activeTab === 'b2b' && <B2BSection onDataChange={handleDataChange} />}
           {activeTab === 'b2c_algeria' && <B2CAlgeriaSection onDataChange={handleDataChange} />}
           {activeTab === 'b2c_korea' && <B2CKoreaSection onDataChange={handleDataChange} />}
-          
+          {activeTab === 'extra_expenses' && <ExtraExpensesSection onDataChange={handleDataChange} />}
         </div>
         </div>
       </div>

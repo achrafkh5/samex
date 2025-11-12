@@ -42,6 +42,35 @@ export default function CarsModule() {
   const [features, setFeatures] = useState([]);
   const [newFeature, setNewFeature] = useState('');
   
+  // Predefined features list
+  const predefinedFeatures = [
+    'ledHeadlights',
+    'halogenHeadlights',
+    'rearviewCamera',
+    'parkingSensors',
+    'multimediaScreen10Inch',
+    'multimediaScreen3Inch',
+    'heatedVentilatedSeats',
+    'heatedSeats',
+    'foldingElectricMirrors',
+    'electricRearWindows',
+    'darkTintedRearWindows',
+    'heatedSteeringWheel',
+    'alloyWheels',
+    'electricFrontWindows',
+    'fogLights',
+    'driverAirbag',
+    'passengerAirbag',
+    'bluetooth',
+    'usbPort',
+    'absEsp',
+    'frontArmrest',
+    'leatherLounge',
+    'automaticClimateControl',
+    'manualAirConditioning',
+    'camera360Degree'
+  ];
+  
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
@@ -244,6 +273,15 @@ if(cars?.length>0){
   // Remove feature
   const removeFeature = (feature) => {
     setFeatures(features.filter(f => f !== feature));
+  };
+  
+  // Toggle predefined feature
+  const togglePredefinedFeature = (featureKey) => {
+    setFeatures(prev => 
+      prev.includes(featureKey)
+        ? prev.filter(f => f !== featureKey)
+        : [...prev, featureKey]
+    );
   };
 
   // Handle step navigation
@@ -1257,72 +1295,109 @@ if(cars?.length>0){
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                     {t('carFeatures') || 'Car Features'}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    {t('addFeaturesManually') || 'Add features manually. Examples: Sunroof, Leather Seats, Navigation System, etc.'}
-                  </p>
-
-                  {/* Add Feature Input */}
-                  <div className="flex space-x-2 mb-4">
-                    <input
-                      type="text"
-                      value={newFeature}
-                      onChange={(e) => setNewFeature(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                      placeholder="Enter a feature..."
-                      className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={addFeature}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Features List */}
-                  {features.length > 0 ? (
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                      {features.map((feature, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                  
+                  {/* Predefined Features Checkboxes */}
+                  <div className="mb-6">
+                    <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      {t('selectStandardFeatures') || 'Select Standard Features'}
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {predefinedFeatures.map((featureKey) => (
+                        <label
+                          key={featureKey}
+                          className={`flex items-center p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                            features.includes(featureKey)
+                              ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20'
+                              : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                          }`}
                         >
-                          <div className="flex items-center space-x-3">
-                            <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                          <input
+                            type="checkbox"
+                            checked={features.includes(featureKey)}
+                            onChange={() => togglePredefinedFeature(featureKey)}
+                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 mr-3"
+                          />
+                          <span className="text-sm font-medium text-gray-900 dark:text-white flex-1">
+                            {t(featureKey)}
+                          </span>
+                          {features.includes(featureKey) && (
+                            <svg className="w-5 h-5 text-blue-600 ml-2" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                             </svg>
-                            <span className="text-gray-900 dark:text-white font-medium">{feature}</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => removeFeature(feature)}
-                            className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-1 rounded transition-colors"
-                          >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
+                          )}
+                        </label>
                       ))}
                     </div>
-                  ) : (
-                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                      <svg className="w-16 h-16 mx-auto mb-3 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <p>{t('noFeatures') || "No features added yet"}</p>
-                      <p className="text-sm mt-1">{t('startAddingFeatures') || "Start adding features to describe your car"}</p>
-                    </div>
-                  )}
-                  
-                  {features.length > 0 && (
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-3">
-                      {features.length} feature(s) added
+                      {features.filter(f => predefinedFeatures.includes(f)).length} {t('standardFeaturesSelected') || 'standard feature(s) selected'}
                     </p>
-                  )}
+                  </div>
+
+                  {/* Custom Features */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      {t('addCustomFeatures') || 'Add Custom Features'}
+                    </h4>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                      {t('addFeaturesManually') || 'Add additional features not listed above. Examples: Sunroof, Leather Seats, Navigation System, etc.'}
+                    </p>
+
+                    {/* Add Custom Feature Input */}
+                    <div className="flex space-x-2 mb-4">
+                      <input
+                        type="text"
+                        value={newFeature}
+                        onChange={(e) => setNewFeature(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
+                        placeholder={t('enterCustomFeature') || 'Enter a custom feature...'}
+                        className="flex-1 px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={addFeature}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Custom Features List */}
+                    {features.filter(f => !predefinedFeatures.includes(f)).length > 0 && (
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {features.filter(f => !predefinedFeatures.includes(f)).map((feature, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                          >
+                            <div className="flex items-center space-x-3">
+                              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                              <span className="text-gray-900 dark:text-white font-medium">{feature}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => removeFeature(feature)}
+                              className="text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 p-1 rounded transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Total Features Count */}
+                  <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {t('totalFeatures') || 'Total Features'}: <span className="text-blue-600 dark:text-blue-400">{features.length}</span>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex space-x-3 pt-4">

@@ -128,10 +128,9 @@ export async function GET(request) {
   }
 }
 
-// POST - Create new transaction with currency conversion
+
 export async function POST(request) {
   try {
-    // Verify admin authentication
     await verifyAdmin();
 
     const client = await clientPromise;
@@ -161,6 +160,7 @@ export async function POST(request) {
       amountSent: parseFloat(amountSent),
       amountReceived: conversion.convertedAmount,
       conversionRate: conversion.rate,
+      confirmedByReceiver: false,
       createdAt: new Date(),
     };
 
@@ -187,7 +187,7 @@ export async function POST(request) {
 export async function PUT(request) {
   try {
     // Verify admin authentication
-    await verifyAdmin();
+    const adminData = await verifyAdmin();
 
     const client = await clientPromise;
     const db = client.db('dreamcars');
@@ -212,7 +212,11 @@ export async function PUT(request) {
 
     // Recalculate amountReceived based on new rate
     const newAmountReceived = transaction.amountSent * parseFloat(conversionRate);
-
+    
+    // Get admin name from database
+    const adminName = adminData ? await db.collection('admins').findOne({ email: adminData.email }) : null;
+    const editorName = adminName?.name || adminName?.fullName || adminData?.name || adminData?.email || 'Unknown';
+    
     // Update the transaction
     const result = await db.collection('transactions').updateOne(
       { _id: new ObjectId(id) },
@@ -222,6 +226,7 @@ export async function PUT(request) {
           amountReceived: Math.round(newAmountReceived * 100) / 100,
           isEdited: true,
           editedAt: new Date(),
+          editedBy: editorName,
         },
       }
     );
@@ -238,6 +243,7 @@ export async function PUT(request) {
         amountReceived: Math.round(newAmountReceived * 100) / 100,
         isEdited: true,
         editedAt: new Date(),
+        editedBy: editorName,
       },
     });
   } catch (error) {
@@ -277,5 +283,64 @@ export async function DELETE(request) {
       return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
     }
     return NextResponse.json({ error: 'Failed to delete transaction' }, { status: 500 });
+  }
+}
+
+// PATCH - Confirm transaction by receiver
+export async function PATCH(request) {
+  try {
+    // Verify admin authentication
+    await verifyAdmin();
+
+    const client = await clientPromise;
+    const db = client.db('dreamcars');
+    const body = await request.json();
+
+    const { id } = body;
+
+    if (!id) {
+      return NextResponse.json({ error: 'ID is required' }, { status: 400 });
+    }
+
+    // Find the transaction first
+    const transaction = await db.collection('transactions').findOne({ _id: new ObjectId(id) });
+
+    if (!transaction) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    }
+
+    if (transaction.confirmedByReceiver) {
+      return NextResponse.json({ error: 'Transaction already confirmed' }, { status: 400 });
+    }
+
+    // Update the transaction to mark as confirmed
+    const result = await db.collection('transactions').updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          confirmedByReceiver: true,
+          confirmedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      message: 'Transaction confirmed successfully',
+      transaction: {
+        ...transaction,
+        confirmedByReceiver: true,
+        confirmedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error('Error confirming transaction:', error);
+    if (error.message.includes("authenticated") || error.message.includes("token")) {
+      return NextResponse.json({ error: 'Unauthorized - Admin access required' }, { status: 401 });
+    }
+    return NextResponse.json({ error: 'Failed to confirm transaction' }, { status: 500 });
   }
 }

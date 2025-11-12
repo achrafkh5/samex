@@ -159,6 +159,22 @@ export default function OrdersModule() {
      return matchesSearch && matchesDate;
    });
   }
+
+  // Calculate stats from FILTERED orders
+  let totalRevenue = 0;
+  let pendingOrders = 0;
+  let deliveredOrders = 0;
+  let paidOrdersCount = 0;
+  if(filteredOrders?.length > 0) {
+    totalRevenue = filteredOrders?.reduce(
+      (sum, order) => sum + Number(order?.paymentAmount || 0),
+      0
+    );
+    pendingOrders = filteredOrders?.filter(o => o?.status === 'pending')?.length;
+    deliveredOrders = filteredOrders?.filter(o => o?.status === 'delivered')?.length;
+    paidOrdersCount = filteredOrders?.filter(o => o?.status === 'paid')?.length;
+  }
+
   const updateStatus = async(id, newStatus) => {
     try {
       const response = await fetch(`/api/admin/orders/${id}`, {
@@ -260,17 +276,6 @@ export default function OrdersModule() {
         return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400';
     }
   };
-let totalRevenue = 0;
-let pendingOrders = 0;
-let deliveredOrders = 0;
-if(orders?.length > 0) {
-   totalRevenue = orders?.reduce(
-  (sum, order) => sum + Number(order?.paymentAmount || 0),
-  0
-);
-   pendingOrders = orders?.filter(o => o?.status === 'pending')?.length;
-  deliveredOrders = orders?.filter(o => o?.status === 'delivered')?.length;
-}
 
 
   return (
@@ -345,7 +350,7 @@ if(orders?.length > 0) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-blue-100 text-sm font-medium mb-1">{t('totalOrders') || 'Total Orders'}</p>
-              <p className="text-3xl font-bold">{orders?.length}</p>
+              <p className="text-3xl font-bold">{filteredOrders?.length}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -386,8 +391,8 @@ if(orders?.length > 0) {
         <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-purple-100 text-sm font-medium mb-1">{t('totalRevenue') || 'Total Revenue'}</p>
-              <p className="text-3xl font-bold">{(totalRevenue / 1000).toFixed(0)}K DZD</p>
+              <p className="text-purple-100 text-sm font-medium mb-1">{t('paidOrders') || 'Paid Orders'}</p>
+              <p className="text-3xl font-bold">{paidOrdersCount}</p>
             </div>
             <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -585,7 +590,13 @@ if(orders?.length > 0) {
                       {selectedOrder.paymentAmount?.toLocaleString()} DZD
                     </p>
                   </div>
-                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
+                      {t('color') || 'Color'}
+                    </label>
+                    <p className="text-gray-900 dark:text-white">{selectedOrder.selectedColor}</p>
+                  </div>
+
                   {/* Container Tracking Section */}
                   {selectedOrder.status === 'paid' && (
                     <div className="col-span-2">

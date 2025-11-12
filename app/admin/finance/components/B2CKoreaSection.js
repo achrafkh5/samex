@@ -16,6 +16,8 @@ export default function B2CKoreaSection({ onDataChange }) {
   const [dateFilter, setDateFilter] = useState('all');
   
   const [formData, setFormData] = useState({
+    clientName: '',
+    carModel: '',
     auctionFees: '',
     transportFees: '',
     buyingCosts: '',
@@ -70,6 +72,8 @@ export default function B2CKoreaSection({ onDataChange }) {
     const payload = {
       type: 'B2C_Korea',
       fields: {
+        clientName: formData.clientName,
+        carModel: formData.carModel,
         auctionFees: parseFloat(formData.auctionFees),
         transportFees: parseFloat(formData.transportFees),
         buyingCosts: parseFloat(formData.buyingCosts),
@@ -115,6 +119,8 @@ export default function B2CKoreaSection({ onDataChange }) {
 
   const handleEdit = (entry) => {
     setFormData({
+      clientName: entry.fields.clientName || '',
+      carModel: entry.fields.carModel || '',
       auctionFees: entry.fields.auctionFees.toString(),
       transportFees: entry.fields.transportFees.toString(),
       buyingCosts: entry.fields.buyingCosts.toString(),
@@ -157,6 +163,8 @@ export default function B2CKoreaSection({ onDataChange }) {
 
   const resetForm = () => {
     setFormData({
+      clientName: '',
+      carModel: '',
       auctionFees: '',
       transportFees: '',
       buyingCosts: '',
@@ -260,6 +268,35 @@ export default function B2CKoreaSection({ onDataChange }) {
             {editingId ? (t('edit_entry') || 'Edit Entry') : (t('add_new_entry') || 'Add New Entry')}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('client_name') || 'Client Name'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.clientName}
+                  onChange={(e) => setFormData({ ...formData, clientName: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  placeholder={t('enter_client_name') || 'Enter client name'}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  {t('car_model') || 'Car Model'}
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.carModel}
+                  onChange={(e) => setFormData({ ...formData, carModel: e.target.value })}
+                  className="w-full px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+                  placeholder={t('enter_car_model') || 'Enter car model'}
+                />
+              </div>
+            </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -364,34 +401,31 @@ export default function B2CKoreaSection({ onDataChange }) {
       {/* Entries Table */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-gray-900">
               <tr>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('auction_fees') || 'Auction Fees'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('client_name') || 'Client'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('transport_fees') || 'Transport Fees'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('car_model') || 'Model'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('buying_costs') || 'Buying Costs'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('buying_costs') || 'Buying'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('papers_fees') || 'Papers Fees'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('selling_price') || 'Selling'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('selling_price') || 'Selling Price'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('total_cost') || 'Total Cost'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('other_fees') || 'Other Fees'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('alkoca_revenue') || 'Revenue'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('alkoca_revenue') || 'Revenue (8.8%)'}
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  {t('net_profit') || 'Profit'}
                 </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  {t('net_profit') || 'Net Profit'}
-                </th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <th className="text-left py-3 px-3 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   {t('actions') || 'Actions'}
                 </th>
               </tr>
@@ -399,48 +433,45 @@ export default function B2CKoreaSection({ onDataChange }) {
             <tbody>
               {filteredEntries.length === 0 ? (
                 <tr>
-                  <td colSpan="9" className="py-8 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan="8" className="py-8 text-center text-gray-500 dark:text-gray-400">
                     {t('no_entries') || 'No entries yet. Add your first car sale.'}
                   </td>
                 </tr>
               ) : (
                 filteredEntries.map((entry) => (
                   <tr key={entry._id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td className="py-4 px-6 text-gray-900 dark:text-white">
-                      {entry.fields.auctionFees.toLocaleString()}DA
+                    <td className="py-3 px-3 text-gray-900 dark:text-white font-medium">
+                      {entry.fields.clientName || '-'}
                     </td>
-                    <td className="py-4 px-6 text-gray-900 dark:text-white">
-                      {entry.fields.transportFees.toLocaleString()}DA
+                    <td className="py-3 px-3 text-gray-900 dark:text-white">
+                      {entry.fields.carModel || '-'}
                     </td>
-                    <td className="py-4 px-6 text-gray-900 dark:text-white">
+                    <td className="py-3 px-3 text-gray-900 dark:text-white whitespace-nowrap">
                       {entry.fields.buyingCosts.toLocaleString()}DA
                     </td>
-                    <td className="py-4 px-6 text-gray-900 dark:text-white">
-                      {entry.fields.papersFees.toLocaleString()}DA
-                    </td>
-                    <td className="py-4 px-6 text-blue-600 dark:text-blue-400 font-semibold">
+                    <td className="py-3 px-3 text-blue-600 dark:text-blue-400 font-semibold whitespace-nowrap">
                       {entry.fields.sellingPrice.toLocaleString()}DA
                     </td>
-                    <td className="py-4 px-6 text-gray-900 dark:text-white">
-                      {(entry.fields.otherFees || 0).toLocaleString()}DA
+                    <td className="py-3 px-3 text-gray-900 dark:text-white whitespace-nowrap">
+                      {entry.totalCost.toLocaleString()}DA
                     </td>
-                    <td className="py-4 px-6 text-green-600 dark:text-green-400 font-semibold">
+                    <td className="py-3 px-3 text-green-600 dark:text-green-400 font-semibold whitespace-nowrap">
                       {entry.fields.alcocaRevenue.toLocaleString()}DA
                     </td>
-                    <td className={`py-4 px-6 font-semibold ${entry.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    <td className={`py-3 px-3 font-semibold whitespace-nowrap ${entry.netProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {entry.netProfit.toLocaleString()}DA
                     </td>
-                    <td className="py-4 px-6">
-                      <div className="flex gap-2">
+                    <td className="py-3 px-3">
+                      <div className="flex gap-1">
                         <button
                           onClick={() => handleEdit(entry)}
-                          className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+                          className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors text-xs"
                         >
                           {t('edit') || 'Edit'}
                         </button>
                         <button
                           onClick={() => openDeleteConfirm(entry)}
-                          className="px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
+                          className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-xs"
                         >
                           {t('delete') || 'Delete'}
                         </button>
@@ -450,13 +481,13 @@ export default function B2CKoreaSection({ onDataChange }) {
                 ))
               )}
             </tbody>
-            {entries.length > 0 && (
+            {filteredEntries.length > 0 && (
               <tfoot className="bg-gray-50 dark:bg-gray-900">
                 <tr>
-                  <td colSpan="7" className="py-4 px-6 text-right font-bold text-gray-900 dark:text-white">
+                  <td colSpan="6" className="py-3 px-3 text-right font-bold text-gray-900 dark:text-white">
                     {t('total_net_profit') || 'Total Net Profit:'}
                   </td>
-                  <td className={`py-4 px-6 font-bold text-lg ${totalNetProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                  <td className={`py-3 px-3 font-bold text-base whitespace-nowrap ${totalNetProfit >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                     {totalNetProfit.toLocaleString()}DA
                   </td>
                   <td></td>
