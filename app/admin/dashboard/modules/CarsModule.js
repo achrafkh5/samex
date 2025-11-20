@@ -191,11 +191,6 @@ if(cars?.length>0){
   // Handle image upload to Cloudinary
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    
-    if (carImages.length + files.length > 5) {
-      showToastMessage('Maximum 5 images allowed');
-      return;
-    }
 
     setUploadingImages(true);
 
@@ -250,6 +245,33 @@ if(cars?.length>0){
     // Remove from local state
     setCarImages(carImages.filter((_, i) => i !== index));
     showToastMessage('Image removed');
+  };
+
+  // Handle drag start
+  const handleDragStart = (e, index) => {
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', index);
+  };
+
+  // Handle drag over
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // Handle drop
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    const dragIndex = parseInt(e.dataTransfer.getData('text/html'));
+    
+    if (dragIndex === dropIndex) return;
+    
+    const newImages = [...carImages];
+    const draggedImage = newImages[dragIndex];
+    newImages.splice(dragIndex, 1);
+    newImages.splice(dropIndex, 0, draggedImage);
+    
+    setCarImages(newImages);
   };
 
   // Toggle color selection
@@ -876,13 +898,20 @@ if(cars?.length>0){
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    {t('uploadCarPhotos') || 'Upload Car Photos'} (Max 5)
+                    {t('uploadCarPhotos') || 'Upload Car Photos'}
                   </h3>
                   
                   {/* Image Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                     {carImages.map((url, index) => (
-                      <div key={index} className="relative group">
+                      <div
+                        key={index}
+                        className="relative group cursor-move"
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragOver={handleDragOver}
+                        onDrop={(e) => handleDrop(e, index)}
+                      >
                         <div className="relative w-full h-48">
                           <Image
                             src={url}
@@ -894,50 +923,56 @@ if(cars?.length>0){
                         </div>
                         <button
                           onClick={() => removeImage(index)}
-                          className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
+                        <div className="absolute top-2 left-2 bg-black/50 text-white p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                          </svg>
+                        </div>
                         {index === 0 && (
                           <span className="absolute bottom-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
                             {t('primary') || 'Primary'}
                           </span>
                         )}
+                        <span className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                          #{index + 1}
+                        </span>
                       </div>
                     ))}
                     
                     {/* Add Photo Button */}
-                    {carImages.length < 5 && (
-                      <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-600 dark:hover:border-blue-400 transition-colors">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={handleImageUpload}
-                          disabled={uploadingImages}
-                          className="hidden"
-                        />
-                        {uploadingImages ? (
-                          <div className="flex flex-col items-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Uploading...</span>
-                          </div>
-                        ) : (
-                          <>
-                            <svg className="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            <span className="text-sm text-gray-500 dark:text-gray-400">Add Photo</span>
-                          </>
-                        )}
-                      </label>
-                    )}
+                    <label className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-blue-600 dark:hover:border-blue-400 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleImageUpload}
+                        disabled={uploadingImages}
+                        className="hidden"
+                      />
+                      {uploadingImages ? (
+                        <div className="flex flex-col items-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Uploading...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <svg className="w-12 h-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          <span className="text-sm text-gray-500 dark:text-gray-400">Add Photo</span>
+                        </>
+                      )}
+                    </label>
                   </div>
                   
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {carImages.length} {t('firstPhotoWillBePrimary') || 'out of 5 photos uploaded. First photo will be the primary display image.'}
+                    {carImages.length} {t('photosUploaded') || 'photo(s) uploaded. Drag to reorder. First photo will be the primary display image.'}
                   </p>
                 </div>
 
