@@ -182,8 +182,8 @@ const pendingPayments = filteredPayments
                 filteredPayments?.map((payment) => (
                 <tr key={payment._id} className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30">
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">#{payment._id}</td>
-                  <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{clientsMap[payment.clientId].fullName}</td>
-                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{carsMap[payment.selectedCarId].brand} {carsMap[payment.selectedCarId].model}</td>
+                  <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">{clientsMap[payment.clientId]?.fullName || 'N/A'}</td>
+                  <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{carsMap[payment.selectedCarId]?.brand} {carsMap[payment.selectedCarId]?.model}</td>
                   <td className="py-4 px-6 text-sm font-semibold text-gray-900 dark:text-white">{payment.paymentAmount?.toLocaleString()} DZD</td>
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{payment.paymentMethod}</td>
                   <td className="py-4 px-6 text-sm text-gray-600 dark:text-gray-400">{new Date(payment.createdAt).toLocaleDateString()}</td>
